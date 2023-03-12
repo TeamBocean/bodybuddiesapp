@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/widgets/logo.dart';
 import 'package:flutter/material.dart';
 
 class SignInPage extends StatefulWidget {
@@ -10,6 +11,19 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return MaterialApp(
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Logo(assetName: "logo.png"),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
