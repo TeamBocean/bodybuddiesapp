@@ -39,7 +39,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 backgroundColor: background,
                 icon: Icon(
                   Icons.home,
-                  color: Color(0xffC0FE6C),
+                  color: green,
                 ),
                 label: "Home",
               ),
@@ -47,7 +47,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 backgroundColor: background,
                 icon: Icon(
                   Icons.calendar_month,
-                  color: Color(0xffC0FE6C),
+                  color: green,
                 ),
                 label: "Bookings",
               ),
@@ -55,7 +55,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 backgroundColor: background,
                 icon: Icon(
                   Icons.calendar_month,
-                  color: Color(0xffC0FE6C),
+                  color: green,
                 ),
                 label: "Nutrition",
               ),
@@ -63,7 +63,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 backgroundColor: background,
                 icon: Icon(
                   Icons.manage_accounts,
-                  color: Color(0xffC0FE6C),
+                  color: green,
                 ),
                 label: "Account",
               ),
