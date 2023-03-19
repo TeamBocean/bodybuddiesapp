@@ -2,6 +2,8 @@ import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/logo.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_signin_button/button_list.dart';
+import 'package:flutter_signin_button/button_view.dart';
 
 import '../utils/colors.dart';
 
@@ -24,14 +26,34 @@ class _SignInPageState extends State<SignInPage> {
           children: [
             Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.only(top: Dimensions.height30),
-                  child: Center(child: Logo(assetName: 'logo.png')),
-                ),
+                Center(child: Logo(assetName: 'logo.png')),
                 welcomeMessage(),
               ],
             ),
-            signInForm()
+            signInForm(),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    MediumTextWidget(
+                      text: "New to BodyBuilders?",
+                      fontSize: Dimensions.fontSize12,
+                    ),
+                    MediumTextWidget(
+                      text: "Join Now",
+                      fontSize: Dimensions.fontSize12,
+                      color: Colors.teal,
+                    ),
+                  ],
+                ),
+                SignInButton(Buttons.GoogleDark, onPressed: () {}),
+                SignInButton(
+                  Buttons.AppleDark,
+                  onPressed: () {},
+                ),
+              ],
+            )
           ],
         ),
       ),
@@ -46,6 +68,9 @@ class _SignInPageState extends State<SignInPage> {
           child: Column(
         children: [
           textFormField("Email", Icons.email),
+          SizedBox(
+            height: Dimensions.height10,
+          ),
           textFormField("Password", Icons.password),
           SizedBox(
             height: Dimensions.height14,
@@ -59,7 +84,10 @@ class _SignInPageState extends State<SignInPage> {
             width: Dimensions.width10 * 20,
             child: ElevatedButton(
               onPressed: () {},
-              style: ElevatedButton.styleFrom(primary: darkGreen),
+              style: ElevatedButton.styleFrom(
+                  primary: darkGreen,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(Dimensions.width10))),
               child: MediumTextWidget(
                 text: "Login",
               ),
