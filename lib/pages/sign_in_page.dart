@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/logo.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +13,10 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(backgroundColor: background),
       home: Scaffold(
+        backgroundColor: background,
         body: SafeArea(
           child: Center(
             child: Column(
