@@ -1,4 +1,4 @@
-import 'package:bodybuddiesapp/pages/sign_in_page.dart';
+import 'package:bodybuddiesapp/pages/main_scaffold.dart';
 import 'package:flutter/material.dart';
 
 void main() {
