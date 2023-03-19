@@ -19,15 +19,77 @@ class _SignInPageState extends State<SignInPage> {
       backgroundColor: background,
       body: SafeArea(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: EdgeInsets.only(top: Dimensions.height30),
-              child: Center(child: Logo(assetName: 'logo.png')),
+            Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(top: Dimensions.height30),
+                  child: Center(child: Logo(assetName: 'logo.png')),
+                ),
+                welcomeMessage(),
+              ],
             ),
-            welcomeMessage()
+            signInForm()
           ],
         ),
+      ),
+    );
+  }
+
+  Widget signInForm() {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: Dimensions.width24 + Dimensions.width10),
+      child: Form(
+          child: Column(
+        children: [
+          textFormField("Email", Icons.email),
+          textFormField("Password", Icons.password),
+          SizedBox(
+            height: Dimensions.height14,
+          ),
+          MediumTextWidget(
+            text: "Forgot Password?",
+            fontSize: Dimensions.fontSize12,
+            color: Colors.white,
+          ),
+          SizedBox(
+            width: Dimensions.width10 * 20,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(primary: darkGreen),
+              child: MediumTextWidget(
+                text: "Login",
+              ),
+            ),
+          )
+        ],
+      )),
+    );
+  }
+
+  Widget textFormField(String hint, IconData iconData) {
+    return TextFormField(
+      cursorColor: Colors.white,
+      decoration: InputDecoration(
+        prefixIcon: Icon(
+          iconData,
+          color: Colors.white,
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: Colors.grey,
+          ),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: green,
+          ),
+        ),
+        hintStyle: TextStyle(color: Colors.grey),
+        hintText: hint,
       ),
     );
   }
@@ -45,7 +107,7 @@ class _SignInPageState extends State<SignInPage> {
         ),
         MediumTextWidget(
           text: "Plan your workout with Mark",
-          fontSize: Dimensions.fontSize12,
+          fontSize: Dimensions.fontSize13,
           color: Colors.grey,
         ),
       ],
