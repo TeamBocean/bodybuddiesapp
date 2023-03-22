@@ -23,13 +23,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
           splashColor: Colors.transparent,
         ),
         child: Container(
-          height: 90,
+          height: 95,
           child: BottomNavigationBar(
             backgroundColor: Color(0xff2B2B2B),
             onTap: onTabTapped,
             currentIndex: widget.currentIndex,
             selectedLabelStyle: TextStyle(color: Colors.white),
-            unselectedLabelStyle: TextStyle(color: Colors.white),
+            unselectedLabelStyle: TextStyle(color: Colors.white, fontSize: Dimensions.fontSize12),
             selectedItemColor: Colors.white,
             type: BottomNavigationBarType.fixed,
             unselectedItemColor: Colors.white,
