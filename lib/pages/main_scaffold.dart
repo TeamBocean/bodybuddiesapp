@@ -1,4 +1,5 @@
 import 'package:bodybuddiesapp/pages/home_page.dart';
+import 'package:bodybuddiesapp/pages/profile_page.dart';
 import 'package:bodybuddiesapp/pages/sign_in_page.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/bottom_nav_bar.dart';
@@ -26,7 +27,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       HomePage(),
       BookingsPage(),
       HomePage(),
-      HomePage(),
+      ProfilePage(),
     ];
     _controller = PageController(initialPage: 0);
     super.initState();
