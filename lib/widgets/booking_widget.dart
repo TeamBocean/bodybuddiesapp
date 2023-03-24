@@ -15,7 +15,7 @@ class _BookingWidgetState extends State<BookingWidget> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: Dimensions.width15, vertical: Dimensions.height15),
+          horizontal: Dimensions.width15, vertical: Dimensions.height10/2),
       child: SizedBox(
         width: MediaQuery.of(context).size.width,
         height: Dimensions.height10 * 12,
