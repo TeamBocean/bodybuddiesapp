@@ -1,5 +1,6 @@
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
+import 'package:bodybuddiesapp/widgets/booking_dialog.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -98,10 +99,11 @@ class _BookingWidgetState extends State<BookingWidget> {
                         SizedBox(
                           width: Dimensions.width15 * 4.5,
                           height: Dimensions.height10 * 2,
-                          child: Card(
-                            margin: EdgeInsets.all(0),
-                            elevation: 0,
-                            color: Colors.white,
+                          child: ElevatedButton(
+                            onPressed: () => bookingDialog(context),
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.white
+                            ),
                             child: Center(
                               child: MediumTextWidget(
                                 text: "Book",
