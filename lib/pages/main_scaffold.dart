@@ -38,27 +38,28 @@ class _MainScaffoldState extends State<MainScaffold> {
     return GetMaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(backgroundColor: background, fontFamily: 'Satoshi'),
-        // home: SignInPage(),
-        home: Scaffold(
-          backgroundColor: background,
-          body: Stack(
-            children: [
-              PageView(
-                physics: NeverScrollableScrollPhysics(),
-                children: pages,
-                controller: _controller,
-                onPageChanged: (page) {
-                  setState(() {
-                    currentIndex = page;
-                  });
-                },
-              ),
-              BottomNavBar(
-                currentIndex: currentIndex,
-                controller: _controller,
-              )
-            ],
-          ),
-        ));
+        home: SignInPage(),
+        // home: Scaffold(
+        //   backgroundColor: background,
+        //   body: Stack(
+        //     children: [
+        //       PageView(
+        //         physics: NeverScrollableScrollPhysics(),
+        //         children: pages,
+        //         controller: _controller,
+        //         onPageChanged: (page) {
+        //           setState(() {
+        //             currentIndex = page;
+        //           });
+        //         },
+        //       ),
+        //       BottomNavBar(
+        //         currentIndex: currentIndex,
+        //         controller: _controller,
+        //       )
+        //     ],
+        //   ),
+        // )
+    );
   }
 }

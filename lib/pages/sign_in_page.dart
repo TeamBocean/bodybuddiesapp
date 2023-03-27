@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
 
+import '../services/authentication.dart';
 import '../utils/colors.dart';
 
 class SignInPage extends StatefulWidget {
@@ -48,9 +49,24 @@ class _SignInPageState extends State<SignInPage> {
                   ],
                 ),
                 SignInButton(Buttons.GoogleDark, onPressed: () {}),
-                SignInButton(
-                  Buttons.AppleDark,
-                  onPressed: () {},
+                FutureBuilder(
+                  future: Authentication.initializeFirebase(context: context),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error initializing Firebase');
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      return SignInButton(
+                        Buttons.AppleDark,
+                        onPressed: () {},
+                      );
+                    }
+                    return const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.orange,
+                      ),
+                    );
+                  },
                 ),
               ],
             )
