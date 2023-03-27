@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/services/authentication.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/booking_dialog.dart';
@@ -100,7 +101,8 @@ class _BookingWidgetState extends State<BookingWidget> {
                           width: Dimensions.width15 * 4.5,
                           height: Dimensions.height10 * 2,
                           child: ElevatedButton(
-                            onPressed: () => bookingDialog(context),
+                            onPressed: () => Authentication.signOut(context: context),
+                            // onPressed: () => bookingDialog(context),
                             style: ElevatedButton.styleFrom(
                               primary: Colors.white
                             ),

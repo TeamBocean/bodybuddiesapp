@@ -1,4 +1,5 @@
 import 'package:bodybuddiesapp/utils/dimensions.dart';
+import 'package:bodybuddiesapp/widgets/google_sign_in_btn.dart';
 import 'package:bodybuddiesapp/widgets/logo.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
@@ -48,26 +49,8 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                   ],
                 ),
-                SignInButton(Buttons.GoogleDark, onPressed: () {}),
-                FutureBuilder(
-                  future: Authentication.initializeFirebase(context: context),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error initializing Firebase');
-                    } else if (snapshot.connectionState ==
-                        ConnectionState.done) {
-                      return SignInButton(
-                        Buttons.AppleDark,
-                        onPressed: () {},
-                      );
-                    }
-                    return const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.orange,
-                      ),
-                    );
-                  },
-                ),
+                GoogleSignInBTN(),
+                SignInButton(Buttons.AppleDark, onPressed: () {}),
               ],
             )
           ],

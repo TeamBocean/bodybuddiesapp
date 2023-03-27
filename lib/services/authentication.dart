@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/pages/bookings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,8 +7,19 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class Authentication {
-  static Future<FirebaseApp> initializeFirebase({required BuildContext context}) async {
+  static Future<FirebaseApp> initializeFirebase(
+      {required BuildContext context}) async {
     FirebaseApp firebaseApp = await Firebase.initializeApp();
+
+    User? user = FirebaseAuth.instance.currentUser;
+    // print(user!.email);
+    if (user != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => BookingsPage(),
+        ),
+      );
+    }
 
     return firebaseApp;
   }
