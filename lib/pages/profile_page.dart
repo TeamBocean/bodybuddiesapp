@@ -1,7 +1,10 @@
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../services/authentication.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -45,9 +48,9 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               Column(
                 children: [
-                  MediumTextWidget(text: "Mahmoud Almahroum"),
+                  MediumTextWidget(text: "${FirebaseAuth.instance.currentUser!.displayName}"),
                   MediumTextWidget(
-                    text: "mahmoud.al808@gmail.com",
+                    text: "${FirebaseAuth.instance.currentUser!.email}",
                     color: Colors.grey,
                     fontSize: Dimensions.fontSize11,
                   ),
@@ -126,7 +129,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             borderRadius:
                                 BorderRadius.circular(Dimensions.width10),
                             side: BorderSide(color: Colors.white))),
-                    onPressed: () {},
+                    onPressed: () => Authentication.signOut(context: context),
                     child: Center(
                       child: MediumTextWidget(
                         text: "Log Out",

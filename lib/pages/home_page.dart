@@ -1,4 +1,5 @@
 import 'package:bodybuddiesapp/utils/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/constants.dart';
@@ -31,10 +32,10 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           MediumTextWidget(
-                              text: "March, 13",
+                              text: getTodaysDate(),
                               color: darkGreen,
                               fontSize: Dimensions.fontSize14),
-                          MediumTextWidget(text: "Hi, Mark"),
+                          MediumTextWidget(text: "Hi, ${FirebaseAuth.instance.currentUser!.displayName!.split(' ').first}"),
                           MediumTextWidget(
                             text: "Remaining Credits: 12",
                             fontSize: Dimensions.fontSize14,
@@ -109,5 +110,9 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  String getTodaysDate() {
+    return "${months[DateTime.now().month-1]}, ${DateTime.now().day}";
   }
 }
