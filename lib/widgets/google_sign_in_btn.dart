@@ -1,4 +1,6 @@
 import 'package:bodybuddiesapp/pages/bookings_page.dart';
+import 'package:bodybuddiesapp/pages/main_scaffold.dart';
+import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/button_list.dart';
@@ -54,9 +56,10 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
     });
 
     if (user != null) {
+      print(await CloudFirestore().isUserExists());
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => BookingsPage(),
+          builder: (context) => MainScaffold(),
         ),
       );
     }

@@ -101,8 +101,7 @@ class _BookingWidgetState extends State<BookingWidget> {
                           width: Dimensions.width15 * 4.5,
                           height: Dimensions.height10 * 2,
                           child: ElevatedButton(
-                            onPressed: () => Authentication.signOut(context: context),
-                            // onPressed: () => bookingDialog(context),
+                            onPressed: () => bookingDialog(context),
                             style: ElevatedButton.styleFrom(
                               primary: Colors.white
                             ),

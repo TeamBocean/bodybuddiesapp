@@ -1,5 +1,7 @@
 import 'package:bodybuddiesapp/pages/bookings_page.dart';
 import 'package:bodybuddiesapp/pages/main_scaffold.dart';
+import 'package:bodybuddiesapp/pages/sign_in_page.dart';
+import 'package:bodybuddiesapp/pages/wrapper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -82,6 +84,11 @@ class Authentication {
         await googleSignIn.signOut();
       }
       await FirebaseAuth.instance.signOut();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => SignInPage(),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         Authentication.customSnackBar(

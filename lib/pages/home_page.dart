@@ -35,7 +35,9 @@ class _HomePageState extends State<HomePage> {
                               text: getTodaysDate(),
                               color: darkGreen,
                               fontSize: Dimensions.fontSize14),
-                          MediumTextWidget(text: "Hi, ${FirebaseAuth.instance.currentUser!.displayName!.split(' ').first}"),
+                          MediumTextWidget(
+                              text:
+                                  "Hi, ${FirebaseAuth.instance.currentUser!.displayName!.split(' ').first}"),
                           MediumTextWidget(
                             text: "Remaining Credits: 12",
                             fontSize: Dimensions.fontSize14,
@@ -46,7 +48,8 @@ class _HomePageState extends State<HomePage> {
                         backgroundColor: Colors.grey.shade400,
                         radius: Dimensions.width27,
                         child: MediumTextWidget(
-                          text: "M",
+                          text:
+                              "${FirebaseAuth.instance.currentUser!.displayName!.substring(0, 1)}",
                           color: Colors.black,
                         ),
                       )
@@ -113,6 +116,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   String getTodaysDate() {
-    return "${months[DateTime.now().month-1]}, ${DateTime.now().day}";
+    return "${months[DateTime.now().month - 1]}, ${DateTime.now().day}";
   }
 }
