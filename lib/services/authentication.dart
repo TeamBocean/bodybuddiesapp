@@ -1,4 +1,5 @@
 import 'package:bodybuddiesapp/pages/bookings_page.dart';
+import 'package:bodybuddiesapp/pages/main_scaffold.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,7 +17,7 @@ class Authentication {
     if (user != null) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => BookingsPage(),
+          builder: (context) => MainScaffold(),
         ),
       );
     }
