@@ -56,12 +56,26 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
     });
 
     if (user != null) {
-      print(await CloudFirestore().isUserExists());
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => MainScaffold(),
-        ),
-      );
+      await CloudFirestore().isUserExists().then((userExists) {
+        if (userExists) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => MainScaffold(),
+            ),
+          );
+        }else {
+          bool success = CloudFirestore().setUserInfo();
+          if(success) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => MainScaffold(),
+              ),
+            );
+          }else {
+            print("ERROR");
+          }
+        }
+      });
     }
   }
 }

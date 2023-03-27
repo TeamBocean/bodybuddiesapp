@@ -11,4 +11,18 @@ class CloudFirestore {
 
     return doc.exists;
   }
+
+  bool setUserInfo() {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    try {
+      reference.collection("users").doc(auth.currentUser!.uid).set({
+        "credits": 0,
+        "bookings": [],
+      });
+      return true;
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
 }
