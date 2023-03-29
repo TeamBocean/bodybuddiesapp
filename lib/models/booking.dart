@@ -12,7 +12,7 @@ class Booking {
 
   factory Booking.fromJson(var data) {
     return Booking(
-        bookingName: data['bookingName'],
+        bookingName: data['name'],
         price: data['price'].toDouble(),
         time: data['time'],
         date: data['date']);

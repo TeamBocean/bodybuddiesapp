@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/models/booking.dart';
 import 'package:bodybuddiesapp/services/authentication.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
@@ -6,7 +7,9 @@ import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
 
 class BookingWidget extends StatefulWidget {
-  const BookingWidget({Key? key}) : super(key: key);
+  Booking booking;
+
+  BookingWidget({required this.booking});
 
   @override
   State<BookingWidget> createState() => _BookingWidgetState();
@@ -17,14 +20,13 @@ class _BookingWidgetState extends State<BookingWidget> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: Dimensions.width15, vertical: Dimensions.height10/2),
+          horizontal: Dimensions.width15, vertical: Dimensions.height10 / 2),
       child: SizedBox(
         width: MediaQuery.of(context).size.width,
         height: Dimensions.height10 * 12,
         child: Card(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Dimensions.width15)
-          ),
+              borderRadius: BorderRadius.circular(Dimensions.width15)),
           color: darkGrey,
           child: Padding(
             padding: EdgeInsets.symmetric(
@@ -37,11 +39,11 @@ class _BookingWidgetState extends State<BookingWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     MediumTextWidget(
-                      text: "13:00 - 13:45",
+                      text: widget.booking.time,
                       fontSize: Dimensions.fontSize16,
                     ),
                     MediumTextWidget(
-                      text: "Home Workout Session",
+                      text: widget.booking.bookingName,
                       fontSize: Dimensions.fontSize16,
                     ),
                     Row(
@@ -91,23 +93,22 @@ class _BookingWidgetState extends State<BookingWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     MediumTextWidget(
-                      text: "Monday\n15 Apr",
+                      text: widget.booking.date,
                       fontSize: Dimensions.fontSize14,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         SizedBox(
-                          width: Dimensions.width15 * 4.5,
+                          width: Dimensions.width15 * 5,
                           height: Dimensions.height10 * 2,
                           child: ElevatedButton(
                             onPressed: () => bookingDialog(context),
-                            style: ElevatedButton.styleFrom(
-                              primary: Colors.white
-                            ),
+                            style:
+                                ElevatedButton.styleFrom(primary: Colors.grey),
                             child: Center(
                               child: MediumTextWidget(
-                                text: "Book",
+                                text: "Booked",
                                 color: Colors.black,
                                 fontSize: Dimensions.fontSize10,
                               ),
