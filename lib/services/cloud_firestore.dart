@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -24,5 +25,14 @@ class CloudFirestore {
       print(e);
       return false;
     }
+  }
+
+  Stream<UserModel> streamUserData(String userID) {
+    print("here");
+    return reference
+        .collection("users")
+        .doc(userID)
+        .snapshots()
+        .map((user) => UserModel.fromJson(user));
   }
 }

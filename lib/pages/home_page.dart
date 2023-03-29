@@ -1,3 +1,5 @@
+import 'package:bodybuddiesapp/models/user.dart';
+import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -28,22 +30,7 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          MediumTextWidget(
-                              text: getTodaysDate(),
-                              color: darkGreen,
-                              fontSize: Dimensions.fontSize14),
-                          MediumTextWidget(
-                              text:
-                                  "Hi, ${FirebaseAuth.instance.currentUser!.displayName!.split(' ').first}"),
-                          MediumTextWidget(
-                            text: "Remaining Credits: 12",
-                            fontSize: Dimensions.fontSize14,
-                          ),
-                        ],
-                      ),
+                      userInformationHeader(),
                       CircleAvatar(
                         backgroundColor: Colors.grey.shade400,
                         radius: Dimensions.width27,
@@ -113,6 +100,37 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Widget userInformationHeader() {
+    return StreamBuilder<UserModel>(
+        stream: CloudFirestore()
+            .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MediumTextWidget(
+                    text: getTodaysDate(),
+                    color: darkGreen,
+                    fontSize: Dimensions.fontSize14),
+                MediumTextWidget(
+                    text:
+                        "Hi, ${FirebaseAuth.instance.currentUser!.displayName!.split(' ').first}"),
+                MediumTextWidget(
+                  text: "Remaining Credits: ${snapshot.data!.credits}",
+                  fontSize: Dimensions.fontSize14,
+                ),
+              ],
+            );
+          } else {
+            return MediumTextWidget(
+              text: "Loading...",
+              fontSize: Dimensions.fontSize14,
+            );
+          }
+        });
   }
 
   String getTodaysDate() {
