@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/pages/nutrients_page.dart';
 import 'package:bodybuddiesapp/pages/profile_page.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
@@ -27,7 +28,7 @@ class _BookingsPageState extends State<MainScaffold> {
     pages = [
       HomePage(),
       BookingsPage(),
-      HomePage(),
+      NutrientsPage(),
       ProfilePage(),
     ];
     _controller = PageController(initialPage: 0);

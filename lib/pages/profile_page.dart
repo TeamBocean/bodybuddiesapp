@@ -1,3 +1,5 @@
+import 'package:bodybuddiesapp/models/user.dart';
+import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
@@ -48,7 +50,9 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               Column(
                 children: [
-                  MediumTextWidget(text: "${FirebaseAuth.instance.currentUser!.displayName}"),
+                  MediumTextWidget(
+                      text:
+                          "${FirebaseAuth.instance.currentUser!.displayName}"),
                   MediumTextWidget(
                     text: "${FirebaseAuth.instance.currentUser!.email}",
                     color: Colors.grey,
@@ -68,44 +72,51 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Padding(
                     padding:
                         EdgeInsets.symmetric(vertical: Dimensions.height10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Column(
-                          children: [
-                            MediumTextWidget(
-                              text: "Weight",
-                              color: Colors.grey,
-                              fontSize: Dimensions.fontSize11,
-                            ),
-                            MediumTextWidget(
-                              text: "70kg",
-                              color: Colors.white,
-                              fontSize: Dimensions.fontSize14,
-                            ),
-                          ],
-                        ),
-                        Container(
-                          width: 0.2,
-                          height: Dimensions.height10 * 5,
-                          color: Colors.white,
-                        ),
-                        Column(
-                          children: [
-                            MediumTextWidget(
-                              text: "Credits",
-                              color: Colors.grey,
-                              fontSize: Dimensions.fontSize11,
-                            ),
-                            MediumTextWidget(
-                              text: "12",
-                              color: Colors.white,
-                              fontSize: Dimensions.fontSize14,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    child: StreamBuilder<UserModel>(
+                        stream: CloudFirestore().streamUserData(
+                            FirebaseAuth.instance.currentUser!.uid),
+                        builder: (context, snapshot) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Column(
+                                children: [
+                                  MediumTextWidget(
+                                    text: "Weight",
+                                    color: Colors.grey,
+                                    fontSize: Dimensions.fontSize11,
+                                  ),
+                                  MediumTextWidget(
+                                    text: "70kg",
+                                    color: Colors.white,
+                                    fontSize: Dimensions.fontSize14,
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                width: 0.2,
+                                height: Dimensions.height10 * 5,
+                                color: Colors.white,
+                              ),
+                              Column(
+                                children: [
+                                  MediumTextWidget(
+                                    text: "Credits",
+                                    color: Colors.grey,
+                                    fontSize: Dimensions.fontSize11,
+                                  ),
+                                  MediumTextWidget(
+                                    text: snapshot.hasData
+                                        ? "${snapshot.data!.credits}"
+                                        : "Loading...",
+                                    color: Colors.white,
+                                    fontSize: Dimensions.fontSize14,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        }),
                   ),
                 ),
               ),
