@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/models/booking.dart';
 import 'package:bodybuddiesapp/models/user.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
@@ -82,7 +83,15 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     width: Dimensions.width10 * 20,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        CloudFirestore().addBooking(
+                            new Booking(
+                                bookingName: "Home Workout Session",
+                                price: 2,
+                                time: "Time",
+                                date: "Date"),
+                            FirebaseAuth.instance.currentUser!.uid);
+                      },
                       style: ElevatedButton.styleFrom(
                           primary: darkGreen,
                           shape: RoundedRectangleBorder(

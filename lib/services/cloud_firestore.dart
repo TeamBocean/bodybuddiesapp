@@ -2,6 +2,8 @@ import 'package:bodybuddiesapp/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../models/booking.dart';
+
 class CloudFirestore {
   final reference = FirebaseFirestore.instance;
 
@@ -28,11 +30,16 @@ class CloudFirestore {
   }
 
   Stream<UserModel> streamUserData(String userID) {
-    print("here");
     return reference
         .collection("users")
         .doc(userID)
         .snapshots()
         .map((user) => UserModel.fromJson(user));
+  }
+
+  void addBooking(Booking booking, String userID) {
+    reference.collection("users").doc(userID).update({
+      "bookings": FieldValue.arrayUnion([booking.toJson()])
+    });
   }
 }
