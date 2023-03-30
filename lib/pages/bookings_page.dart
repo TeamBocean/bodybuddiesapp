@@ -15,6 +15,8 @@ class BookingsPage extends StatefulWidget {
 
 class _BookingsPageState extends State<BookingsPage> {
   List<Widget> dates = [];
+  String _day = DateTime.now().day.toString();
+  DateTime currentDay = DateTime.now();
   final _currentDate = DateTime.now();
 
   @override
@@ -24,17 +26,19 @@ class _BookingsPageState extends State<BookingsPage> {
   }
 
   void initDates(BuildContext context) {
-    if (dates.isEmpty)
-      // ignore: curly_braces_in_flow_control_structures
-      for (int i = 0; i < 16; i++) {
-        final date = _currentDate.add(Duration(days: i));
-        dates.add(dateWidget(
-            date.day.toString(), daysOfWeek[date.weekday - 1].substring(0, 3)));
-      }
+    dates.clear();
+    for (int i = 0; i < 16; i++) {
+      final date = _currentDate.add(Duration(days: i));
+      setState(() {
+        dates.add(dateWidget(date, daysOfWeek[date.weekday - 1].substring(0, 3),
+            date.day.toString() == _day));
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    initDates(context);
     return Container(
       height: MediaQuery.of(context).size.height,
       child: SafeArea(
@@ -42,7 +46,7 @@ class _BookingsPageState extends State<BookingsPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             MediumTextWidget(
-              text: "March 2023",
+              text: "${months[DateTime.now().month-1]} ${DateTime.now().year}",
               fontSize: Dimensions.fontSize18,
             ),
             SizedBox(
@@ -54,10 +58,19 @@ class _BookingsPageState extends State<BookingsPage> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: dates.map((e) => e).toList(),
+                  children: dates.map((date) => date).toList(),
                 ),
               ),
             ),
+            SizedBox(
+              height: Dimensions.height15,
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: Dimensions.width20),
+              child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: MediumTextWidget(text: "Available Sessions")),
+            )
             // BookingWidget(),
             // BookingWidget(),
             // BookingWidget(),
@@ -68,28 +81,37 @@ class _BookingsPageState extends State<BookingsPage> {
     );
   }
 
-  Widget dateWidget(String day, String weekDay) {
+  Widget dateWidget(DateTime dateTime, String weekDay, bool isCurrent) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: Dimensions.width10 / 2.5),
-      child: SizedBox(
-        width: Dimensions.width10 * 4,
-        height: Dimensions.height10 * 5.5,
-        child: Card(
-          color: darkGrey,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(Dimensions.width10 / 2)),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              MediumTextWidget(
-                text: day,
-                fontSize: Dimensions.fontSize10,
-              ),
-              MediumTextWidget(
-                text: weekDay,
-                fontSize: Dimensions.fontSize10,
-              ),
-            ],
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _day = dateTime.day.toString();
+            currentDay = dateTime;
+            initDates(context);
+          });
+        },
+        child: SizedBox(
+          width: Dimensions.width10 * 4,
+          height: Dimensions.height10 * 5.5,
+          child: Card(
+            color: isCurrent ? darkGreen : darkGrey,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(Dimensions.width10 / 2)),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                MediumTextWidget(
+                  text: dateTime.day.toString(),
+                  fontSize: Dimensions.fontSize10,
+                ),
+                MediumTextWidget(
+                  text: weekDay,
+                  fontSize: Dimensions.fontSize10,
+                ),
+              ],
+            ),
           ),
         ),
       ),
