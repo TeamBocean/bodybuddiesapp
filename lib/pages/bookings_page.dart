@@ -45,9 +45,31 @@ class _BookingsPageState extends State<BookingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            MediumTextWidget(
-              text: "${months[DateTime.now().month-1]} ${DateTime.now().year}",
-              fontSize: Dimensions.fontSize18,
+            Stack(
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: MediumTextWidget(
+                    text:
+                        "${months[DateTime.now().month - 1]} ${DateTime.now().year}",
+                    fontSize: Dimensions.fontSize18,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: Dimensions.width15),
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      onPressed: () {},
+                      splashRadius: 0.1,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 22, maxWidth: 22),
+                      icon: Icon(Icons.calendar_month),
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              ],
             ),
             SizedBox(
               height: Dimensions.height10,

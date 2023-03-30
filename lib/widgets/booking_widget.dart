@@ -1,5 +1,4 @@
 import 'package:bodybuddiesapp/models/booking.dart';
-import 'package:bodybuddiesapp/services/authentication.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/booking_dialog.dart';
@@ -9,7 +8,7 @@ import 'package:flutter/material.dart';
 class BookingWidget extends StatefulWidget {
   Booking booking;
 
-  BookingWidget({required this.booking});
+  BookingWidget({super.key, required this.booking});
 
   @override
   State<BookingWidget> createState() => _BookingWidgetState();
