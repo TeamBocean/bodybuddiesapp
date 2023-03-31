@@ -29,6 +29,13 @@ class CloudFirestore {
     }
   }
 
+  Future<UserModel> getUserData(String userID) async {
+    DocumentSnapshot doc =
+        await reference.collection("users").doc(userID).get();
+
+    return UserModel.fromJson(doc.data());
+  }
+
   Stream<UserModel> streamUserData(String userID) {
     return reference
         .collection("users")

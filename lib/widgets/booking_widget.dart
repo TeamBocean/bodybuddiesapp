@@ -5,6 +5,8 @@ import 'package:bodybuddiesapp/widgets/booking_dialog.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
 
+import '../services/email.dart';
+
 class BookingWidget extends StatefulWidget {
   Booking booking;
 
@@ -102,7 +104,9 @@ class _BookingWidgetState extends State<BookingWidget> {
                           width: Dimensions.width15 * 5,
                           height: Dimensions.height10 * 2,
                           child: ElevatedButton(
-                            onPressed: () => bookingDialog(context),
+                            onPressed: () => EmailService()
+                                .sendBookingConfirmation(widget.booking),
+                            // onPressed: () => bookingDialog(context),
                             style:
                                 ElevatedButton.styleFrom(primary: Colors.grey),
                             child: Center(
