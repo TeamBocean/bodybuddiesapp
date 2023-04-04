@@ -76,6 +76,9 @@ class Authentication {
     return user;
   }
 
+  static Future<User?> signInWithApple({required BuildContext context}) async {
+  }
+
   static Future<void> signOut({required BuildContext context}) async {
     final GoogleSignIn googleSignIn = GoogleSignIn();
 

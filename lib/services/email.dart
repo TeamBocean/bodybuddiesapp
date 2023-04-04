@@ -13,8 +13,7 @@ class EmailService {
     UserModel userModel = await CloudFirestore()
         .getUserData(FirebaseAuth.instance.currentUser!.uid);
 
-    final response = await http.post(
-        Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
+    await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'service_id': 'service_4dkli4o',
