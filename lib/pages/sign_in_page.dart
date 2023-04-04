@@ -1,3 +1,4 @@
+import 'package:apple_sign_in/scope.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/google_sign_in_btn.dart';
 import 'package:bodybuddiesapp/widgets/logo.dart';
@@ -50,7 +51,9 @@ class _SignInPageState extends State<SignInPage> {
                   ],
                 ),
                 GoogleSignInBTN(),
-                SignInButton(Buttons.AppleDark, onPressed: () {}),
+                SignInButton(Buttons.AppleDark, onPressed: () {
+                  Authentication.signInWithApple(context: context, scopes: []);
+                }),
               ],
             )
           ],

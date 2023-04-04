@@ -7,7 +7,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 
 class Authentication {
   static Future<FirebaseApp> initializeFirebase(
@@ -76,7 +78,52 @@ class Authentication {
     return user;
   }
 
-  static Future<User?> signInWithApple({required BuildContext context}) async {
+  static Future<User?> signInWithApple(
+      {required BuildContext context, List<Scope> scopes = const []}) async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    final result = await TheAppleSignIn.performRequests([
+      const AppleIdRequest(
+          requestedScopes: [Scope.email, Scope.fullName],
+          requestedOperation: OpenIdOperation.operationLogin)
+    ]);
+    // 2. check the result
+    switch (result.status) {
+      case AuthorizationStatus.authorized:
+        final appleIdCredential = result.credential!;
+        final oAuthProvider = OAuthProvider('apple.com').addScope("full_name");
+        final credential = oAuthProvider.credential(
+          idToken: String.fromCharCodes(appleIdCredential.identityToken!),
+          accessToken:
+              String.fromCharCodes(appleIdCredential.authorizationCode!),
+        );
+        final userCredential = await auth.signInWithCredential(credential);
+        final firebaseUser = userCredential.user!;
+        if (scopes.contains(Scope.fullName)) {
+          final fullName = appleIdCredential.fullName;
+          if (fullName != null &&
+              fullName.givenName != null &&
+              fullName.familyName != null) {
+            final displayName = '${fullName.givenName} ${fullName.familyName}';
+            await FirebaseAuth.instance.currentUser!
+                .updateDisplayName(displayName);
+          }
+        }
+        return firebaseUser;
+      case AuthorizationStatus.error:
+        throw PlatformException(
+          code: 'ERROR_AUTHORIZATION_DENIED',
+          message: result.error.toString(),
+        );
+
+      case AuthorizationStatus.cancelled:
+        throw PlatformException(
+          code: 'ERROR_ABORTED_BY_USER',
+          message: 'Sign in aborted by user',
+        );
+      default:
+        throw UnimplementedError();
+    }
   }
 
   static Future<void> signOut({required BuildContext context}) async {
