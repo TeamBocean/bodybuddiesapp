@@ -48,9 +48,8 @@ class _HomePageState extends State<HomePage> {
                               backgroundColor: Colors.grey.shade400,
                               radius: Dimensions.width27,
                               child: MediumTextWidget(
-                                text: FirebaseAuth
-                                    .instance.currentUser!.displayName!
-                                    .substring(0, 1),
+                                text: FirebaseAuth.instance.currentUser!.displayName != null ? FirebaseAuth.instance.currentUser!.displayName!
+                                    .substring(0, 1) : "",
                                 color: Colors.black,
                               ),
                             )

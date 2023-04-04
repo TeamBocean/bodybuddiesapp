@@ -91,7 +91,7 @@ class Authentication {
     switch (result.status) {
       case AuthorizationStatus.authorized:
         final appleIdCredential = result.credential!;
-        final oAuthProvider = OAuthProvider('apple.com').addScope("full_name");
+        final oAuthProvider = OAuthProvider('apple.com').addScope("name");
         final credential = oAuthProvider.credential(
           idToken: String.fromCharCodes(appleIdCredential.identityToken!),
           accessToken:
