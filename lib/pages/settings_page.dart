@@ -1,4 +1,5 @@
 import 'package:bodybuddiesapp/models/user.dart';
+import 'package:bodybuddiesapp/pages/profile_page.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
@@ -123,7 +124,12 @@ class _SettingsPageState extends State<SettingsPage> {
               SizedBox(
                 height: Dimensions.height10,
               ),
-              settingsOption("Profile", Icons.person),
+              GestureDetector(
+                  onTap: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => ProfilePage()));
+                  },
+                  child: settingsOption("Profile", Icons.person)),
               settingsOption("Notification", Icons.notifications),
               settingsOption("Credits", Icons.monetization_on),
               settingsOption("Progress Pictures", Icons.browse_gallery),
