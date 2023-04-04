@@ -1,5 +1,5 @@
 import 'package:bodybuddiesapp/pages/main_scaffold.dart';
-import 'package:bodybuddiesapp/pages/profile_page.dart';
+import 'package:bodybuddiesapp/pages/settings_page.dart';
 import 'package:bodybuddiesapp/pages/sign_in_page.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/bottom_nav_bar.dart';

@@ -148,7 +148,7 @@ class _BookingsPageState extends State<BookingsPage> {
         firstDate: DateTime.now(),
         lastDate: DateTime(DateTime.now().year, 12, 30));
 
-    if(pickedDate != null) {
+    if (pickedDate != null) {
       setState(() {
         _day = pickedDate.day.toString();
         currentDay = pickedDate;

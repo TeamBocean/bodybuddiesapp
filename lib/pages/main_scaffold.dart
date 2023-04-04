@@ -1,5 +1,5 @@
 import 'package:bodybuddiesapp/pages/nutrients_page.dart';
-import 'package:bodybuddiesapp/pages/profile_page.dart';
+import 'package:bodybuddiesapp/pages/settings_page.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class _BookingsPageState extends State<MainScaffold> {
       HomePage(),
       BookingsPage(),
       NutrientsPage(),
-      ProfilePage(),
+      SettingsPage(),
     ];
     _controller = PageController(initialPage: 0);
     super.initState();
