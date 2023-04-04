@@ -60,10 +60,11 @@ class _BookingsPageState extends State<BookingsPage> {
                   child: Align(
                     alignment: Alignment.topRight,
                     child: IconButton(
-                      onPressed: () {},
+                      onPressed: () => showCalendarDialog(),
                       splashRadius: 0.1,
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 22, maxWidth: 22),
+                      constraints:
+                          const BoxConstraints(minWidth: 22, maxWidth: 22),
                       icon: Icon(Icons.calendar_month),
                       color: Colors.white,
                     ),
@@ -138,5 +139,21 @@ class _BookingsPageState extends State<BookingsPage> {
         ),
       ),
     );
+  }
+
+  showCalendarDialog() async {
+    DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime.now(),
+        lastDate: DateTime(DateTime.now().year, 12, 30));
+
+    if(pickedDate != null) {
+      setState(() {
+        _day = pickedDate.day.toString();
+        currentDay = pickedDate;
+        initDates(context);
+      });
+    }
   }
 }
