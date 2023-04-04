@@ -1,4 +1,5 @@
 import 'package:bodybuddiesapp/models/user.dart';
+import 'package:bodybuddiesapp/services/email.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -44,9 +45,14 @@ class CloudFirestore {
         .map((user) => UserModel.fromJson(user));
   }
 
+  /// Create a booking
+  /// Send booking confirmation email to customer
+  /// Send booking confirmation email to Mark
   void addBooking(Booking booking, String userID) {
     reference.collection("users").doc(userID).update({
       "bookings": FieldValue.arrayUnion([booking.toJson()])
     });
+    EmailService().sendBookingConfirmationToMark(booking);
+    EmailService().sendBookingConfirmationToUser(booking);
   }
 }

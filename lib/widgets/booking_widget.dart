@@ -104,9 +104,7 @@ class _BookingWidgetState extends State<BookingWidget> {
                           width: Dimensions.width15 * 5,
                           height: Dimensions.height10 * 2,
                           child: ElevatedButton(
-                            onPressed: () => EmailService()
-                                .sendBookingConfirmation(widget.booking),
-                            // onPressed: () => bookingDialog(context),
+                            onPressed: () => bookingDialog(context),
                             style:
                                 ElevatedButton.styleFrom(primary: Colors.grey),
                             child: Center(
