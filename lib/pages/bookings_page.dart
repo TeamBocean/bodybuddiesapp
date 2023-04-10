@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/models/booking.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/constants.dart';
 import 'package:bodybuddiesapp/widgets/booking_widget.dart';
@@ -18,6 +19,12 @@ class _BookingsPageState extends State<BookingsPage> {
   String _day = DateTime.now().day.toString();
   DateTime currentDay = DateTime.now();
   final _currentDate = DateTime.now();
+  DateTime startTime = DateTime(
+      DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 0, 0);
+  DateTime endTime = DateTime(
+      DateTime.now().year, DateTime.now().month, DateTime.now().day, 17, 0, 0);
+  Duration step = Duration(minutes: 45);
+  List<Widget> slots = [];
 
   @override
   void initState() {
@@ -34,6 +41,28 @@ class _BookingsPageState extends State<BookingsPage> {
             date.day.toString() == _day));
       });
     }
+
+    setState(() {
+      slots.clear();
+      startTime =
+          DateTime(currentDay.year, currentDay.month, currentDay.day, 8, 0, 0);
+      endTime =
+          DateTime(currentDay.year, currentDay.month, currentDay.day, 17, 0, 0);
+      while (startTime.isBefore(endTime)) {
+        DateTime timeIncrement = startTime.add(step);
+        setState(() {
+          slots.add(BookingWidget(
+              booking: Booking(
+            bookingName: "Test",
+            price: 1,
+            date: currentDay.day.toString() + "/" + currentDay.month.toString(),
+            time: "${timeIncrement.hour}:${timeIncrement.minute}",
+          )));
+        });
+
+        startTime = timeIncrement;
+      }
+    });
   }
 
   @override
@@ -93,11 +122,16 @@ class _BookingsPageState extends State<BookingsPage> {
               child: Align(
                   alignment: Alignment.centerLeft,
                   child: MediumTextWidget(text: "Available Sessions")),
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height -
+                  (Dimensions.height50 * 4 + Dimensions.height10 * 8),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: slots.map((booking) => booking).toList(),
+                ),
+              ),
             )
-            // BookingWidget(),
-            // BookingWidget(),
-            // BookingWidget(),
-            // BookingWidget(),
           ],
         ),
       ),
