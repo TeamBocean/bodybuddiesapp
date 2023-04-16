@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -74,9 +76,12 @@ class _CreditsPageState extends State<CreditsPage> {
                   ),
                 ],
               ),
-              paymentOptionWidget(isBuddy ? 450 : 350, "8", isBuddy ? "2" : "8"),
-              paymentOptionWidget(isBuddy ? 650 : 550, "12", isBuddy ? "3" : "12"),
-              paymentOptionWidget(isBuddy ? 1800 : 1450, "36", isBuddy ? "3" : "36"),
+              paymentOptionWidget(
+                  isBuddy ? 450 : 350, "8", isBuddy ? "2" : "8"),
+              paymentOptionWidget(
+                  isBuddy ? 650 : 550, "12", isBuddy ? "3" : "12"),
+              paymentOptionWidget(
+                  isBuddy ? 1800 : 1450, "36", isBuddy ? "3" : "36"),
             ],
           ),
         ),
@@ -127,7 +132,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     width: MediaQuery.of(context).size.width,
                     child: ElevatedButton(
                         onPressed: () {
-                          makePayment(price);
+                          makePayment(price, int.parse(credits));
                         },
                         style: ElevatedButton.styleFrom(
                             backgroundColor: background),
@@ -145,7 +150,7 @@ class _CreditsPageState extends State<CreditsPage> {
     );
   }
 
-  Future<void> makePayment(double price) async {
+  Future<void> makePayment(double price, int credits) async {
     try {
       paymentIntent =
           await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
@@ -160,15 +165,17 @@ class _CreditsPageState extends State<CreditsPage> {
                   merchantDisplayName: 'Adnan'))
           .then((value) {});
 
-      displayPaymentSheet();
+      displayPaymentSheet(credits);
     } catch (e, s) {
       print('exception:$e$s');
     }
   }
 
-  displayPaymentSheet() async {
+  displayPaymentSheet(int credits) async {
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
+        CloudFirestore()
+            .addCredits(credits, FirebaseAuth.instance.currentUser!.uid);
         showDialog(
             context: context,
             builder: (_) => AlertDialog(

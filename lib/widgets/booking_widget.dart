@@ -9,8 +9,9 @@ import '../services/email.dart';
 
 class BookingWidget extends StatefulWidget {
   Booking booking;
+  bool isBooked;
 
-  BookingWidget({super.key, required this.booking});
+  BookingWidget({super.key, required this.booking, required this.isBooked});
 
   @override
   State<BookingWidget> createState() => _BookingWidgetState();
@@ -104,12 +105,14 @@ class _BookingWidgetState extends State<BookingWidget> {
                           width: Dimensions.width15 * 5,
                           height: Dimensions.height10 * 2,
                           child: ElevatedButton(
-                            onPressed: () => bookingDialog(context),
+                            onPressed: () => widget.isBooked
+                                ? print("Booked")
+                                : bookingDialog(context, widget.booking),
                             style:
                                 ElevatedButton.styleFrom(primary: Colors.grey),
                             child: Center(
                               child: MediumTextWidget(
-                                text: "Booked",
+                                text: widget.isBooked ? "Booked" : "Book",
                                 color: Colors.black,
                                 fontSize: Dimensions.fontSize10,
                               ),

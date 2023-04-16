@@ -52,6 +52,7 @@ class _BookingsPageState extends State<BookingsPage> {
         DateTime timeIncrement = startTime.add(step);
         setState(() {
           slots.add(BookingWidget(
+            isBooked: false,
               booking: Booking(
             bookingName: "Test",
             price: 1,

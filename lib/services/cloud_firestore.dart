@@ -55,4 +55,22 @@ class CloudFirestore {
     EmailService().sendBookingConfirmationToMark(booking);
     EmailService().sendBookingConfirmationToUser(booking);
   }
+
+  /// Create a booking
+  /// Send booking confirmation email to customer
+  /// Send booking confirmation email to Mark
+  void addCredits(int credits, String userID) {
+    reference
+        .collection("users")
+        .doc(userID)
+        .update({"credits": FieldValue.increment(credits)});
+  }
+
+  /// Decrease user credits
+  void decreaseCredits(int credits, String userID) {
+    reference
+        .collection("users")
+        .doc(userID)
+        .update({"credits": FieldValue.increment(-credits)});
+  }
 }

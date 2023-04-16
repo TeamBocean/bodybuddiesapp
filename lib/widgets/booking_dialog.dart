@@ -1,9 +1,15 @@
+import 'package:bodybuddiesapp/models/booking.dart';
+import 'package:bodybuddiesapp/models/user.dart';
+import 'package:bodybuddiesapp/pages/credits_page.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-void bookingDialog(BuildContext context) {
+import '../services/cloud_firestore.dart';
+
+void bookingDialog(BuildContext context, Booking booking) {
   showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -44,7 +50,7 @@ void bookingDialog(BuildContext context) {
                                 fontSize: Dimensions.fontSize14,
                               ),
                               MediumTextWidget(
-                                text: "12/03/2023",
+                                text: "${booking.date}",
                                 fontSize: Dimensions.fontSize14,
                               ),
                             ],
@@ -60,7 +66,7 @@ void bookingDialog(BuildContext context) {
                                 fontSize: Dimensions.fontSize14,
                               ),
                               MediumTextWidget(
-                                text: "13:00 - 13:45",
+                                text: "${booking.time}",
                                 fontSize: Dimensions.fontSize14,
                               ),
                             ],
@@ -103,6 +109,57 @@ void bookingDialog(BuildContext context) {
                           SizedBox(
                             height: Dimensions.height30,
                           ),
+                          StreamBuilder<UserModel>(
+                              stream: CloudFirestore().streamUserData(
+                                  FirebaseAuth.instance.currentUser!.uid),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Center(
+                                    child: SizedBox(
+                                      width: Dimensions.width10 * 20,
+                                      height: Dimensions.height50,
+                                      child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                              primary: darkGreen,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          Dimensions.width15))),
+                                          onPressed: () {
+                                            if (snapshot.data!.credits > 0) {
+                                              CloudFirestore().addBooking(
+                                                  booking,
+                                                  FirebaseAuth.instance
+                                                      .currentUser!.uid);
+                                              CloudFirestore().decreaseCredits(
+                                                  1,
+                                                  FirebaseAuth.instance
+                                                      .currentUser!.uid);
+                                              Navigator.pop(context, 'dialog');
+                                            }
+                                          },
+                                          child: MediumTextWidget(
+                                            text: "Use 1 Credit",
+                                            fontSize: Dimensions.fontSize12,
+                                            color: Colors.black,
+                                          )),
+                                    ),
+                                  );
+                                } else {
+                                  return Text("Loading..");
+                                }
+                              }),
+                          SizedBox(
+                            height: Dimensions.height10,
+                          ),
+                          Center(
+                              child: MediumTextWidget(
+                            text: "OR",
+                            fontSize: Dimensions.fontSize16,
+                          )),
+                          SizedBox(
+                            height: Dimensions.height10,
+                          ),
                           Center(
                             child: SizedBox(
                               width: Dimensions.width10 * 20,
@@ -113,32 +170,13 @@ void bookingDialog(BuildContext context) {
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                               Dimensions.width15))),
-                                  onPressed: () {},
-                                  child: MediumTextWidget(
-                                    text: "Use 1 Credit",
-                                    fontSize: Dimensions.fontSize12,
-                                    color: Colors.black,
-                                  )),
-                            ),
-                          ),
-                          SizedBox(
-                            height: Dimensions.height10,
-                          ),
-                          Center(child: MediumTextWidget(text: "OR", fontSize: Dimensions.fontSize16,)),
-                          SizedBox(
-                            height: Dimensions.height10,
-                          ),
-                          Center(
-                            child: SizedBox(
-                              width: Dimensions.width10 * 20,
-                              height: Dimensions.height50,
-                              child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      primary: darkGreen,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                              Dimensions.width15))),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                CreditsPage()));
+                                  },
                                   child: MediumTextWidget(
                                     text: "Buy Credits",
                                     fontSize: Dimensions.fontSize12,

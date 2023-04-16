@@ -18,7 +18,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   @override
   void initState() {
     super.initState();
@@ -47,8 +46,13 @@ class _HomePageState extends State<HomePage> {
                               backgroundColor: Colors.grey.shade400,
                               radius: Dimensions.width27,
                               child: MediumTextWidget(
-                                text: FirebaseAuth.instance.currentUser!.displayName != null ? FirebaseAuth.instance.currentUser!.displayName!
-                                    .substring(0, 1) : "",
+                                text: FirebaseAuth.instance.currentUser!
+                                            .displayName !=
+                                        null
+                                    ? FirebaseAuth
+                                        .instance.currentUser!.displayName!
+                                        .substring(0, 1)
+                                    : "",
                                 color: Colors.black,
                               ),
                             )
@@ -75,6 +79,7 @@ class _HomePageState extends State<HomePage> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: snapshot.data!.bookings
                                       .map((booking) => BookingWidget(
+                                            isBooked: true,
                                             booking: booking,
                                           ))
                                       .toList(),
