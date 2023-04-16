@@ -34,7 +34,7 @@ class _BookingsPageState extends State<BookingsPage> {
 
   void initDates(BuildContext context) {
     dates.clear();
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 30; i++) {
       final date = _currentDate.add(Duration(days: i));
       setState(() {
         dates.add(dateWidget(date, daysOfWeek[date.weekday - 1].substring(0, 3),
@@ -48,20 +48,24 @@ class _BookingsPageState extends State<BookingsPage> {
           DateTime(currentDay.year, currentDay.month, currentDay.day, 8, 0, 0);
       endTime =
           DateTime(currentDay.year, currentDay.month, currentDay.day, 17, 0, 0);
-      while (startTime.isBefore(endTime)) {
-        DateTime timeIncrement = startTime.add(step);
-        setState(() {
-          slots.add(BookingWidget(
-            isBooked: false,
-              booking: Booking(
-            bookingName: "Test",
-            price: 1,
-            date: currentDay.day.toString() + "/" + currentDay.month.toString(),
-            time: "${timeIncrement.hour}:${timeIncrement.minute}",
-          )));
-        });
+      if (currentDay.weekday != 6 && currentDay.weekday != 7) {
+        while (startTime.isBefore(endTime)) {
+          DateTime timeIncrement = startTime.add(step);
+          setState(() {
+            slots.add(BookingWidget(
+                isBooked: false,
+                booking: Booking(
+                  bookingName: "Test",
+                  price: 1,
+                  date: currentDay.day.toString() +
+                      "/" +
+                      currentDay.month.toString(),
+                  time: "${timeIncrement.hour}:${timeIncrement.minute}",
+                )));
+          });
 
-        startTime = timeIncrement;
+          startTime = timeIncrement;
+        }
       }
     });
   }
