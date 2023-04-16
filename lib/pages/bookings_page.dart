@@ -3,8 +3,12 @@ import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/constants.dart';
 import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../models/user.dart';
+import '../services/cloud_firestore.dart';
 import '../utils/dimensions.dart';
 
 class BookingsPage extends StatefulWidget {
@@ -76,70 +80,105 @@ class _BookingsPageState extends State<BookingsPage> {
     return Container(
       height: MediaQuery.of(context).size.height,
       child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Stack(
-              children: [
-                Align(
-                  alignment: Alignment.center,
-                  child: MediumTextWidget(
-                    text:
-                        "${months[DateTime.now().month - 1]} ${DateTime.now().year}",
-                    fontSize: Dimensions.fontSize18,
+        child: StreamBuilder<UserModel>(
+            stream: CloudFirestore()
+                .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+            builder: (context, snapshot) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.center,
+                        child: MediumTextWidget(
+                          text:
+                              "${months[DateTime.now().month - 1]} ${DateTime.now().year}",
+                          fontSize: Dimensions.fontSize18,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(right: Dimensions.width15),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                            onPressed: () => showCalendarDialog(),
+                            splashRadius: 0.1,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                                minWidth: 22, maxWidth: 22),
+                            icon: Icon(Icons.calendar_month),
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    ],
                   ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(right: Dimensions.width15),
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      onPressed: () => showCalendarDialog(),
-                      splashRadius: 0.1,
-                      padding: EdgeInsets.zero,
-                      constraints:
-                          const BoxConstraints(minWidth: 22, maxWidth: 22),
-                      icon: Icon(Icons.calendar_month),
-                      color: Colors.white,
+                  SizedBox(
+                    height: Dimensions.height10,
+                  ),
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: Dimensions.width15),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: dates.map((date) => date).toList(),
+                      ),
                     ),
                   ),
-                )
-              ],
-            ),
-            SizedBox(
-              height: Dimensions.height10,
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: dates.map((date) => date).toList(),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: Dimensions.height15,
-            ),
-            Padding(
-              padding: EdgeInsets.only(left: Dimensions.width20),
-              child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: MediumTextWidget(text: "Available Sessions")),
-            ),
-            SizedBox(
-              height: MediaQuery.of(context).size.height -
-                  (Dimensions.height50 * 4 + Dimensions.height10 * 8),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: slots.map((booking) => booking).toList(),
-                ),
-              ),
-            )
-          ],
-        ),
+                  SizedBox(
+                    height: Dimensions.height15,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: Dimensions.width20),
+                    child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: MediumTextWidget(text: "Available Sessions")),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height -
+                        (Dimensions.height50 * 4 + Dimensions.height10 * 8),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: slots
+                            .map((booking) => AbsorbPointer(
+                                  absorbing: snapshot.data!.bookings
+                                              .firstWhereOrNull((element) =>
+                                                  formatBookingDate(element)
+                                                      .day ==
+                                                  currentDay.day) !=
+                                          null
+                                      ? true
+                                      : false,
+                                  child: Opacity(
+                                      opacity: snapshot.data!.bookings
+                                                  .firstWhereOrNull((element) =>
+                                                      formatBookingDate(element)
+                                                          .day ==
+                                                      currentDay.day) !=
+                                              null
+                                          ? 0.5
+                                          : 1,
+                                      child: booking),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  )
+                ],
+              );
+            }),
       ),
+    );
+  }
+
+  DateTime formatBookingDate(Booking booking) {
+    return DateTime(
+      DateTime.now().year,
+      int.parse(booking.date.split('/')[0]),
+      int.parse(booking.date.split('/')[0]),
     );
   }
 
