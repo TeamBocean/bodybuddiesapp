@@ -29,6 +29,21 @@ class _HomePageState extends State<HomePage> {
         stream: CloudFirestore()
             .streamUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data!.bookings.length > 0) {
+              snapshot.data!.bookings.sort((a, b) => DateTime(
+                    DateTime.now().year,
+                    int.parse(a.date.split('/')[0]),
+                    int.parse(a.date.split('/')[0]),
+                  ).isBefore(DateTime(
+                    DateTime.now().year,
+                    int.parse(b.date.split('/')[0]),
+                    int.parse(b.date.split('/')[0]),
+                  ))
+                      ? 1
+                      : 0);
+            }
+          }
           return Container(
             height: MediaQuery.of(context).size.height,
             child: SafeArea(
@@ -161,13 +176,7 @@ class _HomePageState extends State<HomePage> {
           width: Dimensions.width10 * 20,
           child: ElevatedButton(
             onPressed: () {
-              CloudFirestore().addBooking(
-                  Booking(
-                      bookingName: "Home Workout Session",
-                      price: 2,
-                      time: "Time",
-                      date: "Date"),
-                  FirebaseAuth.instance.currentUser!.uid);
+
             },
             style: ElevatedButton.styleFrom(
                 primary: darkGreen,
