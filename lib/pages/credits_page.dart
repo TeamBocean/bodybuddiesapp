@@ -16,6 +16,7 @@ class CreditsPage extends StatefulWidget {
 }
 
 class _CreditsPageState extends State<CreditsPage> {
+  bool isBuddy = false;
   Map<String, dynamic>? paymentIntent;
 
   @override
@@ -35,9 +36,47 @@ class _CreditsPageState extends State<CreditsPage> {
               vertical: Dimensions.height20),
           child: Column(
             children: [
-              paymentOptionWidget(350, "8"),
-              paymentOptionWidget(550, "12"),
-              paymentOptionWidget(1450, "36"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 3,
+                    child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            isBuddy = !isBuddy;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: isBuddy ? darkGrey : darkGreen),
+                        child: MediumTextWidget(
+                          text: "Personal 1:1",
+                          fontSize: Dimensions.fontSize14,
+                        )),
+                  ),
+                  SizedBox(
+                    width: Dimensions.width20,
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 3,
+                    child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            isBuddy = !isBuddy;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: !isBuddy ? darkGrey : darkGreen),
+                        child: MediumTextWidget(
+                          text: "Buddy 2:1",
+                          fontSize: Dimensions.fontSize14,
+                        )),
+                  ),
+                ],
+              ),
+              paymentOptionWidget(isBuddy ? 450 : 350, "8", isBuddy ? "2" : "8"),
+              paymentOptionWidget(isBuddy ? 650 : 550, "12", isBuddy ? "3" : "12"),
+              paymentOptionWidget(isBuddy ? 1800 : 1450, "36", isBuddy ? "3" : "36"),
             ],
           ),
         ),
@@ -45,7 +84,7 @@ class _CreditsPageState extends State<CreditsPage> {
     );
   }
 
-  Widget paymentOptionWidget(double price, String credits) {
+  Widget paymentOptionWidget(double price, String credits, String session) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: Dimensions.height12),
       child: Container(
@@ -70,7 +109,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     height: Dimensions.height10,
                   ),
                   MediumTextWidget(
-                    text: "2 Sessions per week",
+                    text: "${session.toString()} Sessions per week",
                     fontSize: Dimensions.fontSize14,
                     color: Colors.grey,
                   ),
