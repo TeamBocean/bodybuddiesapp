@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bodybuddiesapp/models/user.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
+import 'package:bodybuddiesapp/services/email.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -190,6 +191,7 @@ class _CreditsPageState extends State<CreditsPage> {
       await Stripe.instance.presentPaymentSheet().then((value) {
         CloudFirestore().addCredits(credits,
             FirebaseAuth.instance.currentUser!.uid, isBuddy ? "2:1" : "1:1");
+        EmailService().sendSubscriptionConfirmationToUser();
         showDialog(
             context: context,
             builder: (_) => AlertDialog(

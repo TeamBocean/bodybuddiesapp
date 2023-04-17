@@ -31,6 +31,30 @@ class EmailService {
         .then((value) => print(value.body + value.statusCode.toString()));
   }
 
+  void sendSubscriptionConfirmationToUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    await http
+        .post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'service_id': 'service_qzxeeyw',
+              'template_id': 'template_5kq8l6l',
+              'user_id': '6j4yPTB5ndFWYGklN',
+              'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+              'template_params': {
+                'from_name': "BodyBuddies Team",
+                'to_name': FirebaseAuth.instance.currentUser!.displayName,
+                'user_email': user!.email,
+                'from_email': "team.bocean@gmail.com",
+                'message':
+                    'Thank you for joining Body Buddies, and we look forward to supporting you as you start your fitness journey. Please be advised our Personal Training/Buddy Training 8 & 12 credit Package expires 35 days after your initial booking. Personal Training/Buddy Training 36 credit Package expires 105 days after your initial booking.',
+                'reply_to': "team.bocean@gmail.com",
+              }
+            }))
+        .then((value) => print(value.body + value.statusCode.toString()));
+  }
+
   void sendBookingConfirmationToMark(Booking? booking) async {
     final user = FirebaseAuth.instance.currentUser;
 
