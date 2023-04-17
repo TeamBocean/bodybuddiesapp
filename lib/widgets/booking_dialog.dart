@@ -136,6 +136,11 @@ void bookingDialog(BuildContext context, Booking booking) {
                                                   FirebaseAuth.instance
                                                       .currentUser!.uid);
                                               Navigator.pop(context, 'dialog');
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(SnackBar(
+                                                      content: Text(
+                                                          "You are out of credits")));
                                             }
                                           },
                                           child: MediumTextWidget(

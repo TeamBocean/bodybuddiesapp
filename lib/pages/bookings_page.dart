@@ -84,91 +84,97 @@ class _BookingsPageState extends State<BookingsPage> {
             stream: CloudFirestore()
                 .streamUserData(FirebaseAuth.instance.currentUser!.uid),
             builder: (context, snapshot) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Stack(
-                    children: [
-                      Align(
-                        alignment: Alignment.center,
-                        child: MediumTextWidget(
-                          text:
-                              "${months[DateTime.now().month - 1]} ${DateTime.now().year}",
-                          fontSize: Dimensions.fontSize18,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(right: Dimensions.width15),
-                        child: Align(
-                          alignment: Alignment.topRight,
-                          child: IconButton(
-                            onPressed: () => showCalendarDialog(),
-                            splashRadius: 0.1,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                                minWidth: 22, maxWidth: 22),
-                            icon: Icon(Icons.calendar_month),
-                            color: Colors.white,
+              if (snapshot.hasData) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: MediumTextWidget(
+                            text:
+                                "${months[DateTime.now().month - 1]} ${DateTime.now().year}",
+                            fontSize: Dimensions.fontSize18,
                           ),
                         ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: Dimensions.height10,
-                  ),
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: Dimensions.width15),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: dates.map((date) => date).toList(),
+                        Padding(
+                          padding: EdgeInsets.only(right: Dimensions.width15),
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: IconButton(
+                              onPressed: () => showCalendarDialog(),
+                              splashRadius: 0.1,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                  minWidth: 22, maxWidth: 22),
+                              icon: Icon(Icons.calendar_month),
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: Dimensions.height10,
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: Dimensions.width15),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: dates.map((date) => date).toList(),
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    height: Dimensions.height15,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: Dimensions.width20),
-                    child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: MediumTextWidget(text: "Available Sessions")),
-                  ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height -
-                        (Dimensions.height50 * 4 + Dimensions.height10 * 8),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: slots
-                            .map((booking) => AbsorbPointer(
-                                  absorbing: snapshot.data!.bookings
-                                              .firstWhereOrNull((element) =>
-                                                  formatBookingDate(element)
-                                                      .day ==
-                                                  currentDay.day) !=
-                                          null
-                                      ? true
-                                      : false,
-                                  child: Opacity(
-                                      opacity: snapshot.data!.bookings
-                                                  .firstWhereOrNull((element) =>
-                                                      formatBookingDate(element)
-                                                          .day ==
-                                                      currentDay.day) !=
-                                              null
-                                          ? 0.5
-                                          : 1,
-                                      child: booking),
-                                ))
-                            .toList(),
-                      ),
+                    SizedBox(
+                      height: Dimensions.height15,
                     ),
-                  )
-                ],
-              );
+                    Padding(
+                      padding: EdgeInsets.only(left: Dimensions.width20),
+                      child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: MediumTextWidget(text: "Available Sessions")),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height -
+                          (Dimensions.height50 * 4 + Dimensions.height10 * 8),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: slots
+                              .map((booking) => AbsorbPointer(
+                                    absorbing: snapshot.data!.bookings
+                                                .firstWhereOrNull((element) =>
+                                                    formatBookingDate(element)
+                                                        .day ==
+                                                    currentDay.day) !=
+                                            null
+                                        ? true
+                                        : false,
+                                    child: Opacity(
+                                        opacity: snapshot.data!.bookings
+                                                    .firstWhereOrNull(
+                                                        (element) =>
+                                                            formatBookingDate(
+                                                                    element)
+                                                                .day ==
+                                                            currentDay.day) !=
+                                                null
+                                            ? 0.5
+                                            : 1,
+                                        child: booking),
+                                  ))
+                              .toList(),
+                        ),
+                      ),
+                    )
+                  ],
+                );
+              } else {
+                return Text("Loading");
+              }
             }),
       ),
     );
