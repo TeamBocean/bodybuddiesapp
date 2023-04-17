@@ -10,23 +10,25 @@ class EmailService {
   void sendBookingConfirmationToUser(Booking? booking) async {
     final user = FirebaseAuth.instance.currentUser;
 
-    await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'service_id': 'service_4dkli4o',
-          'template_id': 'template_idhk9g2',
-          'user_id': 'pVIVtNlmmO4AU9CDL',
-          'accessToken': 'GeIn3HeDxTAtzzSS16Xsz',
-          'template_params': {
-            'from_name': "Mark Test",
-            'to_name': FirebaseAuth.instance.currentUser!.displayName,
-            'user_email': user!.email,
-            'from_email': "mahmoudalmahroum3@gmail.com",
-            'message':
-                'Your lesson is at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date}',
-            'reply_to': user.email
-          }
-        }));
+    await http
+        .post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'service_id': 'service_qzxeeyw',
+              'template_id': 'template_5kq8l6l',
+              'user_id': '6j4yPTB5ndFWYGklN',
+              'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+              'template_params': {
+                'from_name': "BodyBuddies Team",
+                'to_name': FirebaseAuth.instance.currentUser!.displayName,
+                'user_email': user!.email,
+                'from_email': "team.bocean@gmail.com",
+                'message':
+                    'Thank you for making a booking with Mark at ${booking!.time + TextFormat().fixTimeFormat(booking.time)} ${booking.date}. Please be advised bookings have a minimum 24hr cancellation policy. If you cancel or reschedule this booking with less than 24 hour you will lose the credit.',
+                'reply_to': "team.bocean@gmail.com",
+              }
+            }))
+        .then((value) => print(value.body + value.statusCode.toString()));
   }
 
   void sendBookingConfirmationToMark(Booking? booking) async {
