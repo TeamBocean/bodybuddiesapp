@@ -77,11 +77,12 @@ class CloudFirestore {
   /// Create a booking
   /// Send booking confirmation email to customer
   /// Send booking confirmation email to Mark
-  void addCredits(int credits, String userID) {
-    reference
-        .collection("users")
-        .doc(userID)
-        .update({"credits": FieldValue.increment(credits)});
+  void addCredits(int credits, String userID, String creditType) {
+    reference.collection("users").doc(userID).update({
+      "credits": FieldValue.increment(credits),
+      "active": true,
+      "credit_type": creditType
+    });
   }
 
   /// Decrease user credits
@@ -100,6 +101,6 @@ class CloudFirestore {
     reference
         .collection("users")
         .doc(FirebaseAuth.instance.currentUser!.uid)
-        .update({"active": value});
+        .update({"active": value, "credit_type": ""});
   }
 }

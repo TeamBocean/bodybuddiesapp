@@ -47,7 +47,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     child: ElevatedButton(
                         onPressed: () {
                           setState(() {
-                            isBuddy = !isBuddy;
+                            isBuddy = false;
                           });
                         },
                         style: ElevatedButton.styleFrom(
@@ -65,7 +65,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     child: ElevatedButton(
                         onPressed: () {
                           setState(() {
-                            isBuddy = !isBuddy;
+                            isBuddy = true;
                           });
                         },
                         style: ElevatedButton.styleFrom(
@@ -188,8 +188,8 @@ class _CreditsPageState extends State<CreditsPage> {
   displayPaymentSheet(int credits) async {
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
-        CloudFirestore()
-            .addCredits(credits, FirebaseAuth.instance.currentUser!.uid);
+        CloudFirestore().addCredits(credits,
+            FirebaseAuth.instance.currentUser!.uid, isBuddy ? "2:1" : "1:1");
         showDialog(
             context: context,
             builder: (_) => AlertDialog(
