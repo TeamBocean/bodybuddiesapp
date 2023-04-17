@@ -20,12 +20,8 @@ class CloudFirestore {
   bool setUserInfo() {
     final FirebaseAuth auth = FirebaseAuth.instance;
     try {
-      reference.collection("users").doc(auth.currentUser!.uid).set({
-        "credits": 0,
-        "bookings": [],
-        "active" : false,
-        "credit_type" : ""
-      });
+      reference.collection("users").doc(auth.currentUser!.uid).set(
+          {"credits": 0, "bookings": [], "active": false, "credit_type": ""});
       return true;
     } catch (e) {
       print(e);
@@ -90,9 +86,20 @@ class CloudFirestore {
 
   /// Decrease user credits
   void decreaseCredits(int credits, String userID) {
+    reference.collection("users").doc(userID).update(
+        {"credits": FieldValue.increment(-credits)}).whenComplete(() async {
+      UserModel userModel =
+          await getUserData(FirebaseAuth.instance.currentUser!.uid);
+      if (userModel.credits == 0) {
+        toggleSubscriptionIsActive(false);
+      }
+    });
+  }
+
+  void toggleSubscriptionIsActive(bool value) {
     reference
         .collection("users")
-        .doc(userID)
-        .update({"credits": FieldValue.increment(-credits)});
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({"active": value});
   }
 }
