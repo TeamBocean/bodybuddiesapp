@@ -84,12 +84,14 @@ class _SettingsPageState extends State<SettingsPage> {
                               Column(
                                 children: [
                                   MediumTextWidget(
-                                    text: "Weight",
+                                    text: "Subscription",
                                     color: Colors.grey,
                                     fontSize: Dimensions.fontSize11,
                                   ),
                                   MediumTextWidget(
-                                    text: "70kg",
+                                    text: snapshot.hasData
+                                        ? "${snapshot.data!.creditType}"
+                                        : "Loading...",
                                     color: Colors.white,
                                     fontSize: Dimensions.fontSize14,
                                   ),

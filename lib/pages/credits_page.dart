@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bodybuddiesapp/models/user.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -128,19 +129,32 @@ class _CreditsPageState extends State<CreditsPage> {
                     fontSize: Dimensions.fontSize28,
                     color: darkGreen,
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: ElevatedButton(
-                        onPressed: () {
-                          makePayment(price, int.parse(credits));
-                        },
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: background),
-                        child: MediumTextWidget(
-                          text: "Purchase",
-                          fontSize: Dimensions.fontSize14,
-                        )),
-                  ),
+                  StreamBuilder<UserModel?>(
+                      stream: CloudFirestore().streamUserData(
+                          FirebaseAuth.instance.currentUser!.uid),
+                      builder: (context, snapshot) {
+                        return SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          child: ElevatedButton(
+                              onPressed: () {
+                                if (snapshot.data != null &&
+                                    !snapshot.data!.active) {
+                                  makePayment(price, int.parse(credits));
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(
+                                              "You already have an active subscription")));
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: background),
+                              child: MediumTextWidget(
+                                text: "Purchase",
+                                fontSize: Dimensions.fontSize14,
+                              )),
+                        );
+                      }),
                 ],
               )
             ],

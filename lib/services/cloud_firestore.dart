@@ -23,6 +23,8 @@ class CloudFirestore {
       reference.collection("users").doc(auth.currentUser!.uid).set({
         "credits": 0,
         "bookings": [],
+        "active" : false,
+        "credit_type" : ""
       });
       return true;
     } catch (e) {
