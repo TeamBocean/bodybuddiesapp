@@ -127,7 +127,7 @@ void bookingDialog(BuildContext context, Booking booking) {
                                                           Dimensions.width15))),
                                           onPressed: () {
                                             if (snapshot.data!.credits > 0) {
-                                              CloudFirestore().addBooking(
+                                              CloudFirestore().addUserBooking(
                                                   booking,
                                                   FirebaseAuth.instance
                                                       .currentUser!.uid);

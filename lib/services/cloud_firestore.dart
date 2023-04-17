@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/models/bookings.dart';
 import 'package:bodybuddiesapp/models/user.dart';
 import 'package:bodybuddiesapp/services/email.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -45,15 +46,34 @@ class CloudFirestore {
         .map((user) => UserModel.fromJson(user));
   }
 
+  Stream<Bookings> streamBookedDates(String userID) {
+    return reference
+        .collection("bookings")
+        .doc(DateTime.now().year.toString())
+        .snapshots()
+        .map((user) => Bookings.fromJson(user.data()));
+  }
+
   /// Create a booking
   /// Send booking confirmation email to customer
   /// Send booking confirmation email to Mark
-  void addBooking(Booking booking, String userID) {
+  void addUserBooking(Booking booking, String userID) {
     reference.collection("users").doc(userID).update({
       "bookings": FieldValue.arrayUnion([booking.toJson()])
     });
     EmailService().sendBookingConfirmationToMark(booking);
     EmailService().sendBookingConfirmationToUser(booking);
+    addBooking(booking);
+  }
+
+  void addBooking(Booking booking) {
+    List<String> dateAsList = booking.date.replaceAll("/", ".").split(".");
+    reference
+        .collection("bookings")
+        .doc(DateTime.now().year.toString())
+        .update({
+      "${dateAsList[1]}.${dateAsList[0]}": FieldValue.arrayUnion([booking.time])
+    });
   }
 
   /// Create a booking

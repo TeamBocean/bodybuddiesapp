@@ -89,15 +89,17 @@ class _HomePageState extends State<HomePage> {
                             ? Padding(
                                 padding: EdgeInsets.only(
                                     top: Dimensions.height35 * 3.2),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: snapshot.data!.bookings
-                                      .map((booking) => BookingWidget(
-                                            isBooked: true,
-                                            booking: booking,
-                                          ))
-                                      .toList(),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: snapshot.data!.bookings
+                                        .map((booking) => BookingWidget(
+                                              isBooked: true,
+                                              booking: booking,
+                                            ))
+                                        .toList(),
+                                  ),
                                 ),
                               )
                             : noBookings()
@@ -175,9 +177,7 @@ class _HomePageState extends State<HomePage> {
         SizedBox(
           width: Dimensions.width10 * 20,
           child: ElevatedButton(
-            onPressed: () {
-
-            },
+            onPressed: () {},
             style: ElevatedButton.styleFrom(
                 primary: darkGreen,
                 shape: RoundedRectangleBorder(
