@@ -66,12 +66,12 @@ class EmailService {
           'user_id': 'pVIVtNlmmO4AU9CDL',
           'accessToken': 'GeIn3HeDxTAtzzSS16Xsz',
           'template_params': {
-            'from_name': "Mark Test",
-            'to_name': FirebaseAuth.instance.currentUser!.displayName,
-            'user_email': user!.email,
-            'from_email': "mahmoudalmahroum3@gmail.com",
+            'from_name': FirebaseAuth.instance.currentUser!.displayName,
+            'to_name': "Mark",
+            'user_email': "team.bocean@gmail.com",
+            'from_email': user!.email,
             'message':
-                'Your lesson is at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date}',
+                'Upcoming lesson at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date} with ${FirebaseAuth.instance.currentUser!.displayName}',
             'reply_to': user.email
           }
         }));

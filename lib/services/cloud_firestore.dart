@@ -59,7 +59,7 @@ class CloudFirestore {
     reference.collection("users").doc(userID).update({
       "bookings": FieldValue.arrayUnion([booking.toJson()])
     });
-    // EmailService().sendBookingConfirmationToMark(booking);
+    EmailService().sendBookingConfirmationToMark(booking);
     EmailService().sendBookingConfirmationToUser(booking);
     addBooking(booking);
   }
