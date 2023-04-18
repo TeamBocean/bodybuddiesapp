@@ -76,4 +76,26 @@ class EmailService {
           }
         }));
   }
+
+  void sendBookingCancellationToMark(Booking? booking) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'service_id': 'service_4dkli4o',
+          'template_id': 'template_idhk9g2',
+          'user_id': 'pVIVtNlmmO4AU9CDL',
+          'accessToken': 'GeIn3HeDxTAtzzSS16Xsz',
+          'template_params': {
+            'from_name': FirebaseAuth.instance.currentUser!.displayName,
+            'to_name': "Mark",
+            'user_email': "team.bocean@gmail.com",
+            'from_email': user!.email,
+            'message':
+            'Lesson cancelled at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date} with ${FirebaseAuth.instance.currentUser!.displayName}',
+            'reply_to': user.email
+          }
+        }));
+  }
 }

@@ -75,15 +75,20 @@ class CloudFirestore {
   }
 
   void removeUserBooking(Booking booking, String userID) {
+    EmailService().sendBookingCancellationToMark(new Booking(
+        bookingName: booking.bookingName,
+        price: booking.price,
+        time: booking.time,
+        date: booking.date));
     reference.collection("users").doc(userID).update({
       "bookings": FieldValue.arrayRemove([booking.toJson()])
     });
-    // EmailService().sendBookingConfirmationToMark(booking);
     // EmailService().sendBookingConfirmationToUser(booking);
     removeBooking(booking);
     if (DateTime.now()
             .difference(getBookingDateTime(booking.date, booking.time))
-            .inHours.abs() >
+            .inHours
+            .abs() >
         24) {
       incrementCredit(1, userID);
     }
