@@ -167,25 +167,9 @@ class _HomePageState extends State<HomePage> {
           height: Dimensions.height10,
         ),
         MediumTextWidget(
-          text: "Click On Book Now To Get Started",
+          text: "Click On Bookings To Get Started",
           fontSize: Dimensions.fontSize12,
           color: Colors.grey,
-        ),
-        SizedBox(
-          height: Dimensions.height10,
-        ),
-        SizedBox(
-          width: Dimensions.width10 * 20,
-          child: ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-                primary: darkGreen,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Dimensions.width10))),
-            child: MediumTextWidget(
-              text: "Book Now",
-            ),
-          ),
         )
       ],
     );

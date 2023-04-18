@@ -31,10 +31,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   MediumTextWidget(text: "Profile"),
-                  Icon(
-                    Icons.notification_add,
-                    color: Colors.yellow,
-                  )
+                  // Icon(
+                  //   Icons.notification_add,
+                  //   color: Colors.yellow,
+                  // )
                 ],
               ),
               SizedBox(
@@ -133,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         MaterialPageRoute(builder: (context) => ProfilePage()));
                   },
                   child: settingsOption("Profile", Icons.person)),
-              settingsOption("Notification", Icons.notifications),
+              // settingsOption("Notification", Icons.notifications),
               GestureDetector(
                   onTap: () {
                     Navigator.push(context,
