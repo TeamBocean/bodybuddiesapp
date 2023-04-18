@@ -23,10 +23,12 @@ class _BookingsPageState extends State<BookingsPage> {
   String _day = DateTime.now().day.toString();
   DateTime currentDay = DateTime.now();
   final _currentDate = DateTime.now();
-  DateTime startTime = DateTime(
-      DateTime.now().year, DateTime.now().month, DateTime.now().day, 8, 0, 0);
-  DateTime endTime = DateTime(
-      DateTime.now().year, DateTime.now().month, DateTime.now().day, 17, 0, 0);
+  DateTime startTimeOne = DateTime(
+      DateTime.now().year, DateTime.now().month, DateTime.now().day, 7, 15, 0);
+  // DateTime startTimeTwo = DateTime(
+  //     DateTime.now().year, DateTime.now().month, DateTime.now().day, 15, 0, 0);
+  // DateTime endTime = DateTime(
+  //     DateTime.now().year, DateTime.now().month, DateTime.now().day, 21, 0, 0);
   Duration step = Duration(minutes: 45);
   List<Widget> slots = [];
 
@@ -48,10 +50,13 @@ class _BookingsPageState extends State<BookingsPage> {
 
     setState(() {
       slots.clear();
-      startTime =
-          DateTime(currentDay.year, currentDay.month, currentDay.day, 8, 0, 0);
-      endTime =
-          DateTime(currentDay.year, currentDay.month, currentDay.day, 17, 0, 0);
+
+      DateTime startTime = currentDay.weekday % 2 == 0
+          ? DateTime(
+              currentDay.year, currentDay.month, currentDay.day, 6, 30, 0)
+          : DateTime(
+              currentDay.year, currentDay.month, currentDay.day, 14, 15, 0);
+      DateTime endTime = DateTime(currentDay.year, currentDay.month, currentDay.day, 20, 30, 0);
       if (currentDay.weekday != 6 && currentDay.weekday != 7) {
         while (startTime.isBefore(endTime)) {
           DateTime timeIncrement = startTime.add(step);
