@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                         ? snapshot.data!.bookings.isNotEmpty
                             ? Padding(
                                 padding: EdgeInsets.only(
-                                    top: Dimensions.height35 * 3.2),
+                                    top: Dimensions.height35 * 3.2, bottom: Dimensions.height10 * 6),
                                 child: SingleChildScrollView(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.max,
