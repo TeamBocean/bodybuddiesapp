@@ -106,7 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   MediumTextWidget(
                     text: title,
                     color: Colors.white,
-                    fontSize: Dimensions.fontSize16,
+                    fontSize: Dimensions.fontSize14,
                   ),
                 ],
               ),

@@ -88,7 +88,8 @@ class _HomePageState extends State<HomePage> {
                         ? snapshot.data!.bookings.isNotEmpty
                             ? Padding(
                                 padding: EdgeInsets.only(
-                                    top: Dimensions.height35 * 3.2, bottom: Dimensions.height10 * 6),
+                                    top: Dimensions.height35 * 3.2,
+                                    bottom: Dimensions.height10 * 6),
                                 child: SingleChildScrollView(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.max,
@@ -127,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                     fontSize: Dimensions.fontSize14),
                 MediumTextWidget(
                     text:
-                        "Hi, ${FirebaseAuth.instance.currentUser!.displayName!.split(' ').first}"),
+                        "Hi, ${getDisplayName()!.split(' ').first}"),
                 MediumTextWidget(
                   text: "Remaining Credits: ${snapshot.data!.credits}",
                   fontSize: Dimensions.fontSize14,
@@ -141,6 +142,12 @@ class _HomePageState extends State<HomePage> {
             );
           }
         });
+  }
+
+  String? getDisplayName() {
+    return FirebaseAuth.instance.currentUser!.displayName != null
+        ? FirebaseAuth.instance.currentUser!.displayName
+        : "";
   }
 
   String getTodaysDate() {

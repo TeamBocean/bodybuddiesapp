@@ -121,92 +121,95 @@ class _BookingWidgetState extends State<BookingWidget> {
                                 SizedBox(
                                   width: Dimensions.width10,
                                 ),
-                                IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: BoxConstraints(),
-                                    onPressed: () {
-                                      showDialog(
-                                          context: context,
-                                          builder: (_) => AlertDialog(
-                                                contentPadding: EdgeInsets.zero,
-                                                content: Container(
-                                                  width: MediaQuery.of(context)
-                                                      .size
-                                                      .width,
-                                                  height:
-                                                      Dimensions.height10 * 12,
-                                                  color: darkGrey,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Padding(
-                                                        padding:
-                                                            EdgeInsets.only(
-                                                                top: Dimensions
-                                                                    .height10),
-                                                        child: Center(
-                                                          child: Text(
-                                                            "Are you sure you want to cancel your booking?",
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            style: TextStyle(
-                                                                fontSize: Dimensions
-                                                                    .fontSize16,
-                                                                color: Colors
-                                                                    .white),
+                                Visibility(
+                                  visible: widget.isBooked,
+                                  child: IconButton(
+                                      padding: EdgeInsets.zero,
+                                      constraints: BoxConstraints(),
+                                      onPressed: () {
+                                        showDialog(
+                                            context: context,
+                                            builder: (_) => AlertDialog(
+                                                  contentPadding: EdgeInsets.zero,
+                                                  content: Container(
+                                                    width: MediaQuery.of(context)
+                                                        .size
+                                                        .width,
+                                                    height:
+                                                        Dimensions.height10 * 12,
+                                                    color: darkGrey,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              EdgeInsets.only(
+                                                                  top: Dimensions
+                                                                      .height10),
+                                                          child: Center(
+                                                            child: Text(
+                                                              "Are you sure you want to cancel your booking?",
+                                                              textAlign: TextAlign
+                                                                  .center,
+                                                              style: TextStyle(
+                                                                  fontSize: Dimensions
+                                                                      .fontSize16,
+                                                                  color: Colors
+                                                                      .white),
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          IconButton(
-                                                              onPressed: () {
-                                                                Navigator.pop(
-                                                                    context,
-                                                                    'dialog');
-                                                              },
-                                                              icon: Icon(
-                                                                Icons.close,
-                                                                color:
-                                                                    Colors.red,
-                                                              )),
-                                                          IconButton(
-                                                              onPressed: () {
-                                                                CloudFirestore().removeUserBooking(
-                                                                    widget
-                                                                        .booking,
-                                                                    FirebaseAuth
-                                                                        .instance
-                                                                        .currentUser!
-                                                                        .uid);
-                                                                Navigator.pop(
-                                                                    context,
-                                                                    'dialog');
-                                                              },
-                                                              icon: Icon(
-                                                                Icons.check,
-                                                                color: Colors
-                                                                    .green,
-                                                              ))
-                                                        ],
-                                                      )
-                                                    ],
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            IconButton(
+                                                                onPressed: () {
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      'dialog');
+                                                                },
+                                                                icon: Icon(
+                                                                  Icons.close,
+                                                                  color:
+                                                                      Colors.red,
+                                                                )),
+                                                            IconButton(
+                                                                onPressed: () {
+                                                                  CloudFirestore().removeUserBooking(
+                                                                      widget
+                                                                          .booking,
+                                                                      FirebaseAuth
+                                                                          .instance
+                                                                          .currentUser!
+                                                                          .uid);
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      'dialog');
+                                                                },
+                                                                icon: Icon(
+                                                                  Icons.check,
+                                                                  color: Colors
+                                                                      .green,
+                                                                ))
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
                                                   ),
-                                                ),
-                                              ));
-                                    },
-                                    icon: Icon(
-                                      Icons.delete,
-                                      color: Colors.grey,
-                                    ))
+                                                ));
+                                      },
+                                      icon: Icon(
+                                        Icons.delete,
+                                        color: Colors.grey,
+                                      )),
+                                )
                               ],
                             )
                           ],
