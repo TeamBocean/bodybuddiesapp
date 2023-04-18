@@ -5,6 +5,7 @@ import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/booking_dialog.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/email.dart';
@@ -85,7 +86,7 @@ class _BookingWidgetState extends State<BookingWidget> {
                           children: [
                             MediumTextWidget(
                               text: widget.booking.date,
-                              fontSize: Dimensions.fontSize14,
+                              fontSize: Dimensions.fontSize16,
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -117,6 +118,95 @@ class _BookingWidgetState extends State<BookingWidget> {
                                     ),
                                   ),
                                 ),
+                                SizedBox(
+                                  width: Dimensions.width10,
+                                ),
+                                IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    onPressed: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (_) => AlertDialog(
+                                                contentPadding: EdgeInsets.zero,
+                                                content: Container(
+                                                  width: MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  height:
+                                                      Dimensions.height10 * 12,
+                                                  color: darkGrey,
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                top: Dimensions
+                                                                    .height10),
+                                                        child: Center(
+                                                          child: Text(
+                                                            "Are you sure you want to cancel your booking?",
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style: TextStyle(
+                                                                fontSize: Dimensions
+                                                                    .fontSize16,
+                                                                color: Colors
+                                                                    .white),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          IconButton(
+                                                              onPressed: () {
+                                                                Navigator.pop(
+                                                                    context,
+                                                                    'dialog');
+                                                              },
+                                                              icon: Icon(
+                                                                Icons.close,
+                                                                color:
+                                                                    Colors.red,
+                                                              )),
+                                                          IconButton(
+                                                              onPressed: () {
+                                                                CloudFirestore().removeUserBooking(
+                                                                    widget
+                                                                        .booking,
+                                                                    FirebaseAuth
+                                                                        .instance
+                                                                        .currentUser!
+                                                                        .uid);
+                                                                Navigator.pop(
+                                                                    context,
+                                                                    'dialog');
+                                                              },
+                                                              icon: Icon(
+                                                                Icons.check,
+                                                                color: Colors
+                                                                    .green,
+                                                              ))
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ));
+                                    },
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color: Colors.grey,
+                                    ))
                               ],
                             )
                           ],

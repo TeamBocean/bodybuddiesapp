@@ -74,6 +74,43 @@ class CloudFirestore {
     });
   }
 
+  void removeUserBooking(Booking booking, String userID) {
+    reference.collection("users").doc(userID).update({
+      "bookings": FieldValue.arrayRemove([booking.toJson()])
+    });
+    // EmailService().sendBookingConfirmationToMark(booking);
+    // EmailService().sendBookingConfirmationToUser(booking);
+    removeBooking(booking);
+    if (DateTime.now()
+            .difference(getBookingDateTime(booking.date, booking.time))
+            .inHours.abs() >
+        24) {
+      incrementCredit(1, userID);
+    }
+  }
+
+  DateTime getBookingDateTime(String date, String time) {
+    List<String> timeAsList = time.split(":");
+    List<String> dateAsList = date.split("/");
+    return DateTime(
+        DateTime.now().year,
+        int.parse(dateAsList[1]),
+        int.parse(dateAsList[0]),
+        int.parse(timeAsList[0]),
+        int.parse(timeAsList[1]));
+  }
+
+  void removeBooking(Booking booking) {
+    List<String> dateAsList = booking.date.replaceAll("/", ".").split(".");
+    reference
+        .collection("bookings")
+        .doc(DateTime.now().year.toString())
+        .update({
+      "${dateAsList[1]}.${dateAsList[0]}":
+          FieldValue.arrayRemove([booking.time])
+    });
+  }
+
   /// Create a booking
   /// Send booking confirmation email to customer
   /// Send booking confirmation email to Mark
@@ -82,6 +119,18 @@ class CloudFirestore {
       "credits": FieldValue.increment(credits),
       "active": true,
       "credit_type": creditType
+    });
+  }
+
+  /// Decrease user credits
+  void incrementCredit(int credits, String userID) {
+    reference.collection("users").doc(userID).update(
+        {"credits": FieldValue.increment(credits)}).whenComplete(() async {
+      UserModel userModel =
+          await getUserData(FirebaseAuth.instance.currentUser!.uid);
+      if (userModel.credits == 0) {
+        toggleSubscriptionIsActive(false);
+      }
     });
   }
 
