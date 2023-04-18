@@ -6,6 +6,7 @@ import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../models/user.dart';
 import '../services/cloud_firestore.dart';
@@ -58,6 +59,8 @@ class _BookingsPageState extends State<BookingsPage> {
               currentDay.year, currentDay.month, currentDay.day, 14, 15, 0);
       DateTime endTime = DateTime(currentDay.year, currentDay.month, currentDay.day, 20, 30, 0);
       if (currentDay.weekday != 6 && currentDay.weekday != 7) {
+        DateFormat df = new DateFormat('HH:mm');
+
         while (startTime.isBefore(endTime)) {
           DateTime timeIncrement = startTime.add(step);
           setState(() {
@@ -69,7 +72,7 @@ class _BookingsPageState extends State<BookingsPage> {
                   date: currentDay.day.toString() +
                       "/" +
                       currentDay.month.toString(),
-                  time: "${timeIncrement.hour}:${timeIncrement.minute}",
+                  time: df.format(timeIncrement),
                 )));
           });
 

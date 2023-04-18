@@ -51,6 +51,7 @@ dependencies:
   dio: ^5.1.1
   flutter_stripe: ^9.0.0+1
   http: ^0.13.5
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:
