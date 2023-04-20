@@ -5,10 +5,7 @@ import 'package:bodybuddiesapp/widgets/google_sign_in_btn.dart';
 import 'package:bodybuddiesapp/widgets/logo.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_signin_button/button_list.dart';
-import 'package:flutter_signin_button/button_view.dart';
-
-import '../services/authentication.dart';
+import 'dart:io' show Platform;
 import '../utils/colors.dart';
 
 class SignInPage extends StatefulWidget {
@@ -52,7 +49,9 @@ class _SignInPageState extends State<SignInPage> {
                   ],
                 ),
                 GoogleSignInBTN(),
-                AppleSignInBTN(),
+                Visibility(
+                    visible: Platform.isIOS,
+                    child: AppleSignInBTN()),
               ],
             )
           ],

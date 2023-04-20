@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
                               backgroundColor: Colors.grey.shade400,
                               radius: Dimensions.width27,
                               child: MediumTextWidget(
-                                text: snapshot.data!.name.substring(0, 1),
+                                text: snapshot.hasData ? snapshot.data!.name.substring(0, 1) : "",
                                 color: Colors.black,
                               ),
                             )
