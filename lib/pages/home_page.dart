@@ -61,13 +61,7 @@ class _HomePageState extends State<HomePage> {
                               backgroundColor: Colors.grey.shade400,
                               radius: Dimensions.width27,
                               child: MediumTextWidget(
-                                text: FirebaseAuth.instance.currentUser!
-                                            .displayName !=
-                                        null
-                                    ? FirebaseAuth
-                                        .instance.currentUser!.displayName!
-                                        .substring(0, 1)
-                                    : "",
+                                text: snapshot.data!.name.substring(0, 1),
                                 color: Colors.black,
                               ),
                             )
@@ -126,9 +120,7 @@ class _HomePageState extends State<HomePage> {
                     text: getTodaysDate(),
                     color: darkGreen,
                     fontSize: Dimensions.fontSize14),
-                MediumTextWidget(
-                    text:
-                        "Hi, ${getDisplayName()!.split(' ').first}"),
+                MediumTextWidget(text: "Hi, ${snapshot.data!.name}"),
                 MediumTextWidget(
                   text: "Remaining Credits: ${snapshot.data!.credits}",
                   fontSize: Dimensions.fontSize14,

@@ -1,5 +1,6 @@
 import 'package:bodybuddiesapp/pages/bookings_page.dart';
 import 'package:bodybuddiesapp/pages/main_scaffold.dart';
+import 'package:bodybuddiesapp/pages/on_boarding_page.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -64,16 +65,11 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
             ),
           );
         }else {
-          bool success = CloudFirestore().setUserInfo();
-          if(success) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => MainScaffold(),
-              ),
-            );
-          }else {
-            print("ERROR");
-          }
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => OnBoardingPage(),
+            ),
+          );
         }
       });
     }

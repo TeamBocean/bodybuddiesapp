@@ -50,18 +50,23 @@ class _SettingsPageState extends State<SettingsPage> {
               SizedBox(
                 height: Dimensions.height10,
               ),
-              Column(
-                children: [
-                  MediumTextWidget(
-                      text:
-                          "${FirebaseAuth.instance.currentUser!.displayName}"),
-                  MediumTextWidget(
-                    text: "${FirebaseAuth.instance.currentUser!.email}",
-                    color: Colors.grey,
-                    fontSize: Dimensions.fontSize11,
-                  ),
-                ],
-              ),
+              StreamBuilder<UserModel>(
+                  stream: CloudFirestore()
+                      .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+                  builder: (context, snapshot) {
+                    return Column(
+                      children: [
+                        snapshot.hasData
+                            ? MediumTextWidget(text: "${snapshot.data!.name}")
+                            : MediumTextWidget(text: "Loading"),
+                        MediumTextWidget(
+                          text: "${FirebaseAuth.instance.currentUser!.email}",
+                          color: Colors.grey,
+                          fontSize: Dimensions.fontSize11,
+                        ),
+                      ],
+                    );
+                  }),
               SizedBox(
                 height: Dimensions.height10,
               ),
@@ -140,7 +145,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         MaterialPageRoute(builder: (context) => CreditsPage()));
                   },
                   child: settingsOption("Credits", Icons.monetization_on)),
-              settingsOption("Progress Pictures", Icons.browse_gallery),
+              settingsOption("Progress", Icons.browse_gallery),
               SizedBox(
                 height: Dimensions.height10 * 2,
               ),

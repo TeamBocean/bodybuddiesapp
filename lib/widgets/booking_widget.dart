@@ -33,7 +33,7 @@ class _BookingWidgetState extends State<BookingWidget> {
                   vertical: Dimensions.height10 / 2),
               child: Opacity(
                 opacity: isAlreadyBooked(widget.booking,
-                    snapshot.data!.list) ? 0.5 : 1,
+                    snapshot.data!.list) && !widget.isBooked ? 0.5 : 1,
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: Dimensions.height10 * 12,

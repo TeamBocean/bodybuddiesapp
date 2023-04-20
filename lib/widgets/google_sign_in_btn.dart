@@ -64,7 +64,7 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
             ),
           );
         }else {
-          bool success = CloudFirestore().setUserInfo();
+          bool success = CloudFirestore().setUserInfo(false, null);
           if(success) {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
