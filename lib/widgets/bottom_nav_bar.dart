@@ -41,6 +41,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               icon: Image.asset(
                 ASSETS + "home.png",
                 color: widget.currentIndex == 0 ? darkGreen : Colors.white,
+                height: Dimensions.height25,
               ),
               label: "Home",
             ),
@@ -49,6 +50,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               icon: Image.asset(
                 ASSETS + "bookings.png",
                 color: widget.currentIndex == 1 ? darkGreen : Colors.white,
+                height: Dimensions.height25,
               ),
               label: "Bookings",
             ),
@@ -57,6 +59,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               icon: Image.asset(
                 ASSETS + "nutrition.png",
                 color: widget.currentIndex == 2 ? darkGreen : Colors.white,
+                height: Dimensions.height25,
               ),
               label: "Nutrition",
             ),
@@ -65,6 +68,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               icon: Image.asset(
                 ASSETS + "account.png",
                 color: widget.currentIndex == 3 ? darkGreen : Colors.white,
+                height: Dimensions.height25,
               ),
               label: "Account",
             ),
