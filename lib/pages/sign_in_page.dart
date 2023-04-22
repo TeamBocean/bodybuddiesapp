@@ -21,29 +21,33 @@ class _SignInPageState extends State<SignInPage> {
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Stack(
+          // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Column(
-              children: [
-                Center(child: Logo(assetName: 'logo.png')),
-                welcomeMessage(),
-              ],
+            Padding(
+              padding: EdgeInsets.only(top: Dimensions.height20),
+              child: Column(
+                children: [
+                  Center(child: Logo(assetName: 'logo.png')),
+                  welcomeMessage(),
+                ],
+              ),
             ),
-            signInForm(),
+            // signInForm(),
             Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     MediumTextWidget(
                       text: "New to BodyBuilders?",
-                      fontSize: Dimensions.fontSize12,
+                      fontSize: Dimensions.fontSize14,
                     ),
                     MediumTextWidget(
                       text: "Join Now",
-                      fontSize: Dimensions.fontSize12,
+                      fontSize: Dimensions.fontSize14,
                       color: Colors.teal,
                     ),
                   ],
@@ -135,7 +139,7 @@ class _SignInPageState extends State<SignInPage> {
         ),
         MediumTextWidget(
           text: "Plan your workout with Mark",
-          fontSize: Dimensions.fontSize13,
+          fontSize: Dimensions.fontSize14,
           color: Colors.grey,
         ),
       ],
