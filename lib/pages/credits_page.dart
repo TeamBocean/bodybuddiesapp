@@ -241,7 +241,7 @@ class _CreditsPageState extends State<CreditsPage> {
         Uri.parse('https://api.stripe.com/v1/payment_intents'),
         headers: {
           'Authorization':
-              'Bearer sk_test_51HjpItIZd5hDXDsaxggZwNzcrnnH3VKyi8n0vMl1wtoCyWyjhZcxdF7Ttd4ZFlLiWqpBG0R50QY39Edn6zZAN21K00BVNQkEV0',
+              'Bearer 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',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: body,

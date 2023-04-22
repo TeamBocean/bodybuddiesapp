@@ -6,7 +6,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Stripe.publishableKey =
-  "pk_test_51HjpItIZd5hDXDsaYk7G5v2OJVS7N1LOTVE5KkODhr22789MAUgG86g4MqyS9CZ72pohcgAMc4IsY3cXpojsSxOc00CqLmIfkz";
+  "pk_live_51MubfEEgQfqRQxRaOcN3vULxR3iYBu8fuypsSi7MD84ZP0En6bwCgPxb7zggGBg6PiIOKZDNrXB0XrTxMpDw6X7q00GJ2evJgI";
   await Stripe.instance.applySettings();
   await Firebase.initializeApp();
   runApp(const Wrapper());
