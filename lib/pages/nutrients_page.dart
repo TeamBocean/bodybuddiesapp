@@ -1,3 +1,4 @@
+import 'package:bodybuddiesapp/pages/nutrition_page.dart';
 import 'package:bodybuddiesapp/utils/constants.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
@@ -25,8 +26,17 @@ class NutrientsPage extends StatelessWidget {
               ),
               Column(
                 children: nutrientAssets
-                    .map((asset) => nutritionWidget(asset,
-                        nutrientTypes[nutrientAssets.indexOf(asset)], context))
+                    .map((asset) => GestureDetector(
+                          onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                  builder: (context) => NutritionPage(
+                                      title: nutrientTypes[
+                                          nutrientAssets.indexOf(asset)]))),
+                          child: nutritionWidget(
+                              asset,
+                              nutrientTypes[nutrientAssets.indexOf(asset)],
+                              context),
+                        ))
                     .toList(),
               ),
             ],
