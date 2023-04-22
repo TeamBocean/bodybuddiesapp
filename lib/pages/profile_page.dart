@@ -27,57 +27,66 @@ class _ProfilePageState extends State<ProfilePage> {
           text: "Account Details",
         ),
       ),
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                children: [
-                  SizedBox(
-                    height: Dimensions.height10 * 2,
-                  ),
-                  settingsOption(
-                      "${FirebaseAuth.instance.currentUser!.displayName}",
-                      Icons.person),
-                  settingsOption("${FirebaseAuth.instance.currentUser!.email}",
-                      Icons.email),
-                  settingsOption("70kg", Icons.monetization_on),
-                  settingsOption("179cm", Icons.browse_gallery),
-                ],
-              ),
-              Column(
-                children: [
-                  SizedBox(
-                    width: Dimensions.width20 * 5,
-                    child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            primary: background,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(Dimensions.width10),
-                                side: BorderSide(color: Colors.white))),
-                        onPressed: () =>
-                            Authentication.signOut(context: context),
-                        child: Center(
-                          child: MediumTextWidget(
-                            text: "Log Out",
-                            fontSize: Dimensions.fontSize14,
+      body: StreamBuilder<UserModel?>(
+          stream: CloudFirestore()
+              .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Container(
+                height: MediaQuery.of(context).size.height,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          SizedBox(
+                            height: Dimensions.height10 * 2,
                           ),
-                        )),
+                          settingsOption(
+                              "${snapshot.data!.name}", Icons.person),
+                          settingsOption(
+                              "${FirebaseAuth.instance.currentUser!.email}",
+                              Icons.email),
+                          settingsOption("${snapshot.data!.weight}kg",
+                              Icons.monetization_on),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          SizedBox(
+                            width: Dimensions.width20 * 5,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    primary: background,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            Dimensions.width10),
+                                        side: BorderSide(color: Colors.white))),
+                                onPressed: () =>
+                                    Authentication.signOut(context: context),
+                                child: Center(
+                                  child: MediumTextWidget(
+                                    text: "Log Out",
+                                    fontSize: Dimensions.fontSize14,
+                                  ),
+                                )),
+                          ),
+                          SizedBox(
+                            height: Dimensions.height10 * 4,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    height: Dimensions.height10 * 4,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+                ),
+              );
+            } else {
+              return MediumTextWidget(text: "Loading");
+            }
+          }),
     );
   }
 

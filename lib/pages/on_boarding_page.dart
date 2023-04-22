@@ -1,5 +1,6 @@
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/cloud_firestore.dart';
@@ -15,6 +16,16 @@ class OnBoardingPage extends StatefulWidget {
 
 class _OnBoardingPageState extends State<OnBoardingPage> {
   TextEditingController nameController = TextEditingController();
+  TextEditingController weightController = TextEditingController();
+
+  @override
+  void initState() {
+    if (FirebaseAuth.instance.currentUser!.displayName != null) {
+      nameController.text =
+          FirebaseAuth.instance.currentUser!.displayName.toString();
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +40,27 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               message(),
-              textFormField("Jane Doe", Icons.person),
+              Column(
+                children: [
+                  textFormField("Jane Doe", Icons.person, TextInputType.name,
+                      nameController),
+                  SizedBox(
+                    height: Dimensions.height10,
+                  ),
+                  textFormField("Weight", Icons.running_with_errors,
+                      TextInputType.number, weightController),
+                ],
+              ),
               SizedBox(
                 width: Dimensions.width10 * 20,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (nameController.text.toString().length > 1) {
-                      bool success = CloudFirestore()
-                          .setUserInfo(true, nameController.text.toString());
+                    print(int.parse(weightController.text));
+                    if (nameController.text.toString().length > 1 &&
+                        weightController.text.isNotEmpty) {
+                      bool success = CloudFirestore().setUserInfo(
+                          nameController.text.toString(),
+                          int.parse(weightController.text));
                       if (success) {
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
@@ -47,8 +71,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                         print("ERROR");
                       }
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Name field is empty!")));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("All fields must be filled in!")));
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -68,14 +92,13 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     );
   }
 
-  Widget textFormField(String hint, IconData iconData) {
+  Widget textFormField(String hint, IconData iconData,
+      TextInputType textInputType, TextEditingController controller) {
     return TextFormField(
       cursorColor: Colors.white,
-      controller: nameController,
-      keyboardType: TextInputType.name,
-      style: TextStyle(
-        color: Colors.white
-      ),
+      controller: controller,
+      keyboardType: textInputType,
+      style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         prefixIcon: Icon(
           iconData,
@@ -104,9 +127,13 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
           text: "One last step to get you started!",
           fontSize: Dimensions.fontSize20,
         ),
+        SizedBox(
+          height: Dimensions.height10,
+        ),
         MediumTextWidget(
-          text: "Add your name below",
+          text: "Add your name & weight below",
           fontSize: Dimensions.fontSize16,
+          color: Colors.grey,
         ),
       ],
     );

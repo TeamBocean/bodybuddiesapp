@@ -17,30 +17,17 @@ class CloudFirestore {
     return doc.exists;
   }
 
-  bool setUserInfo(bool isApple, String? name) {
+  bool setUserInfo(String name, int weight) {
     final FirebaseAuth auth = FirebaseAuth.instance;
     try {
-      if (isApple) {
-        reference.collection("users").doc(auth.currentUser!.uid).set({
-          "credits": 0,
-          "bookings": [],
-          "active": false,
-          "credit_type": "",
-          "name": name
-        });
-      } else {
-        reference.collection("users").doc(auth.currentUser!.uid).set({
-          "credits": 0,
-          "bookings": [],
-          "active": false,
-          "credit_type": "",
-          "name": FirebaseAuth.instance.currentUser != null
-              ? FirebaseAuth.instance.currentUser!.displayName != null
-                  ? FirebaseAuth.instance.currentUser!.displayName
-                  : "Name not set"
-              : "Name not set"
-        });
-      }
+      reference.collection("users").doc(auth.currentUser!.uid).set({
+        "credits": 0,
+        "bookings": [],
+        "active": false,
+        "credit_type": "",
+        "name": name,
+        "weight": weight
+      });
 
       return true;
     } catch (e) {

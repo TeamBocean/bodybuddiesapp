@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
 
+import '../pages/on_boarding_page.dart';
 import '../services/authentication.dart';
 
 class GoogleSignInBTN extends StatefulWidget {
@@ -64,16 +65,11 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
             ),
           );
         }else {
-          bool success = CloudFirestore().setUserInfo(false, null);
-          if(success) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => MainScaffold(),
-              ),
-            );
-          }else {
-            print("ERROR");
-          }
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => OnBoardingPage(),
+            ),
+          );
         }
       });
     }
