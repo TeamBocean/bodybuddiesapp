@@ -1,0 +1,15 @@
+#!/bin/sh
+# This is a generated file; do not edit or check into version control.
+export "FLUTTER_ROOT=/Users/mahmoudalmahroum/dev/flutter"
+export "FLUTTER_APPLICATION_PATH=/Users/mahmoudalmahroum/Library/Mobile Documents/com~apple~CloudDocs/StudioProjects/bodybuddiesapp"
+export "COCOAPODS_PARALLEL_CODE_SIGN=true"
+export "FLUTTER_TARGET=/Users/mahmoudalmahroum/Library/Mobile Documents/com~apple~CloudDocs/StudioProjects/bodybuddiesapp/lib/main.dart"
+export "FLUTTER_BUILD_DIR=build"
+export "FLUTTER_BUILD_NAME=1.0.4"
+export "FLUTTER_BUILD_NUMBER=6"
+export "DART_DEFINES=Zmx1dHRlci5pbnNwZWN0b3Iuc3RydWN0dXJlZEVycm9ycz10cnVl,RkxVVFRFUl9XRUJfQVVUT19ERVRFQ1Q9dHJ1ZQ=="
+export "DART_OBFUSCATION=false"
+export "EXTRA_FRONT_END_OPTIONS=--no-sound-null-safety"
+export "TRACK_WIDGET_CREATION=true"
+export "TREE_SHAKE_ICONS=false"
+export "PACKAGE_CONFIG=/Users/mahmoudalmahroum/Library/Mobile Documents/com~apple~CloudDocs/StudioProjects/bodybuddiesapp/.dart_tool/package_config.json"

@@ -11,22 +11,36 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 
+import '../pages/on_boarding_page.dart';
+import 'cloud_firestore.dart';
+
 class Authentication {
-  static Future<FirebaseApp> initializeFirebase(
+  static Future<bool> initializeFirebase(
       {required BuildContext context}) async {
     FirebaseApp firebaseApp = await Firebase.initializeApp();
 
     User? user = FirebaseAuth.instance.currentUser;
     // print(user!.email);
     if (user != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => MainScaffold(),
-        ),
-      );
+      await CloudFirestore().isUserExists().then((userExists) {
+        print(userExists);
+        if (userExists) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => MainScaffold(),
+            ),
+          );
+        }else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => OnBoardingPage(),
+            ),
+          );
+        }
+      });
     }
 
-    return firebaseApp;
+    return true;
   }
 
   static Future<User?> signInWithGoogle({required BuildContext context}) async {

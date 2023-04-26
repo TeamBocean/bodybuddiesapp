@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "627245807572",
+    "project_id": "bodybuddies-cf068",
+    "storage_bucket": "bodybuddies-cf068.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:627245807572:android:ae63a0bed6e515431c4841",
+        "android_client_info": {
+          "package_name": "com.bodybuddies.bodybuddiesapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "627245807572-6edgivap6e9krql1vrsku2ihlad54kcn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bodybuddies.bodybuddiesapp",
+            "certificate_hash": "ed323ad8ad29af801d93b847ebb0b711b3953a6d"
+          }
+        },
+        {
+          "client_id": "627245807572-aadrast5fib9eo9udlvb1g75t3ro9j1s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKjXp0q1Ru1rY7zhUCtG8TklIyvD-AavI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "627245807572-aadrast5fib9eo9udlvb1g75t3ro9j1s.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "627245807572-htpmepb1dnqp6fop1nep336bqmckikhn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bodybuddies.bodybuddiesapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

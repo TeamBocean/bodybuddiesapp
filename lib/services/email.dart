@@ -61,10 +61,10 @@ class EmailService {
     await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'service_id': 'service_4dkli4o',
-          'template_id': 'template_idhk9g2',
-          'user_id': 'pVIVtNlmmO4AU9CDL',
-          'accessToken': 'GeIn3HeDxTAtzzSS16Xsz',
+          'service_id': 'service_qzxeeyw',
+          'template_id': 'template_5kq8l6l',
+          'user_id': '6j4yPTB5ndFWYGklN',
+          'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
           'template_params': {
             'from_name': FirebaseAuth.instance.currentUser!.displayName,
             'to_name': "Mark",
@@ -83,10 +83,10 @@ class EmailService {
     await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'service_id': 'service_4dkli4o',
-          'template_id': 'template_idhk9g2',
-          'user_id': 'pVIVtNlmmO4AU9CDL',
-          'accessToken': 'GeIn3HeDxTAtzzSS16Xsz',
+          'service_id': 'service_qzxeeyw',
+          'template_id': 'template_5kq8l6l',
+          'user_id': '6j4yPTB5ndFWYGklN',
+          'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
           'template_params': {
             'from_name': FirebaseAuth.instance.currentUser!.displayName,
             'to_name': "Mark",
@@ -97,5 +97,22 @@ class EmailService {
             'reply_to': user.email
           }
         }));
+  }
+
+  void sendPDFToUser(String name) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'service_id': 'service_qzxeeyw',
+          'template_id': 'template_htefqvf',
+          'user_id': '6j4yPTB5ndFWYGklN',
+          'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+          'template_params': {
+            'to_name': "",
+            'user_email': FirebaseAuth.instance.currentUser!.email,
+          }
+        })).then((value) => print(value.body));
   }
 }

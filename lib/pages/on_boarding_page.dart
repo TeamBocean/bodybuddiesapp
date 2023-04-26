@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/cloud_firestore.dart';
+import '../services/email.dart';
 import '../widgets/medium_text_widget.dart';
 import 'main_scaffold.dart';
 
@@ -62,6 +63,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                           nameController.text.toString(),
                           int.parse(weightController.text));
                       if (success) {
+                        EmailService().sendPDFToUser(nameController.text.toString());
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
                             builder: (context) => MainScaffold(),

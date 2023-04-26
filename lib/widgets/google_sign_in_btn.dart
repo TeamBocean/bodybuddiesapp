@@ -28,6 +28,7 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
         : FutureBuilder(
             future: Authentication.initializeFirebase(context: context),
             builder: (context, snapshot) {
+              print(snapshot.data);
               if (snapshot.hasError) {
                 return Text('Error initializing Firebase');
               } else if (snapshot.connectionState == ConnectionState.done) {
@@ -58,6 +59,7 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
 
     if (user != null) {
       await CloudFirestore().isUserExists().then((userExists) {
+        print(userExists);
         if (userExists) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(

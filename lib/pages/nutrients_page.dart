@@ -24,6 +24,23 @@ class NutrientsPage extends StatelessWidget {
               SizedBox(
                 height: Dimensions.height10,
               ),
+              Row(
+                children: [
+                  Icon(Icons.info, color: Colors.white,),
+                  SizedBox(
+                    width: Dimensions.width15,
+                  ),
+                  MediumTextWidget(
+                    text:
+                        "All medical information is based on the\nresearch of Mark for reference please visit\nbodybuddiesgym.ie",
+                    fontSize: Dimensions.fontSize14,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: Dimensions.height20,
+              ),
               Column(
                 children: nutrientAssets
                     .map((asset) => GestureDetector(
