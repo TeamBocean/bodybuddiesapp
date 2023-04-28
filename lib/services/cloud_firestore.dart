@@ -36,6 +36,18 @@ class CloudFirestore {
     }
   }
 
+  bool deleteUser() {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    try {
+      reference.collection("users").doc(auth.currentUser!.uid).delete();
+
+      return true;
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
   Future<UserModel> getUserData(String userID) async {
     DocumentSnapshot doc =
         await reference.collection("users").doc(userID).get();

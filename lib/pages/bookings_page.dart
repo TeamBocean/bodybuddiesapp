@@ -67,7 +67,7 @@ class _BookingsPageState extends State<BookingsPage> {
             slots.add(BookingWidget(
                 isBooked: false,
                 booking: Booking(
-                  bookingName: "Test",
+                  bookingName: "",
                   price: 1,
                   date: currentDay.day.toString() +
                       "/" +

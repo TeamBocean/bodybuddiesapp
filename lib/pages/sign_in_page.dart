@@ -5,6 +5,7 @@ import 'package:bodybuddiesapp/widgets/google_sign_in_btn.dart';
 import 'package:bodybuddiesapp/widgets/logo.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 import '../utils/colors.dart';
 
@@ -57,7 +58,17 @@ class _SignInPageState extends State<SignInPage> {
                     visible: Platform.isIOS,
                     child: AppleSignInBTN()),
               ],
-            )
+            ),
+            Padding(
+              padding: EdgeInsets.only(bottom: Dimensions.height10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Center(child: blueOceanMessage()),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -126,8 +137,41 @@ class _SignInPageState extends State<SignInPage> {
     );
   }
 
+  Widget blueOceanMessage() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        MediumTextWidget(
+          text: "Developed by",
+          fontSize: Dimensions.fontSize16,
+        ),
+        // SizedBox(
+        //   height: Dimensions.height5,
+        // ),
+        // MediumTextWidget(text: "BlueOcean", fontSize: Dimensions.fontSize28,),
+        SizedBox(
+          height: Dimensions.height5,
+        ),
+        GestureDetector(
+          onTap: () {
+            launchUrl(Uri.parse("https://blue-ocean.ie/"));
+          },
+          child: Text(
+            "blue-ocean.ie",
+            style: TextStyle(
+              fontSize: Dimensions.fontSize20,
+              color: Colors.blue,
+              decoration: TextDecoration.underline
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget welcomeMessage() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         MediumTextWidget(
           text: "Welcome to",

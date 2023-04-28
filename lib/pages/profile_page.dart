@@ -51,6 +51,55 @@ class _ProfilePageState extends State<ProfilePage> {
                               Icons.email),
                           settingsOption("${snapshot.data!.weight}kg",
                               Icons.monetization_on),
+                          GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                        backgroundColor: background,
+                                        content: SizedBox(
+                                          height: Dimensions.height10 * 12,
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              MediumTextWidget(
+                                                  text:
+                                                      "Are you sure you want to delete your account?"),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  ElevatedButton(
+                                                      onPressed: () {
+                                                        CloudFirestore().deleteUser();
+                                                        Authentication.signOut(context: context);
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              primary:
+                                                                  Colors.red),
+                                                      child: Text("Yes")),
+                                                  ElevatedButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              primary:
+                                                                  darkGrey),
+                                                      child: Text("No")),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ));
+                            },
+                            child:
+                                settingsOption("Delete account", Icons.delete),
+                          ),
                         ],
                       ),
                       Column(
