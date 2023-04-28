@@ -3,6 +3,7 @@ import 'package:bodybuddiesapp/utils/constants.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:page_transition/page_transition.dart';
 
 import '../utils/colors.dart';
 
@@ -26,7 +27,10 @@ class NutrientsPage extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Icon(Icons.info, color: Colors.white,),
+                  Icon(
+                    Icons.info,
+                    color: Colors.white,
+                  ),
                   SizedBox(
                     width: Dimensions.width15,
                   ),
@@ -44,11 +48,15 @@ class NutrientsPage extends StatelessWidget {
               Column(
                 children: nutrientAssets
                     .map((asset) => GestureDetector(
-                          onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                  builder: (context) => NutritionPage(
-                                      title: nutrientTypes[
-                                          nutrientAssets.indexOf(asset)]))),
+                          onTap: () => Navigator.push(
+                            context,
+                            PageTransition(
+                                child: NutritionPage(
+                                    title: nutrientTypes[
+                                        nutrientAssets.indexOf(asset)]),
+                                type: PageTransitionType.bottomToTop,
+                                duration: Duration(milliseconds: 500)),
+                          ),
                           child: nutritionWidget(
                               asset,
                               nutrientTypes[nutrientAssets.indexOf(asset)],
