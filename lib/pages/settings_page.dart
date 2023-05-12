@@ -144,7 +144,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => CreditsPage()));
                   },
-                  child: settingsOption("Credits", Icons.monetization_on)),
+                  child: settingsOption("Training Credits", Icons.monetization_on)),
               settingsOption("Progress", Icons.browse_gallery),
               SizedBox(
                 height: Dimensions.height10 * 2,

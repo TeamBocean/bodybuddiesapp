@@ -5,6 +5,7 @@ import 'package:bodybuddiesapp/widgets/google_sign_in_btn.dart';
 import 'package:bodybuddiesapp/widgets/logo.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 import '../utils/colors.dart';
@@ -31,33 +32,23 @@ class _SignInPageState extends State<SignInPage> {
               child: Column(
                 children: [
                   Center(child: Logo(assetName: 'logo.png')),
+                  SizedBox(
+                    height: Dimensions.height10,
+                  ),
                   welcomeMessage(),
                 ],
               ),
             ),
             // signInForm(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    MediumTextWidget(
-                      text: "New to BodyBuilders?",
-                      fontSize: Dimensions.fontSize14,
-                    ),
-                    MediumTextWidget(
-                      text: "Join Now",
-                      fontSize: Dimensions.fontSize14,
-                      color: Colors.teal,
-                    ),
-                  ],
-                ),
-                GoogleSignInBTN(),
-                Visibility(
-                    visible: Platform.isIOS,
-                    child: AppleSignInBTN()),
-              ],
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GoogleSignInBTN(),
+                  Visibility(visible: Platform.isIOS, child: AppleSignInBTN()),
+                ],
+              ),
             ),
             Padding(
               padding: EdgeInsets.only(bottom: Dimensions.height10),
@@ -157,11 +148,10 @@ class _SignInPageState extends State<SignInPage> {
             launchUrl(Uri.parse("https://blue-ocean.ie/"));
           },
           child: Text(
-            "blue-ocean.ie",
-            style: TextStyle(
+            "BlueOcean",
+            style: GoogleFonts.candal(
               fontSize: Dimensions.fontSize20,
               color: Colors.blue,
-              decoration: TextDecoration.underline
             ),
           ),
         ),
