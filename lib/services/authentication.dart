@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 
 import '../pages/on_boarding_page.dart';
@@ -30,7 +31,7 @@ class Authentication {
               builder: (context) => MainScaffold(),
             ),
           );
-        }else {
+        } else {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => OnBoardingPage(),
@@ -94,50 +95,30 @@ class Authentication {
 
   static Future<User?> signInWithApple(
       {required BuildContext context, List<Scope> scopes = const []}) async {
-    FirebaseAuth auth = FirebaseAuth.instance;
-
-    final result = await TheAppleSignIn.performRequests([
-      const AppleIdRequest(
-          requestedScopes: [Scope.email, Scope.fullName],
-          requestedOperation: OpenIdOperation.operationLogin)
+    final appleCred = await SignInWithApple.getAppleIDCredential(scopes: [
+      AppleIDAuthorizationScopes.email,
+      AppleIDAuthorizationScopes.fullName,
     ]);
-    // 2. check the result
-    switch (result.status) {
-      case AuthorizationStatus.authorized:
-        final appleIdCredential = result.credential!;
-        final oAuthProvider = OAuthProvider('apple.com').addScope("name");
-        final credential = oAuthProvider.credential(
-          idToken: String.fromCharCodes(appleIdCredential.identityToken!),
-          accessToken:
-              String.fromCharCodes(appleIdCredential.authorizationCode!),
-        );
-        final userCredential = await auth.signInWithCredential(credential);
-        final firebaseUser = userCredential.user!;
-        if (scopes.contains(Scope.fullName)) {
-          final fullName = appleIdCredential.fullName;
-          if (fullName != null &&
-              fullName.givenName != null &&
-              fullName.familyName != null) {
-            final displayName = '${fullName.givenName} ${fullName.familyName}';
-            await FirebaseAuth.instance.currentUser!
-                .updateDisplayName(displayName);
-          }
-        }
-        return firebaseUser;
-      case AuthorizationStatus.error:
-        throw PlatformException(
-          code: 'ERROR_AUTHORIZATION_DENIED',
-          message: result.error.toString(),
-        );
+    FirebaseAuth auth = FirebaseAuth.instance;
+    // final result = await TheAppleSignIn.performRequests([
+    //   const AppleIdRequest(
+    //       requestedScopes: [Scope.email, Scope.fullName],
+    //       requestedOperation: OpenIdOperation.operationLogin)
+    // ]);
 
-      case AuthorizationStatus.cancelled:
-        throw PlatformException(
-          code: 'ERROR_ABORTED_BY_USER',
-          message: 'Sign in aborted by user',
-        );
-      default:
-        throw UnimplementedError();
-    }
+    // 2. check the result
+
+    // final appleIdCredential = result.credential!;
+    final oAuthProvider = OAuthProvider('apple.com')..addScope("name");
+    final credential = oAuthProvider.credential(
+      idToken: appleCred.identityToken,
+      accessToken: appleCred.authorizationCode,
+    );
+    final userCredential = await auth.signInWithCredential(credential);
+    final firebaseUser = userCredential.user!;
+    await FirebaseAuth.instance.currentUser!
+        .updateDisplayName(appleCred.givenName);
+    return firebaseUser;
   }
 
   static Future<void> signOut({required BuildContext context}) async {

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "627245807572-31ub2b45bakium28klmsmcrr1e8ei9e6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bodybuddies.bodybuddiesapp",
+            "certificate_hash": "fe333d577415172eb006dd02b0d8969b714d8fce"
+          }
+        },
+        {
           "client_id": "627245807572-6edgivap6e9krql1vrsku2ihlad54kcn.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

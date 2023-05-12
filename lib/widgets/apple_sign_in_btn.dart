@@ -32,7 +32,7 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
           return Text('Error initializing Firebase');
         } else if (snapshot.connectionState == ConnectionState.done) {
           return SignInButton(
-            Buttons.AppleDark,
+            Buttons.Apple,
             onPressed: () => onSignInClicked(),
           );
         }

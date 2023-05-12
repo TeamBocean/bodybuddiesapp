@@ -54,9 +54,9 @@ class _BookingsPageState extends State<BookingsPage> {
 
       DateTime startTime = currentDay.weekday % 2 == 0
           ? DateTime(
-              currentDay.year, currentDay.month, currentDay.day, 6, 30, 0)
+              currentDay.year, currentDay.month, currentDay.day, 14, 15, 0)
           : DateTime(
-              currentDay.year, currentDay.month, currentDay.day, 14, 15, 0);
+              currentDay.year, currentDay.month, currentDay.day, 06, 30, 0);
       DateTime endTime = DateTime(currentDay.year, currentDay.month, currentDay.day, 20, 30, 0);
       if (currentDay.weekday != 6 && currentDay.weekday != 7) {
         DateFormat df = new DateFormat('HH:mm');

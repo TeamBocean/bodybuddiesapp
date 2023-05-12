@@ -27,7 +27,7 @@ class _CreditsPageState extends State<CreditsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Credits'),
+        title: const Text('Training Credits'),
         backgroundColor: background,
       ),
       body: Container(
@@ -54,7 +54,7 @@ class _CreditsPageState extends State<CreditsPage> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: isBuddy ? darkGrey : darkGreen),
                         child: MediumTextWidget(
-                          text: "Personal 1:1",
+                          text: "Personal",
                           fontSize: Dimensions.fontSize14,
                         )),
                   ),
@@ -72,18 +72,18 @@ class _CreditsPageState extends State<CreditsPage> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: !isBuddy ? darkGrey : darkGreen),
                         child: MediumTextWidget(
-                          text: "Buddy 2:1",
+                          text: "Buddy",
                           fontSize: Dimensions.fontSize14,
                         )),
                   ),
                 ],
               ),
               paymentOptionWidget(
-                  isBuddy ? 450 : 350, "8", isBuddy ? "2" : "8"),
+                  isBuddy ? 450 : 350, "8", isBuddy ? "2" : "2"),
               paymentOptionWidget(
-                  isBuddy ? 650 : 550, "12", isBuddy ? "3" : "12"),
+                  isBuddy ? 650 : 550, "12", isBuddy ? "3" : "3"),
               paymentOptionWidget(
-                  isBuddy ? 1800 : 1450, "36", isBuddy ? "3" : "36"),
+                  isBuddy ? 1800 : 1450, "36", isBuddy ? "3" : "3"),
             ],
           ),
         ),
