@@ -26,12 +26,15 @@ class _BookingsPageState extends State<BookingsPage> {
   final _currentDate = DateTime.now();
   DateTime startTimeOne = DateTime(
       DateTime.now().year, DateTime.now().month, DateTime.now().day, 7, 15, 0);
+
   // DateTime startTimeTwo = DateTime(
   //     DateTime.now().year, DateTime.now().month, DateTime.now().day, 15, 0, 0);
   // DateTime endTime = DateTime(
   //     DateTime.now().year, DateTime.now().month, DateTime.now().day, 21, 0, 0);
   Duration step = Duration(minutes: 45);
   List<Widget> slots = [];
+  int currentDayPage = 365;
+  PageController pageController = PageController(initialPage: 365);
 
   @override
   void initState() {
@@ -51,13 +54,14 @@ class _BookingsPageState extends State<BookingsPage> {
 
     setState(() {
       slots.clear();
-
+      currentDay = DateTime.now().add(Duration(days: currentDayPage - 365));
       DateTime startTime = currentDay.weekday % 2 == 0
           ? DateTime(
               currentDay.year, currentDay.month, currentDay.day, 14, 15, 0)
           : DateTime(
               currentDay.year, currentDay.month, currentDay.day, 06, 30, 0);
-      DateTime endTime = DateTime(currentDay.year, currentDay.month, currentDay.day, 20, 30, 0);
+      DateTime endTime = DateTime(
+          currentDay.year, currentDay.month, currentDay.day, 20, 30, 0);
       if (currentDay.weekday != 6 && currentDay.weekday != 7) {
         DateFormat df = new DateFormat('HH:mm');
 
@@ -93,92 +97,115 @@ class _BookingsPageState extends State<BookingsPage> {
                 .streamUserData(FirebaseAuth.instance.currentUser!.uid),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Stack(
+                return PageView.builder(
+                  controller: pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      currentDayPage = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: MediumTextWidget(
-                            text:
-                                "${months[DateTime.now().month - 1]} ${DateTime.now().year}",
-                            fontSize: Dimensions.fontSize18,
-                          ),
+                        Stack(
+                          children: [
+                            Align(
+                              alignment: Alignment.center,
+                              child: MediumTextWidget(
+                                text:
+                                    "${months[DateTime.now().add(Duration(days: currentDayPage - 365)).month - 1]} ${DateTime.now().add(Duration(days: currentDayPage - 365)).year}",
+                                fontSize: Dimensions.fontSize18,
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  EdgeInsets.only(right: Dimensions.width15),
+                              child: Align(
+                                alignment: Alignment.topRight,
+                                child: IconButton(
+                                  onPressed: () => showCalendarDialog(),
+                                  splashRadius: 0.1,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                      minWidth: 22, maxWidth: 22),
+                                  icon: Icon(Icons.calendar_month),
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: Dimensions.height10,
                         ),
                         Padding(
-                          padding: EdgeInsets.only(right: Dimensions.width15),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: Dimensions.width15),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: dates.map((date) => date).toList(),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: Dimensions.height15,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(left: Dimensions.width20),
                           child: Align(
-                            alignment: Alignment.topRight,
-                            child: IconButton(
-                              onPressed: () => showCalendarDialog(),
-                              splashRadius: 0.1,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                  minWidth: 22, maxWidth: 22),
-                              icon: Icon(Icons.calendar_month),
-                              color: Colors.white,
+                              alignment: Alignment.centerLeft,
+                              child:
+                                  MediumTextWidget(text: "Available Sessions")),
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height -
+                              (Dimensions.height50 * 4 +
+                                  Dimensions.height10 * 8),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: slots
+                                  .map((booking) => AbsorbPointer(
+                                        absorbing: snapshot.data!.bookings
+                                                    .firstWhereOrNull((element) =>
+                                                        formatBookingDate(
+                                                                element)
+                                                            .day ==
+                                                        currentDay
+                                                            .add(Duration(
+                                                                days:
+                                                                    currentDayPage -
+                                                                        365))
+                                                            .day) !=
+                                                null
+                                            ? true
+                                            : false,
+                                        child: Opacity(
+                                            opacity: snapshot.data!.bookings
+                                                        .firstWhereOrNull((element) =>
+                                                            formatBookingDate(
+                                                                    element)
+                                                                .day ==
+                                                            currentDay
+                                                                .add(Duration(
+                                                                    days:
+                                                                        currentDayPage -
+                                                                            365))
+                                                                .day) !=
+                                                    null
+                                                ? 0.5
+                                                : 1,
+                                            child: booking),
+                                      ))
+                                  .toList(),
                             ),
                           ),
                         )
                       ],
-                    ),
-                    SizedBox(
-                      height: Dimensions.height10,
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: Dimensions.width15),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: dates.map((date) => date).toList(),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: Dimensions.height15,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(left: Dimensions.width20),
-                      child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: MediumTextWidget(text: "Available Sessions")),
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height -
-                          (Dimensions.height50 * 4 + Dimensions.height10 * 8),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: slots
-                              .map((booking) => AbsorbPointer(
-                                    absorbing: snapshot.data!.bookings
-                                                .firstWhereOrNull((element) =>
-                                                    formatBookingDate(element)
-                                                        .day ==
-                                                    currentDay.day) !=
-                                            null
-                                        ? true
-                                        : false,
-                                    child: Opacity(
-                                        opacity: snapshot.data!.bookings
-                                                    .firstWhereOrNull(
-                                                        (element) =>
-                                                            formatBookingDate(
-                                                                    element)
-                                                                .day ==
-                                                            currentDay.day) !=
-                                                null
-                                            ? 0.5
-                                            : 1,
-                                        child: booking),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-                    )
-                  ],
+                    );
+                  },
                 );
               } else {
                 return Text("Loading");
@@ -190,7 +217,7 @@ class _BookingsPageState extends State<BookingsPage> {
 
   DateTime formatBookingDate(Booking booking) {
     return DateTime(
-      DateTime.now().year,
+      DateTime.now().add(Duration(days: currentDayPage - 365)).year,
       int.parse(booking.date.split('/')[0]),
       int.parse(booking.date.split('/')[0]),
     );
@@ -202,6 +229,13 @@ class _BookingsPageState extends State<BookingsPage> {
       child: GestureDetector(
         onTap: () {
           setState(() {
+            if(int.parse(_day) < dateTime.day) {
+              pageController.nextPage(
+                  duration: Duration(milliseconds: 500), curve: Curves.linear);
+            }else {
+              pageController.previousPage(
+                  duration: Duration(milliseconds: 500), curve: Curves.linear);
+            }
             _day = dateTime.day.toString();
             currentDay = dateTime;
             initDates(context);
