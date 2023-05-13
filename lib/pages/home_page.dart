@@ -57,14 +57,25 @@ class _HomePageState extends State<HomePage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             userInformationHeader(),
-                            CircleAvatar(
-                              backgroundColor: Colors.grey.shade400,
-                              radius: Dimensions.width27,
-                              child: MediumTextWidget(
-                                text: snapshot.hasData ? snapshot.data!.name.substring(0, 1) : "",
-                                color: Colors.black,
-                              ),
-                            )
+                            FirebaseAuth.instance.currentUser!.photoURL != null
+                                ? CircleAvatar(
+                                    backgroundColor: Colors.grey.shade400,
+                                    radius: Dimensions.width27,
+                                    backgroundImage: NetworkImage(
+                                      FirebaseAuth.instance.currentUser!
+                                          .photoURL as String,
+                                    ),
+                                  )
+                                : CircleAvatar(
+                                    backgroundColor: Colors.grey.shade400,
+                                    radius: Dimensions.width27,
+                                    child: MediumTextWidget(
+                                        text: snapshot.hasData
+                                            ? snapshot.data!.name
+                                                .substring(0, 1)
+                                            : "",
+                                        color: Colors.black),
+                                  )
                           ],
                         ),
                         SizedBox(
