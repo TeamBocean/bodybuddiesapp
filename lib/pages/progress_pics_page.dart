@@ -42,12 +42,16 @@ class _ProgressPicturesPageState extends State<ProgressPicturesPage> {
                       ? snapshot.data!
                           .map(
                             (e) => SafeArea(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: SizedBox(
-                                  child: e,
-                                  width: 200,
-                                  height: 250,
+                              child: SizedBox(
+                                width: 250,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Card(
+                                    elevation: 10,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20)),
+                                    child: e,
+                                  ),
                                 ),
                               ),
                             ),
