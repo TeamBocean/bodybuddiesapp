@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bodybuddiesapp/utils/colors.dart';
+import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/utils/image_manager.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:flutter/material.dart';
@@ -35,29 +36,35 @@ class _ProgressPicturesPageState extends State<ProgressPicturesPage> {
         child: FutureBuilder<List<Image>>(
             future: ImageManager.getImage(),
             builder: (context, snapshot) {
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: snapshot.hasData
-                      ? snapshot.data!
-                          .map(
-                            (e) => SafeArea(
-                              child: SizedBox(
-                                width: 250,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Card(
-                                    elevation: 10,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20)),
-                                    child: e,
+              return Padding(
+                padding: EdgeInsets.only(top: Dimensions.height25),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: snapshot.hasData
+                        ? snapshot.data!
+                            .map(
+                              (e) => SafeArea(
+                                child: SizedBox(
+                                  width: Dimensions.width20 * 10 +
+                                      Dimensions.width50,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                        Dimensions.width20),
+                                    child: Card(
+                                      elevation: 10,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              Dimensions.width20)),
+                                      child: e,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          )
-                          .toList()
-                      : [],
+                            )
+                            .toList()
+                        : [],
+                  ),
                 ),
               );
             }),

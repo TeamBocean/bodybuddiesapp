@@ -18,53 +18,60 @@ class NutrientsPage extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.only(
               left: Dimensions.width15, right: Dimensions.width15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MediumTextWidget(text: "Nutrition"),
-              SizedBox(
-                height: Dimensions.height10,
-              ),
-              Row(
-                children: [
-                  Icon(
-                    Icons.info,
-                    color: Colors.white,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MediumTextWidget(text: "Nutrition"),
+                SizedBox(
+                  height: Dimensions.height10,
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info,
+                      color: Colors.white,
+                    ),
+                    SizedBox(
+                      width: Dimensions.width15,
+                    ),
+                    MediumTextWidget(
+                      text:
+                          "All medical information is based on the\nresearch of Mark for reference please visit\nbodybuddiesgym.ie",
+                      fontSize: Dimensions.fontSize14,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: Dimensions.height20,
+                ),
+                SingleChildScrollView(
+                  child: Column(
+                    children: nutrientAssets
+                        .map((asset) => GestureDetector(
+                              onTap: () => Navigator.push(
+                                context,
+                                PageTransition(
+                                    child: NutritionPage(
+                                        title: nutrientTypes[
+                                            nutrientAssets.indexOf(asset)]),
+                                    type: PageTransitionType.bottomToTop,
+                                    duration: Duration(milliseconds: 500)),
+                              ),
+                              child: nutritionWidget(
+                                  asset,
+                                  nutrientTypes[nutrientAssets.indexOf(asset)],
+                                  context),
+                            ))
+                        .toList(),
                   ),
-                  SizedBox(
-                    width: Dimensions.width15,
-                  ),
-                  MediumTextWidget(
-                    text:
-                        "All medical information is based on the\nresearch of Mark for reference please visit\nbodybuddiesgym.ie",
-                    fontSize: Dimensions.fontSize14,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: Dimensions.height20,
-              ),
-              Column(
-                children: nutrientAssets
-                    .map((asset) => GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            PageTransition(
-                                child: NutritionPage(
-                                    title: nutrientTypes[
-                                        nutrientAssets.indexOf(asset)]),
-                                type: PageTransitionType.bottomToTop,
-                                duration: Duration(milliseconds: 500)),
-                          ),
-                          child: nutritionWidget(
-                              asset,
-                              nutrientTypes[nutrientAssets.indexOf(asset)],
-                              context),
-                        ))
-                    .toList(),
-              ),
-            ],
+                ),
+                SizedBox(
+                  height: Dimensions.height50,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -74,7 +81,7 @@ class NutrientsPage extends StatelessWidget {
   Widget nutritionWidget(String asset, String title, BuildContext context) {
     return SizedBox(
         width: MediaQuery.of(context).size.width,
-        height: Dimensions.height25 * 4,
+        height: Dimensions.height25 * 3.8,
         child: Card(
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(Dimensions.width15)),
@@ -86,7 +93,7 @@ class NutrientsPage extends StatelessWidget {
                 ),
                 Image.asset(
                   ASSETS + asset,
-                  height: Dimensions.height25 * 2,
+                  height: Dimensions.height25 * 1.6,
                 ),
                 SizedBox(
                   width: Dimensions.width15,
