@@ -1,6 +1,7 @@
 import 'package:bodybuddiesapp/models/user.dart';
 import 'package:bodybuddiesapp/pages/credits_page.dart';
 import 'package:bodybuddiesapp/pages/profile_page.dart';
+import 'package:bodybuddiesapp/pages/progress_pics_page.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
@@ -144,8 +145,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => CreditsPage()));
                   },
-                  child: settingsOption("Training Credits", Icons.monetization_on)),
-              settingsOption("Progress", Icons.browse_gallery),
+                  child: settingsOption(
+                      "Training Credits", Icons.monetization_on)),
+              GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ProgressPicturesPage()));
+                  },
+                  child: settingsOption("Progress", Icons.browse_gallery)),
               SizedBox(
                 height: Dimensions.height10 * 2,
               ),
