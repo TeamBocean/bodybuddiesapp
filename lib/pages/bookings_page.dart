@@ -163,46 +163,49 @@ class _BookingsPageState extends State<BookingsPage> {
                             });
                           },
                           itemBuilder: (context, index) {
-                            return SizedBox(
-                              height: MediaQuery.of(context).size.height -
-                                  (Dimensions.height50 * 4 +
-                                      Dimensions.height10 * 8),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  children: slots.length == 0
-                                      ? [noBookings()]
-                                      : slots
-                                          .map((booking) => AbsorbPointer(
-                                                absorbing: snapshot
-                                                            .data!.bookings
-                                                            .firstWhereOrNull((element) =>
-                                                                formatBookingDate(
-                                                                        element)
-                                                                    .day ==
-                                                                currentDay
-                                                                    .add(Duration(
-                                                                        days: currentDayPage -
-                                                                            365))
-                                                                    .day) !=
-                                                        null
-                                                    ? true
-                                                    : false,
-                                                child: Opacity(
-                                                    opacity: snapshot.data!.bookings.firstWhereOrNull((element) =>
-                                                                formatBookingDate(
-                                                                        element)
-                                                                    .day ==
-                                                                currentDay
-                                                                    .add(Duration(
-                                                                        days: currentDayPage -
-                                                                            365))
-                                                                    .day) !=
-                                                            null
-                                                        ? 0.5
-                                                        : 1,
-                                                    child: booking),
-                                              ))
-                                          .toList(),
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: Dimensions.height50 +  Dimensions.height20),
+                              child: SizedBox(
+                                height: MediaQuery.of(context).size.height -
+                                    (Dimensions.height50 * 4 +
+                                        Dimensions.height10 * 8),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: slots.length == 0
+                                        ? [noBookings()]
+                                        : slots
+                                            .map((booking) => AbsorbPointer(
+                                                  absorbing: snapshot
+                                                              .data!.bookings
+                                                              .firstWhereOrNull((element) =>
+                                                                  formatBookingDate(
+                                                                          element)
+                                                                      .day ==
+                                                                  currentDay
+                                                                      .add(Duration(
+                                                                          days: currentDayPage -
+                                                                              365))
+                                                                      .day) !=
+                                                          null
+                                                      ? true
+                                                      : false,
+                                                  child: Opacity(
+                                                      opacity: snapshot.data!.bookings.firstWhereOrNull((element) =>
+                                                                  formatBookingDate(
+                                                                          element)
+                                                                      .day ==
+                                                                  currentDay
+                                                                      .add(Duration(
+                                                                          days: currentDayPage -
+                                                                              365))
+                                                                      .day) !=
+                                                              null
+                                                          ? 0.5
+                                                          : 1,
+                                                      child: booking),
+                                                ))
+                                            .toList(),
+                                  ),
                                 ),
                               ),
                             );

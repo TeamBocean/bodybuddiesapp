@@ -57,7 +57,7 @@ class NutritionPage extends StatelessWidget {
                             ),
                             MediumTextWidget(
                               text: nutrientTypesMap[title]!,
-                              fontSize: Dimensions.fontSize18,
+                              fontSize: Dimensions.fontSize16,
                             ),
                           ],
                         ),
