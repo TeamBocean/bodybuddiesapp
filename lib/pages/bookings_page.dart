@@ -69,15 +69,18 @@ class _BookingsPageState extends State<BookingsPage> {
           DateTime timeIncrement = startTime.add(step);
           setState(() {
             slots.add(BookingWidget(
-                isBooked: false,
-                booking: Booking(
-                  bookingName: "",
-                  price: 1,
-                  date: currentDay.day.toString() +
-                      "/" +
-                      currentDay.month.toString(),
-                  time: df.format(timeIncrement),
-                )));
+              isBooked: false,
+              isAdmin: false,
+              booking: Booking(
+                bookingName: "",
+                price: 1,
+                date: currentDay.day.toString() +
+                    "/" +
+                    currentDay.month.toString(),
+                time: df.format(timeIncrement),
+              ),
+              month: currentDay.month,
+            ));
           });
 
           startTime = timeIncrement;
@@ -164,7 +167,9 @@ class _BookingsPageState extends State<BookingsPage> {
                           },
                           itemBuilder: (context, index) {
                             return Padding(
-                              padding: EdgeInsets.only(bottom: Dimensions.height50 +  Dimensions.height20),
+                              padding: EdgeInsets.only(
+                                  bottom: Dimensions.height50 +
+                                      Dimensions.height20),
                               child: SizedBox(
                                 height: MediaQuery.of(context).size.height -
                                     (Dimensions.height50 * 4 +

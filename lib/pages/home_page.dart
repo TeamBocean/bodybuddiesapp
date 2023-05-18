@@ -25,6 +25,106 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    return FirebaseAuth.instance.currentUser!.email!
+            .contains("markmcquaid54@gmail.com")
+        ? adminView()
+        : userView();
+  }
+
+  Widget adminView() {
+    return StreamBuilder<List<Booking>>(
+        stream: CloudFirestore()
+            .streamAllBookings(DateTime.now().month, DateTime.now().day),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data!.length > 0) {
+              snapshot.data!.sort((a, b) => DateTime(
+                    DateTime.now().year,
+                    int.parse(a.date.split('/')[0]),
+                    int.parse(a.date.split('/')[0]),
+                  ).isBefore(DateTime(
+                    DateTime.now().year,
+                    int.parse(b.date.split('/')[0]),
+                    int.parse(b.date.split('/')[0]),
+                  ))
+                      ? 1
+                      : 0);
+            }
+          }
+          return Container(
+            height: MediaQuery.of(context).size.height,
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
+                child: Stack(
+                  children: [
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            userInformationHeader(),
+                            FirebaseAuth.instance.currentUser!.photoURL != null
+                                ? CircleAvatar(
+                                    backgroundColor: Colors.grey.shade400,
+                                    radius: Dimensions.width27,
+                                    backgroundImage: NetworkImage(
+                                      FirebaseAuth.instance.currentUser!
+                                          .photoURL as String,
+                                    ),
+                                  )
+                                : CircleAvatar(
+                                    backgroundColor: Colors.grey.shade400,
+                                    radius: Dimensions.width27,
+                                    child: MediumTextWidget(
+                                        text: "M",
+                                        color: Colors.black),
+                                  )
+                          ],
+                        ),
+                        SizedBox(
+                          height: Dimensions.height20,
+                        ),
+                        Align(
+                            alignment: Alignment.topLeft,
+                            child: MediumTextWidget(
+                              text: "Upcoming Bookings",
+                              fontSize: Dimensions.fontSize22,
+                            )),
+                      ],
+                    ),
+                    snapshot.hasData
+                        ? snapshot.data!.isNotEmpty
+                            ? Padding(
+                                padding: EdgeInsets.only(
+                                    top: Dimensions.height35 * 3.2,
+                                    bottom: Dimensions.height10 * 6),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: snapshot.data!
+                                        .map((booking) => BookingWidget(
+                                              isBooked: true,
+                                              booking: booking,
+                                              isAdmin: true,
+                                              month: 0,
+                                            ))
+                                        .toList(),
+                                  ),
+                                ),
+                              )
+                            : noBookings()
+                        : MediumTextWidget(text: "Loading...")
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  Widget userView() {
     return StreamBuilder<UserModel>(
         stream: CloudFirestore()
             .streamUserData(FirebaseAuth.instance.currentUser!.uid),
@@ -103,6 +203,8 @@ class _HomePageState extends State<HomePage> {
                                         .map((booking) => BookingWidget(
                                               isBooked: true,
                                               booking: booking,
+                                              isAdmin: false,
+                                              month: 0,
                                             ))
                                         .toList(),
                                   ),

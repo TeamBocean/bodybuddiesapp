@@ -12,7 +12,7 @@ class CloudFirestore {
   Future<bool> isUserExists() async {
     final FirebaseAuth auth = FirebaseAuth.instance;
     DocumentSnapshot doc =
-        await reference.collection("users").doc(auth.currentUser!.uid).get();
+    await reference.collection("users").doc(auth.currentUser!.uid).get();
 
     return doc.exists;
   }
@@ -50,7 +50,7 @@ class CloudFirestore {
 
   Future<UserModel> getUserData(String userID) async {
     DocumentSnapshot doc =
-        await reference.collection("users").doc(userID).get();
+    await reference.collection("users").doc(userID).get();
 
     return UserModel.fromJson(doc.data());
   }
@@ -66,31 +66,75 @@ class CloudFirestore {
   Stream<Bookings> streamBookedDates(String userID) {
     return reference
         .collection("bookings")
-        .doc(DateTime.now().year.toString())
+        .doc(DateTime
+        .now()
+        .year
+        .toString())
         .snapshots()
         .map((user) => Bookings.fromJson(user.data()));
+  }
+
+  Stream<List<Booking>> streamAllBookings(int month, int day) {
+    return reference
+        .collection("bookings-list")
+        .doc(DateTime
+        .now()
+        .year
+        .toString())
+        .collection(month.toString())
+        .doc(day.toString())
+        .collection("bookings")
+        .snapshots()
+        .map((event) =>
+        event.docs
+            .map((e) => Booking.fromJson(e.data())).toList()
+    );
   }
 
   /// Create a booking
   /// Send booking confirmation email to customer
   /// Send booking confirmation email to Mark
-  void addUserBooking(Booking booking, String userID) {
+  void addUserBooking(Booking booking, String userID, int month, String username) {
     reference.collection("users").doc(userID).update({
       "bookings": FieldValue.arrayUnion([booking.toJson()])
     });
     EmailService().sendBookingConfirmationToMark(booking);
     EmailService().sendBookingConfirmationToUser(booking);
-    addBooking(booking);
+    addBooking(booking, month, username);
   }
 
-  void addBooking(Booking booking) {
+  void addBooking(Booking booking, int month, String username) {
     List<String> dateAsList = booking.date.replaceAll("/", ".").split(".");
     reference
         .collection("bookings")
-        .doc(DateTime.now().year.toString())
+        .doc(DateTime
+        .now()
+        .year
+        .toString())
         .update({
       "${dateAsList[1]}.${dateAsList[0]}": FieldValue.arrayUnion([booking.time])
     });
+
+    addPublicBooking(booking, month, username);
+  }
+
+  void addPublicBooking(Booking booking, int month, String username) {
+
+    Map<String, dynamic> bookingAsMap = booking.toJson();
+    bookingAsMap['name']  = username;
+    reference
+        .collection("bookings-list")
+        .doc(DateTime
+        .now()
+        .year
+        .toString())
+        .collection(month.toString())
+        .doc(booking.date
+        .split("/")
+        .first)
+        .collection("bookings")
+        .doc()
+        .set(bookingAsMap);
   }
 
   void removeUserBooking(Booking booking, String userID) {
@@ -104,10 +148,11 @@ class CloudFirestore {
     });
     // EmailService().sendBookingConfirmationToUser(booking);
     removeBooking(booking);
-    if (DateTime.now()
-            .difference(getBookingDateTime(booking.date, booking.time))
-            .inHours
-            .abs() >
+    if (DateTime
+        .now()
+        .difference(getBookingDateTime(booking.date, booking.time))
+        .inHours
+        .abs() >
         24) {
       incrementCredit(1, userID);
     }
@@ -117,7 +162,9 @@ class CloudFirestore {
     List<String> timeAsList = time.split(":");
     List<String> dateAsList = date.split("/");
     return DateTime(
-        DateTime.now().year,
+        DateTime
+            .now()
+            .year,
         int.parse(dateAsList[1]),
         int.parse(dateAsList[0]),
         int.parse(timeAsList[0]),
@@ -128,10 +175,13 @@ class CloudFirestore {
     List<String> dateAsList = booking.date.replaceAll("/", ".").split(".");
     reference
         .collection("bookings")
-        .doc(DateTime.now().year.toString())
+        .doc(DateTime
+        .now()
+        .year
+        .toString())
         .update({
       "${dateAsList[1]}.${dateAsList[0]}":
-          FieldValue.arrayRemove([booking.time])
+      FieldValue.arrayRemove([booking.time])
     });
   }
 
@@ -151,7 +201,7 @@ class CloudFirestore {
     reference.collection("users").doc(userID).update(
         {"credits": FieldValue.increment(credits)}).whenComplete(() async {
       UserModel userModel =
-          await getUserData(FirebaseAuth.instance.currentUser!.uid);
+      await getUserData(FirebaseAuth.instance.currentUser!.uid);
       if (userModel.credits == 0) {
         toggleSubscriptionIsActive(false);
       }
@@ -163,7 +213,7 @@ class CloudFirestore {
     reference.collection("users").doc(userID).update(
         {"credits": FieldValue.increment(-credits)}).whenComplete(() async {
       UserModel userModel =
-          await getUserData(FirebaseAuth.instance.currentUser!.uid);
+      await getUserData(FirebaseAuth.instance.currentUser!.uid);
       if (userModel.credits == 0) {
         toggleSubscriptionIsActive(false);
       }

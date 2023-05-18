@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../services/cloud_firestore.dart';
 
-void bookingDialog(BuildContext context, Booking booking) {
+void bookingDialog(BuildContext context, Booking booking, int month) {
   showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -127,10 +127,19 @@ void bookingDialog(BuildContext context, Booking booking) {
                                                           Dimensions.width15))),
                                           onPressed: () {
                                             if (snapshot.data!.credits > 0) {
-                                              CloudFirestore().addUserBooking(
+                                              CloudFirestore().addBooking(
                                                   booking,
-                                                  FirebaseAuth.instance
-                                                      .currentUser!.uid);
+                                                  month,
+                                                  FirebaseAuth
+                                                              .instance
+                                                              .currentUser!
+                                                              .displayName !=
+                                                          null
+                                                      ? FirebaseAuth
+                                                          .instance
+                                                          .currentUser!
+                                                          .displayName!
+                                                      : "");
                                               CloudFirestore().decreaseCredits(
                                                   1,
                                                   FirebaseAuth.instance
