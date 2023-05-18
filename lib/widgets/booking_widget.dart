@@ -13,8 +13,15 @@ import '../services/email.dart';
 class BookingWidget extends StatefulWidget {
   Booking booking;
   bool isBooked;
+  bool isAdmin;
+  int month;
 
-  BookingWidget({super.key, required this.booking, required this.isBooked});
+  BookingWidget(
+      {super.key,
+      required this.booking,
+      required this.isBooked,
+      required this.month,
+      required this.isAdmin});
 
   @override
   State<BookingWidget> createState() => _BookingWidgetState();
@@ -29,17 +36,20 @@ class _BookingWidgetState extends State<BookingWidget> {
           if (snapshot.hasData) {
             return Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: Dimensions.width15,
+                  horizontal: Dimensions.width15/2,
                   vertical: Dimensions.height10 / 2),
               child: Opacity(
-                opacity: isAlreadyBooked(widget.booking,
-                    snapshot.data!.list) && !widget.isBooked ? 0.5 : 1,
+                opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&
+                        !widget.isBooked
+                    ? 0.5
+                    : 1,
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: Dimensions.height10 * 12,
                   child: Card(
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(Dimensions.width15)),
+                        borderRadius:
+                            BorderRadius.circular(Dimensions.width15)),
                     color: darkGrey,
                     child: Padding(
                       padding: EdgeInsets.symmetric(
@@ -103,8 +113,8 @@ class _BookingWidgetState extends State<BookingWidget> {
                                           : isAlreadyBooked(widget.booking,
                                                   snapshot.data!.list)
                                               ? print("Not available")
-                                              : bookingDialog(
-                                                  context, widget.booking),
+                                              : bookingDialog(context,
+                                                  widget.booking, widget.month),
                                       style: ElevatedButton.styleFrom(
                                           primary: Colors.grey),
                                       child: Center(
@@ -133,13 +143,16 @@ class _BookingWidgetState extends State<BookingWidget> {
                                           showDialog(
                                               context: context,
                                               builder: (_) => AlertDialog(
-                                                    contentPadding: EdgeInsets.zero,
+                                                    contentPadding:
+                                                        EdgeInsets.zero,
                                                     content: Container(
-                                                      width: MediaQuery.of(context)
-                                                          .size
-                                                          .width,
+                                                      width:
+                                                          MediaQuery.of(context)
+                                                              .size
+                                                              .width,
                                                       height:
-                                                          Dimensions.height10 * 12,
+                                                          Dimensions.height10 *
+                                                              12,
                                                       color: darkGrey,
                                                       child: Column(
                                                         crossAxisAlignment:
@@ -150,18 +163,19 @@ class _BookingWidgetState extends State<BookingWidget> {
                                                                 .spaceBetween,
                                                         children: [
                                                           Padding(
-                                                            padding:
-                                                                EdgeInsets.only(
-                                                                    top: Dimensions
-                                                                        .height10),
+                                                            padding: EdgeInsets.only(
+                                                                top: Dimensions
+                                                                    .height10),
                                                             child: Center(
                                                               child: Text(
                                                                 "Are you sure you want to cancel your booking?",
-                                                                textAlign: TextAlign
-                                                                    .center,
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
                                                                 style: TextStyle(
-                                                                    fontSize: Dimensions
-                                                                        .fontSize16,
+                                                                    fontSize:
+                                                                        Dimensions
+                                                                            .fontSize16,
                                                                     color: Colors
                                                                         .white),
                                                               ),
@@ -173,18 +187,20 @@ class _BookingWidgetState extends State<BookingWidget> {
                                                                     .center,
                                                             children: [
                                                               IconButton(
-                                                                  onPressed: () {
+                                                                  onPressed:
+                                                                      () {
                                                                     Navigator.pop(
                                                                         context,
                                                                         'dialog');
                                                                   },
                                                                   icon: Icon(
                                                                     Icons.close,
-                                                                    color:
-                                                                        Colors.red,
+                                                                    color: Colors
+                                                                        .red,
                                                                   )),
                                                               IconButton(
-                                                                  onPressed: () {
+                                                                  onPressed:
+                                                                      () {
                                                                     CloudFirestore().removeUserBooking(
                                                                         widget
                                                                             .booking,
