@@ -5,6 +5,7 @@ import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../utils/constants.dart';
 import '../utils/dimensions.dart';
@@ -18,6 +19,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  DateTime currentDate = DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -26,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FirebaseAuth.instance.currentUser!.email!
-            .contains("mahmoud.al808@gmail.com")
+            .contains("markmcquaid54@gmail.com")
         ? adminView()
         : userView();
   }
@@ -34,7 +37,7 @@ class _HomePageState extends State<HomePage> {
   Widget adminView() {
     return StreamBuilder<List<Booking>>(
         stream: CloudFirestore()
-            .streamAllBookings(DateTime.now().month, DateTime.now().day),
+            .streamAllBookings(currentDate.month, currentDate.day),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.length > 0) {
@@ -82,7 +85,7 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                         SizedBox(
-                          height: Dimensions.height20,
+                          height: Dimensions.height20 / 2,
                         ),
                         Align(
                             alignment: Alignment.topLeft,
@@ -90,13 +93,52 @@ class _HomePageState extends State<HomePage> {
                               text: "Upcoming Sessions",
                               fontSize: Dimensions.fontSize22,
                             )),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    currentDate = currentDate.subtract(Duration(days: 1));
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.arrow_back_ios,
+                                  color: Colors.white,
+                                )),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  currentDate = DateTime.now();
+                                });
+                              },
+                              child: MediumTextWidget(
+                                text:
+                                    "${DateFormat.yMMMEd().format(currentDate)}",
+                                fontSize: Dimensions.fontSize18,
+                                color: darkGreen,
+                              ),
+                            ),
+                            IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    currentDate = currentDate.add(Duration(days: 1));
+                                    print(currentDate);
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white,
+                                )),
+                          ],
+                        ),
                       ],
                     ),
                     snapshot.hasData
                         ? snapshot.data!.isNotEmpty
                             ? Padding(
                                 padding: EdgeInsets.only(
-                                    top: Dimensions.height35 * 3.2,
+                                    top: Dimensions.height35 * 4.5,
                                     bottom: Dimensions.height10 * 6),
                                 child: SingleChildScrollView(
                                   child: Column(
