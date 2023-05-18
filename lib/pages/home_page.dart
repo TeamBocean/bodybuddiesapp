@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FirebaseAuth.instance.currentUser!.email!
-            .contains("markmcquaid54@gmail.com")
+            .contains("mahmoud.al808@gmail.com")
         ? adminView()
         : userView();
   }
@@ -77,8 +77,7 @@ class _HomePageState extends State<HomePage> {
                                     backgroundColor: Colors.grey.shade400,
                                     radius: Dimensions.width27,
                                     child: MediumTextWidget(
-                                        text: "M",
-                                        color: Colors.black),
+                                        text: "M", color: Colors.black),
                                   )
                           ],
                         ),
@@ -88,7 +87,7 @@ class _HomePageState extends State<HomePage> {
                         Align(
                             alignment: Alignment.topLeft,
                             child: MediumTextWidget(
-                              text: "Upcoming Bookings",
+                              text: "Upcoming Sessions",
                               fontSize: Dimensions.fontSize22,
                             )),
                       ],
@@ -114,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               )
-                            : noBookings()
+                            : noBookings("No Sessions Today", false)
                         : MediumTextWidget(text: "Loading...")
                   ],
                 ),
@@ -210,7 +209,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               )
-                            : noBookings()
+                            : noBookings("You Have No Bookings", true)
                         : MediumTextWidget(text: "Loading...")
                   ],
                 ),
@@ -259,7 +258,7 @@ class _HomePageState extends State<HomePage> {
     return "${months[DateTime.now().month - 1]}, ${DateTime.now().day}";
   }
 
-  Widget noBookings() {
+  Widget noBookings(String message, bool showSubHeading) {
     return Column(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -272,16 +271,19 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         MediumTextWidget(
-          text: "You Have No Bookings",
+          text: message,
           fontSize: Dimensions.fontSize20,
         ),
         SizedBox(
           height: Dimensions.height10,
         ),
-        MediumTextWidget(
-          text: "Click On Bookings To Get Started",
-          fontSize: Dimensions.fontSize12,
-          color: Colors.grey,
+        Visibility(
+          visible: showSubHeading,
+          child: MediumTextWidget(
+            text: "Click On Bookings To Get Started",
+            fontSize: Dimensions.fontSize12,
+            color: Colors.grey,
+          ),
         )
       ],
     );
