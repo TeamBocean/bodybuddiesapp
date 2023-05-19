@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bodybuddiesapp/utils/colors.dart';
@@ -33,37 +34,55 @@ class _ProgressPicturesPageState extends State<ProgressPicturesPage> {
       body: SizedBox(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
-        child: FutureBuilder<List<Image>>(
+        child: FutureBuilder<List<String>>(
             future: ImageManager.getImage(),
             builder: (context, snapshot) {
               return Padding(
                 padding: EdgeInsets.only(top: Dimensions.height25),
                 child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: snapshot.hasData
-                        ? snapshot.data!
-                            .map(
-                              (e) => SafeArea(
-                                child: SizedBox(
-                                  width: Dimensions.width20 * 10 +
-                                      Dimensions.width50,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(
-                                        Dimensions.width20),
-                                    child: Card(
-                                      elevation: 10,
-                                      shape: RoundedRectangleBorder(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: snapshot.hasData
+                          ? snapshot.data!
+                              .map(
+                                (image) => Row(
+                                  children: [
+                                    IconButton(
+                                        onPressed: () {
+                                          ImageManager.deleteImage(image);
+                                          setState(() {});
+                                        },
+                                        icon: Icon(
+                                          Icons.delete,
+                                          color: Colors.grey,
+                                        )),
+                                    SafeArea(
+                                      child: SizedBox(
+                                        width: Dimensions.width20 * 10 +
+                                            Dimensions.width50,
+                                        child: ClipRRect(
                                           borderRadius: BorderRadius.circular(
-                                              Dimensions.width20)),
-                                      child: e,
+                                              Dimensions.width20),
+                                          child: Card(
+                                            elevation: 10,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        Dimensions.width20)),
+                                            child: Image.memory(
+                                                base64Decode(image)),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ),
-                            )
-                            .toList()
-                        : [],
+                              )
+                              .toList()
+                          : [],
+                    ),
                   ),
                 ),
               );
