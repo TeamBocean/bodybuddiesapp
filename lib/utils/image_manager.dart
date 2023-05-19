@@ -12,14 +12,18 @@ class ImageManager {
     return prefs.setStringList("images", images);
   }
 
-  static Future<List<Image>> getImage() async {
-    List<Image> list = [];
+  static Future<bool> deleteImage(String image) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> images = prefs.getStringList("images") ?? [];
+    images.remove(image);
+    return prefs.setStringList("images", images);
+  }
+
+  static Future<List<String>> getImage() async {
     List<String> imagesAsString = [];
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     imagesAsString = prefs.getStringList("images") ?? [];
-    imagesAsString.forEach((element) {
-      list.add(Image.memory(base64Decode(element)));
-    });
-    return list;
+
+    return imagesAsString;
   }
 }
