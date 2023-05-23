@@ -5,9 +5,11 @@ import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../models/bookings.dart';
 import '../models/user.dart';
 import '../services/cloud_firestore.dart';
 import '../utils/dimensions.dart';
@@ -22,33 +24,45 @@ class BookingsPage extends StatefulWidget {
 class _BookingsPageState extends State<BookingsPage> {
   List<Widget> dates = [];
   String _day = DateTime.now().day.toString();
+  String _month = DateTime.now().month.toString();
   DateTime currentDay = DateTime.now();
   final _currentDate = DateTime.now();
   DateTime startTimeOne = DateTime(
       DateTime.now().year, DateTime.now().month, DateTime.now().day, 7, 15, 0);
 
-  // DateTime startTimeTwo = DateTime(
-  //     DateTime.now().year, DateTime.now().month, DateTime.now().day, 15, 0, 0);
-  // DateTime endTime = DateTime(
-  //     DateTime.now().year, DateTime.now().month, DateTime.now().day, 21, 0, 0);
-  Duration step = Duration(minutes: 45);
+  Duration step = Duration(minutes: 15);
   List<Widget> slots = [];
   int currentDayPage = 365;
   PageController pageController = PageController(initialPage: 365);
+  Bookings? bookings;
+  bool loadedBookedDates = false;
 
   @override
   void initState() {
-    initDates(context);
+    loadBookedDates().whenComplete(() {
+      setState(() {
+        loadedBookedDates = true;
+      });
+      if (loadedBookedDates) {
+        initDates(context);
+      }
+    });
     super.initState();
+  }
+
+  Future<bool> loadBookedDates() async {
+    bookings = await CloudFirestore().getBookedDates("");
+
+    return true;
   }
 
   void initDates(BuildContext context) {
     dates.clear();
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 360; i++) {
       final date = _currentDate.add(Duration(days: i));
       setState(() {
         dates.add(dateWidget(date, daysOfWeek[date.weekday - 1].substring(0, 3),
-            date.day.toString() == _day));
+            date.day.toString() == _day && date.month.toString() == _month));
       });
     }
 
@@ -67,21 +81,46 @@ class _BookingsPageState extends State<BookingsPage> {
 
         while (startTime.isBefore(endTime)) {
           DateTime timeIncrement = startTime.add(step);
-          setState(() {
-            slots.add(BookingWidget(
-              isBooked: false,
-              isAdmin: false,
-              booking: Booking(
-                bookingName: "",
-                price: 1,
-                date: currentDay.day.toString() +
-                    "/" +
-                    currentDay.month.toString(),
-                time: df.format(timeIncrement),
-              ),
-              month: currentDay.month,
-            ));
-          });
+          if (isAlreadyBooked(
+                  Booking(
+                    bookingName: "",
+                    price: 1,
+                    date: currentDay.day.toString() +
+                        "/" +
+                        currentDay.month.toString(),
+                    time: df
+                        .format(timeIncrement.subtract(Duration(minutes: 15))),
+                  ),
+                  bookings != null ? bookings!.list : {}) ||
+              isAlreadyBooked(
+                  Booking(
+                    bookingName: "",
+                    price: 1,
+                    date: currentDay.day.toString() +
+                        "/" +
+                        currentDay.month.toString(),
+                    time: df
+                        .format(timeIncrement.subtract(Duration(minutes: 30))),
+                  ),
+                  bookings != null ? bookings!.list : {})) {
+          } else {
+            setState(() {
+              slots.add(BookingWidget(
+                isBooked: false,
+                isAdmin: false,
+                slots: slots,
+                booking: Booking(
+                  bookingName: "",
+                  price: 1,
+                  date: currentDay.day.toString() +
+                      "/" +
+                      currentDay.month.toString(),
+                  time: df.format(timeIncrement),
+                ),
+                month: currentDay.month,
+              ));
+            });
+          }
 
           startTime = timeIncrement;
         }
@@ -163,6 +202,11 @@ class _BookingsPageState extends State<BookingsPage> {
                                   .add(Duration(days: currentDayPage - 365))
                                   .day
                                   .toString();
+
+                              _month = DateTime.now()
+                                  .add(Duration(days: currentDayPage - 365))
+                                  .month
+                                  .toString();
                             });
                           },
                           itemBuilder: (context, index) {
@@ -194,20 +238,7 @@ class _BookingsPageState extends State<BookingsPage> {
                                                           null
                                                       ? true
                                                       : false,
-                                                  child: Opacity(
-                                                      opacity: snapshot.data!.bookings.firstWhereOrNull((element) =>
-                                                                  formatBookingDate(
-                                                                          element)
-                                                                      .day ==
-                                                                  currentDay
-                                                                      .add(Duration(
-                                                                          days: currentDayPage -
-                                                                              365))
-                                                                      .day) !=
-                                                              null
-                                                          ? 0.5
-                                                          : 1,
-                                                      child: booking),
+                                                  child: booking,
                                                 ))
                                             .toList(),
                                   ),
@@ -224,6 +255,14 @@ class _BookingsPageState extends State<BookingsPage> {
             }),
       ),
     );
+  }
+
+  double getOpacity(List<Booking> list) {
+    Booking? booking = list.firstWhereOrNull((element) =>
+        formatBookingDate(element).day ==
+        currentDay.add(Duration(days: currentDayPage - 365)).day);
+    print(booking != null ? 0.5 : 1);
+    return booking != null ? 0.5 : 1;
   }
 
   DateTime formatBookingDate(Booking booking) {
@@ -250,6 +289,7 @@ class _BookingsPageState extends State<BookingsPage> {
                   })
                 : pageController.jumpToPage(365);
             _day = dateTime.day.toString();
+            _month = dateTime.month.toString();
             currentDay = dateTime;
             initDates(context);
           });
@@ -325,5 +365,13 @@ class _BookingsPageState extends State<BookingsPage> {
         ],
       ),
     );
+  }
+
+  bool isAlreadyBooked(Booking booking, Map bookings) {
+    List<dynamic>? bookedTimes = bookings
+            .containsKey(booking.date.split('/').last)
+        ? bookings[booking.date.split('/').last][booking.date.split('/').first]
+        : [];
+    return bookedTimes != null ? bookedTimes.contains(booking.time) : false;
   }
 }

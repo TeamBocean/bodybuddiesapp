@@ -7,6 +7,7 @@ import 'package:bodybuddiesapp/widgets/booking_dialog.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../services/email.dart';
 
@@ -15,12 +16,14 @@ class BookingWidget extends StatefulWidget {
   bool isBooked;
   bool isAdmin;
   int month;
+  List<Widget> slots;
 
   BookingWidget(
       {super.key,
       required this.booking,
       required this.isBooked,
       required this.month,
+      required this.slots,
       required this.isAdmin});
 
   @override
@@ -36,7 +39,7 @@ class _BookingWidgetState extends State<BookingWidget> {
           if (snapshot.hasData) {
             return Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: Dimensions.width15/2,
+                  horizontal: Dimensions.width15 / 2,
                   vertical: Dimensions.height10 / 2),
               child: Opacity(
                 opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&

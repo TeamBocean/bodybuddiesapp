@@ -74,6 +74,11 @@ class CloudFirestore {
         .map((user) => Bookings.fromJson(user.data()));
   }
 
+  Future<Bookings> getBookedDates(String userID) async {
+    DocumentSnapshot snap = await reference.collection("bookings").doc(DateTime.now().year.toString()).get();
+    return Bookings.fromJson(snap.data());
+  }
+
   Stream<List<Booking>> streamAllBookings(int month, int day) {
     return reference
         .collection("bookings-list")
