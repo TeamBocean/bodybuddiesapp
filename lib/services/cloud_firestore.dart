@@ -48,6 +48,21 @@ class CloudFirestore {
     }
   }
 
+  bool updateUserName(String value) {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    try {
+      reference
+          .collection("users")
+          .doc(auth.currentUser!.uid)
+          .update({"name": value});
+
+      return true;
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
   bool updateUserWeight(int value) {
     final FirebaseAuth auth = FirebaseAuth.instance;
     try {
