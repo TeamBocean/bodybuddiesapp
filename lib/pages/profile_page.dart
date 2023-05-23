@@ -17,6 +17,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   TextEditingController controller = TextEditingController();
+  TextEditingController name = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +47,70 @@ class _ProfilePageState extends State<ProfilePage> {
                           SizedBox(
                             height: Dimensions.height10 * 2,
                           ),
-                          settingsOption(
-                              "${snapshot.data!.name}", Icons.person),
+                          GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    backgroundColor: background,
+                                    content: SizedBox(
+                                      height: Dimensions.height10 * 14,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          MediumTextWidget(
+                                              text: "Set your new name!"),
+                                          TextField(
+                                            controller: name,
+                                            keyboardType:
+                                            TextInputType.number,
+                                            style: TextStyle(
+                                                color: Colors.white),
+                                            decoration: InputDecoration(
+                                                hintText:
+                                                "${snapshot.data!.name}",
+                                                hintStyle: TextStyle(
+                                                    color: Colors.white)),
+                                          ),
+                                          SizedBox(
+                                            height: Dimensions.height20,
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .spaceBetween,
+                                            children: [
+                                              ElevatedButton(
+                                                  onPressed: () {
+                                                    CloudFirestore()
+                                                        .updateUserName(name.text.toString());
+                                                    Navigator.pop(context);
+                                                  },
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                      primary:
+                                                      darkGreen),
+                                                  child: Text("Update")),
+                                              ElevatedButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                      primary:
+                                                      darkGrey),
+                                                  child: Text("Cancel")),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ));
+                            },
+                            child: settingsOption(
+                                "${snapshot.data!.name}", Icons.person),
+                          ),
                           settingsOption(
                               "${FirebaseAuth.instance.currentUser!.email}",
                               Icons.email),
@@ -72,7 +135,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                                 style: TextStyle(
                                                     color: Colors.white),
                                                 decoration: InputDecoration(
-                                                    hintText: "${snapshot.data!.weight}",
+                                                    hintText:
+                                                        "${snapshot.data!.weight}",
                                                     hintStyle: TextStyle(
                                                         color: Colors.white)),
                                               ),
