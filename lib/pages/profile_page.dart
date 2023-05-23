@@ -16,6 +16,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  TextEditingController controller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,8 +51,72 @@ class _ProfilePageState extends State<ProfilePage> {
                           settingsOption(
                               "${FirebaseAuth.instance.currentUser!.email}",
                               Icons.email),
-                          settingsOption("${snapshot.data!.weight}kg",
-                              Icons.monetization_on),
+                          GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                        backgroundColor: background,
+                                        content: SizedBox(
+                                          height: Dimensions.height10 * 14,
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              MediumTextWidget(
+                                                  text: "Set your new weight!"),
+                                              TextField(
+                                                controller: controller,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                                decoration: InputDecoration(
+                                                    hintText: "${snapshot.data!.weight}",
+                                                    hintStyle: TextStyle(
+                                                        color: Colors.white)),
+                                              ),
+                                              SizedBox(
+                                                height: Dimensions.height20,
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  ElevatedButton(
+                                                      onPressed: () {
+                                                        CloudFirestore()
+                                                            .updateUserWeight(int
+                                                                .parse(controller
+                                                                    .text
+                                                                    .toString()));
+                                                        Navigator.pop(context);
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              primary:
+                                                                  darkGreen),
+                                                      child: Text("Update")),
+                                                  ElevatedButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              primary:
+                                                                  darkGrey),
+                                                      child: Text("Cancel")),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ));
+                            },
+                            child: settingsOption("${snapshot.data!.weight}kg",
+                                Icons.monetization_on),
+                          ),
                           GestureDetector(
                             onTap: () {
                               showDialog(
@@ -73,8 +139,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                                 children: [
                                                   ElevatedButton(
                                                       onPressed: () {
-                                                        CloudFirestore().deleteUser();
-                                                        Authentication.signOut(context: context);
+                                                        CloudFirestore()
+                                                            .deleteUser();
+                                                        Authentication.signOut(
+                                                            context: context);
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
