@@ -147,6 +147,7 @@ class _HomePageState extends State<HomePage> {
                                     children: snapshot.data!
                                         .map((booking) => BookingWidget(
                                               isBooked: true,
+                                              slots: [],
                                               booking: booking,
                                               isAdmin: true,
                                               month: 0,
@@ -243,6 +244,7 @@ class _HomePageState extends State<HomePage> {
                                     children: snapshot.data!.bookings
                                         .map((booking) => BookingWidget(
                                               isBooked: true,
+                                              slots: [],
                                               booking: booking,
                                               isAdmin: false,
                                               month: 0,

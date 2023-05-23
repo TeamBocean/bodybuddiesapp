@@ -25,7 +25,7 @@ class EmailService {
                 'from_email': "bodybuddiespt@gmail.com",
                 'message':
                     'Thank you for making a booking with Mark at ${booking!.time + TextFormat().fixTimeFormat(booking.time)} ${booking.date}. Please be advised bookings have a minimum 24hr cancellation policy. If you cancel or reschedule this booking with less than 24 hour you will lose the credit.',
-                'reply_to': "team.bocean@gmail.com",
+                'reply_to': "bodybuddiespt@gmail.com",
               }
             }))
         .then((value) => print(value.body + value.statusCode.toString()));
@@ -49,7 +49,7 @@ class EmailService {
                 'from_email': "bodybuddiespt@gmail.com",
                 'message':
                     'Thank you for joining Body Buddies, and we look forward to supporting you as you start your fitness journey. Please be advised our Personal Training/Buddy Training 8 & 12 credit Package expires 35 days after your initial booking. Personal Training/Buddy Training 36 credit Package expires 105 days after your initial booking.',
-                'reply_to': "team.bocean@gmail.com",
+                'reply_to': "bodybuddiespt@gmail.com",
               }
             }))
         .then((value) => print(value.body + value.statusCode.toString()));
