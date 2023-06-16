@@ -329,7 +329,17 @@ class _BookingsPageState extends State<BookingsPage> {
 
     if (pickedDate != null) {
       setState(() {
+        pickedDate.day != DateTime.now().day ||
+            pickedDate.month != DateTime.now().month
+            ? setState(() {
+          pageController.jumpToPage(
+              pickedDate.difference(DateTime.now()).inDays < 0
+                  ? pickedDate.difference(DateTime.now()).inDays + 365
+                  : pickedDate.difference(DateTime.now()).inDays + 366);
+        })
+            : pageController.jumpToPage(365);
         _day = pickedDate.day.toString();
+        _month = pickedDate.month.toString();
         currentDay = pickedDate;
         initDates(context);
       });
