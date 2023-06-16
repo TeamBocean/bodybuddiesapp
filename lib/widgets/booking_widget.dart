@@ -45,11 +45,14 @@ class _BookingWidgetState extends State<BookingWidget> {
                 opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&
                             !widget.isBooked ||
                         ((int.parse(widget.booking.time
-                                    .split(":")
-                                    .first
-                                    .toString()) <
-                                DateTime.now().hour) &&
-                            widget.isAdmin)
+                                        .split(":")
+                                        .first
+                                        .toString()) <
+                                    DateTime.now().hour) &&
+                                widget.isAdmin ||
+                            (int.parse(widget.booking.date.split("/").first) <
+                                    DateTime.now().day &&
+                                widget.isAdmin))
                     ? 0.5
                     : 1,
                 child: SizedBox(
