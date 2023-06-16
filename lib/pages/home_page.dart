@@ -55,6 +55,12 @@ class _HomePageState extends State<HomePage> {
 
               snapshot.data!.sort((a, b) => int.parse(a.time.split(":").first)
                   .compareTo(int.parse(b.time.split(":").first)));
+
+              snapshot.data!.sort((a, b) =>
+                  (int.parse(a.time.split(":").first.toString()) <
+                          DateTime.now().hour)
+                      ? 1
+                      : 0);
             }
           }
           return Container(
