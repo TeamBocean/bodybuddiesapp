@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FirebaseAuth.instance.currentUser!.email!
-            .contains("markmcquaid54@gmail.com")
+            .contains("mahmoud.al808@gmail.com")
         ? adminView()
         : userView();
   }
@@ -52,13 +52,16 @@ class _HomePageState extends State<HomePage> {
                   ))
                       ? 1
                       : 0);
+
+              snapshot.data!.sort((a, b) => int.parse(a.time.split(":").first)
+                  .compareTo(int.parse(b.time.split(":").first)));
             }
           }
           return Container(
             height: MediaQuery.of(context).size.height,
             child: SafeArea(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
+                padding: EdgeInsets.symmetric(horizontal: Dimensions.width10),
                 child: Stack(
                   children: [
                     Column(
@@ -99,7 +102,8 @@ class _HomePageState extends State<HomePage> {
                             IconButton(
                                 onPressed: () {
                                   setState(() {
-                                    currentDate = currentDate.subtract(Duration(days: 1));
+                                    currentDate =
+                                        currentDate.subtract(Duration(days: 1));
                                   });
                                 },
                                 icon: Icon(
@@ -122,7 +126,8 @@ class _HomePageState extends State<HomePage> {
                             IconButton(
                                 onPressed: () {
                                   setState(() {
-                                    currentDate = currentDate.add(Duration(days: 1));
+                                    currentDate =
+                                        currentDate.add(Duration(days: 1));
                                     print(currentDate);
                                   });
                                 },
