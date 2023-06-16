@@ -5,10 +5,8 @@ import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
 import '../models/bookings.dart';
 import '../models/user.dart';
 import '../services/cloud_firestore.dart';
@@ -330,13 +328,13 @@ class _BookingsPageState extends State<BookingsPage> {
     if (pickedDate != null) {
       setState(() {
         pickedDate.day != DateTime.now().day ||
-            pickedDate.month != DateTime.now().month
+                pickedDate.month != DateTime.now().month
             ? setState(() {
-          pageController.jumpToPage(
-              pickedDate.difference(DateTime.now()).inDays < 0
-                  ? pickedDate.difference(DateTime.now()).inDays + 365
-                  : pickedDate.difference(DateTime.now()).inDays + 366);
-        })
+                pageController.jumpToPage(
+                    pickedDate.difference(DateTime.now()).inDays < 0
+                        ? pickedDate.difference(DateTime.now()).inDays + 365
+                        : pickedDate.difference(DateTime.now()).inDays + 366);
+              })
             : pageController.jumpToPage(365);
         _day = pickedDate.day.toString();
         _month = pickedDate.month.toString();
