@@ -43,7 +43,12 @@ class _BookingWidgetState extends State<BookingWidget> {
                   vertical: Dimensions.height10 / 2),
               child: Opacity(
                 opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&
-                        !widget.isBooked
+                            !widget.isBooked ||
+                        int.parse(widget.booking.time
+                                .split(":")
+                                .first
+                                .toString()) <
+                            DateTime.now().hour
                     ? 0.5
                     : 1,
                 child: SizedBox(
@@ -85,7 +90,13 @@ class _BookingWidgetState extends State<BookingWidget> {
                                       color: darkGreen,
                                       child: Center(
                                         child: MediumTextWidget(
-                                          text: "Upcoming",
+                                          text: int.parse(widget.booking.time
+                                                      .split(":")
+                                                      .first
+                                                      .toString()) <
+                                                  DateTime.now().hour
+                                              ? "Done"
+                                              : "Upcoming",
                                           color: Colors.black,
                                           fontSize: Dimensions.fontSize10,
                                         ),
