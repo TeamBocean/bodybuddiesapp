@@ -44,11 +44,12 @@ class _BookingWidgetState extends State<BookingWidget> {
               child: Opacity(
                 opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&
                             !widget.isBooked ||
-                        int.parse(widget.booking.time
-                                .split(":")
-                                .first
-                                .toString()) <
-                            DateTime.now().hour
+                        ((int.parse(widget.booking.time
+                                    .split(":")
+                                    .first
+                                    .toString()) <
+                                DateTime.now().hour) &&
+                            widget.isAdmin)
                     ? 0.5
                     : 1,
                 child: SizedBox(
@@ -90,11 +91,12 @@ class _BookingWidgetState extends State<BookingWidget> {
                                       color: darkGreen,
                                       child: Center(
                                         child: MediumTextWidget(
-                                          text: int.parse(widget.booking.time
-                                                      .split(":")
-                                                      .first
-                                                      .toString()) <
-                                                  DateTime.now().hour
+                                          text: ((int.parse(widget.booking.time
+                                                          .split(":")
+                                                          .first
+                                                          .toString()) <
+                                                      DateTime.now().hour) &&
+                                                  widget.isAdmin)
                                               ? "Done"
                                               : "Upcoming",
                                           color: Colors.black,
