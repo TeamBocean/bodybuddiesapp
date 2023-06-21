@@ -32,6 +32,11 @@ class BookingWidget extends StatefulWidget {
 
 class _BookingWidgetState extends State<BookingWidget> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<Bookings>(
         stream: CloudFirestore().streamBookedDates(""),
@@ -44,14 +49,13 @@ class _BookingWidgetState extends State<BookingWidget> {
               child: Opacity(
                 opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&
                             !widget.isBooked ||
-                        ((int.parse(widget.booking.time
-                                        .split(":")
-                                        .first
-                                        .toString()) <
-                                    DateTime.now().hour) &&
+                        ((getBookingAsDateTime(widget.booking.time,
+                                        widget.booking.date)
+                                    .isBefore(DateTime.now())) &&
                                 widget.isAdmin ||
-                            (int.parse(widget.booking.date.split("/").first) <
-                                    DateTime.now().day &&
+                            (getBookingAsDateTime(widget.booking.time,
+                                        widget.booking.date)
+                                    .isBefore(DateTime.now()) &&
                                 widget.isAdmin))
                     ? 0.5
                     : 1,
@@ -263,6 +267,14 @@ class _BookingWidgetState extends State<BookingWidget> {
             return Text("Loading");
           }
         });
+  }
+
+  DateTime getBookingAsDateTime(String time, String date) {
+    List<String> dateAsList = date.split("/");
+
+    DateTime dateTime = DateTime.parse(
+        "${DateTime.now().year}-0${dateAsList.last}-${dateAsList.first} $time:00");
+    return dateTime;
   }
 
   bool isAlreadyBooked(Booking booking, Map bookings) {
