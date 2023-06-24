@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FirebaseAuth.instance.currentUser!.email!
-            .contains("mahmoud.al808@gmail.com")
+            .contains("markmcquaid54@gmail.com")
         ? adminView()
         : userView();
   }
