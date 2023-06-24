@@ -14,8 +14,8 @@ class EmailService {
         .post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'service_id': 'service_qzxeeyw',
-              'template_id': 'template_5kq8l6l',
+              'service_id': 'service_bpsye2e',
+              'template_id': 'template_eocoarl',
               'user_id': '6j4yPTB5ndFWYGklN',
               'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
               'template_params': {
@@ -38,8 +38,8 @@ class EmailService {
         .post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
-              'service_id': 'service_qzxeeyw',
-              'template_id': 'template_5kq8l6l',
+              'service_id': 'service_bpsye2e',
+              'template_id': 'template_eocoarl',
               'user_id': '6j4yPTB5ndFWYGklN',
               'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
               'template_params': {
@@ -61,8 +61,8 @@ class EmailService {
     await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'service_id': 'service_qzxeeyw',
-          'template_id': 'template_5kq8l6l',
+          'service_id': 'service_bpsye2e',
+          'template_id': 'template_eocoarl',
           'user_id': '6j4yPTB5ndFWYGklN',
           'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
           'template_params': {
@@ -83,8 +83,8 @@ class EmailService {
     await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'service_id': 'service_qzxeeyw',
-          'template_id': 'template_5kq8l6l',
+          'service_id': 'service_bpsye2e',
+          'template_id': 'template_eocoarl',
           'user_id': '6j4yPTB5ndFWYGklN',
           'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
           'template_params': {
@@ -93,7 +93,7 @@ class EmailService {
             'user_email': "bodybuddiespt@gmail.com",
             'from_email': user!.email,
             'message':
-            'Lesson cancelled at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date} with ${FirebaseAuth.instance.currentUser!.displayName}',
+                'Lesson cancelled at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date} with ${FirebaseAuth.instance.currentUser!.displayName}',
             'reply_to': user.email
           }
         }));
@@ -102,17 +102,19 @@ class EmailService {
   void sendPDFToUser(String name) async {
     final user = FirebaseAuth.instance.currentUser;
 
-    await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'service_id': 'service_qzxeeyw',
-          'template_id': 'template_htefqvf',
-          'user_id': '6j4yPTB5ndFWYGklN',
-          'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
-          'template_params': {
-            'to_name': "",
-            'user_email': FirebaseAuth.instance.currentUser!.email,
-          }
-        })).then((value) => print(value.body));
+    await http
+        .post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'service_id': 'service_bpsye2e',
+              'template_id': 'template_09td3c9',
+              'user_id': '6j4yPTB5ndFWYGklN',
+              'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+              'template_params': {
+                'to_name': "",
+                'user_email': FirebaseAuth.instance.currentUser!.email,
+              }
+            }))
+        .then((value) => print(value.body));
   }
 }
