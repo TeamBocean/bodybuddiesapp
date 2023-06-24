@@ -16,8 +16,8 @@ class EmailService {
             body: json.encode({
               'service_id': 'service_bpsye2e',
               'template_id': 'template_eocoarl',
-              'user_id': '6j4yPTB5ndFWYGklN',
-              'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+              'user_id': 'k8sIXq9w1NpPrnOGw',
+              'accessToken': 'OT3Rt5KH0KdlFroan90hJ',
               'template_params': {
                 'from_name': "BodyBuddies Team",
                 'to_name': FirebaseAuth.instance.currentUser!.displayName,
@@ -40,8 +40,8 @@ class EmailService {
             body: json.encode({
               'service_id': 'service_bpsye2e',
               'template_id': 'template_eocoarl',
-              'user_id': '6j4yPTB5ndFWYGklN',
-              'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+              'user_id': 'k8sIXq9w1NpPrnOGw',
+              'accessToken': 'OT3Rt5KH0KdlFroan90hJ',
               'template_params': {
                 'from_name': "BodyBuddies Team",
                 'to_name': FirebaseAuth.instance.currentUser!.displayName,
@@ -63,8 +63,8 @@ class EmailService {
         body: json.encode({
           'service_id': 'service_bpsye2e',
           'template_id': 'template_eocoarl',
-          'user_id': '6j4yPTB5ndFWYGklN',
-          'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+          'user_id': 'k8sIXq9w1NpPrnOGw',
+          'accessToken': 'OT3Rt5KH0KdlFroan90hJ',
           'template_params': {
             'from_name': FirebaseAuth.instance.currentUser!.displayName,
             'to_name': "Mark",
@@ -85,8 +85,8 @@ class EmailService {
         body: json.encode({
           'service_id': 'service_bpsye2e',
           'template_id': 'template_eocoarl',
-          'user_id': '6j4yPTB5ndFWYGklN',
-          'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+          'user_id': 'k8sIXq9w1NpPrnOGw',
+          'accessToken': 'OT3Rt5KH0KdlFroan90hJ',
           'template_params': {
             'from_name': FirebaseAuth.instance.currentUser!.displayName,
             'to_name': "Mark",
@@ -108,8 +108,8 @@ class EmailService {
             body: json.encode({
               'service_id': 'service_bpsye2e',
               'template_id': 'template_09td3c9',
-              'user_id': '6j4yPTB5ndFWYGklN',
-              'accessToken': '3NWjnYCsx0c9uUfDtNCPz',
+              'user_id': 'k8sIXq9w1NpPrnOGw',
+              'accessToken': 'OT3Rt5KH0KdlFroan90hJ',
               'template_params': {
                 'to_name': "",
                 'user_email': FirebaseAuth.instance.currentUser!.email,
