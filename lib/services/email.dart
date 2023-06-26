@@ -57,7 +57,7 @@ class EmailService {
 
   void sendBookingConfirmationToMark(Booking? booking) async {
     final user = FirebaseAuth.instance.currentUser;
-
+    print("ji");
     await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
@@ -74,7 +74,7 @@ class EmailService {
                 'Upcoming lesson at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date} with ${FirebaseAuth.instance.currentUser!.displayName}',
             'reply_to': user.email
           }
-        }));
+        })).then((value) => print(value.body));
   }
 
   void sendBookingCancellationToMark(Booking? booking) async {
