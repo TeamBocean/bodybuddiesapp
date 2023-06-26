@@ -41,10 +41,14 @@ class _HomePageState extends State<HomePage> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.length > 0) {
-              snapshot.data!.sort((a, b) =>
-                  getBookingAsDateTime(a).isBefore(getBookingAsDateTime(b))
-                      ? 0
-                      : 1);
+              /// Sort bookings by date
+              snapshot.data!.sort((a, b) => getBookingAsDateTime(a.time, a.date)
+                      .isBefore(getBookingAsDateTime(b.time, b.date))
+                  ? 0
+                  : 1);
+
+              /// Sort bookings by date
+              snapshot.data!.sort((a, b) => isBookingComplete(a) ? 1 : 0);
             }
           }
           return Container(
@@ -328,13 +332,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  DateTime getBookingAsDateTime(Booking booking) {
-    return DateTime(
-      DateTime.now().year,
-      int.parse(booking.date.split('/')[0]),
-      int.parse(booking.date.split('/')[1]),
-      int.parse(booking.time.split(":")[0]),
-      int.parse(booking.time.split(":")[1]),
-    );
+  DateTime getBookingAsDateTime(String time, String date) {
+    List<String> dateAsList = date.split("/");
+
+    DateTime dateTime = DateTime.parse(
+        "${DateTime.now().year}-0${dateAsList.last}-${dateAsList.first} $time:00");
+    return dateTime;
+  }
+
+  bool isBookingComplete(Booking booking) {
+    print(getBookingAsDateTime(booking.time, booking.date));
+    return DateTime.now()
+        .isAfter(getBookingAsDateTime(booking.time, booking.date));
   }
 }
