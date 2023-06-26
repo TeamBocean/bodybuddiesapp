@@ -57,24 +57,26 @@ class EmailService {
 
   void sendBookingConfirmationToMark(Booking? booking) async {
     final user = FirebaseAuth.instance.currentUser;
-    print("ji");
-    await http.post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'service_id': 'service_bpsye2e',
-          'template_id': 'template_eocoarl',
-          'user_id': 'k8sIXq9w1NpPrnOGw',
-          'accessToken': 'OT3Rt5KH0KdlFroan90hJ',
-          'template_params': {
-            'from_name': FirebaseAuth.instance.currentUser!.displayName,
-            'to_name': "Mark",
-            'user_email': "markmcquaid54@gmail.com",
-            'from_email': user!.email,
-            'message':
-                'Upcoming lesson at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date} with ${FirebaseAuth.instance.currentUser!.displayName}',
-            'reply_to': user.email
-          }
-        })).then((value) => print(value.body));
+
+    await http
+        .post(Uri.parse("https://api.emailjs.com/api/v1.0/email/send"),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'service_id': 'service_bpsye2e',
+              'template_id': 'template_eocoarl',
+              'user_id': 'k8sIXq9w1NpPrnOGw',
+              'accessToken': 'OT3Rt5KH0KdlFroan90hJ',
+              'template_params': {
+                'from_name': FirebaseAuth.instance.currentUser!.displayName,
+                'to_name': "Mark",
+                'user_email': "markmcquaid54@gmail.com",
+                'from_email': user!.email,
+                'message':
+                    'Upcoming lesson at: ${booking!.time + TextFormat().fixTimeFormat(booking.time)} on ${booking.date} with ${FirebaseAuth.instance.currentUser!.displayName}',
+                'reply_to': user.email
+              }
+            }))
+        .then((value) => print(value.body));
   }
 
   void sendBookingCancellationToMark(Booking? booking) async {

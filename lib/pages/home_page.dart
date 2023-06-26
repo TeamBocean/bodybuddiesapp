@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FirebaseAuth.instance.currentUser!.email!
-            .contains("markmcquaid54@gmail.com")
+            .contains("mahmoud.al808@gmail.com")
         ? adminView()
         : userView();
   }
@@ -41,26 +41,10 @@ class _HomePageState extends State<HomePage> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.length > 0) {
-              snapshot.data!.sort((a, b) => DateTime(
-                    DateTime.now().year,
-                    int.parse(a.date.split('/')[0]),
-                    int.parse(a.date.split('/')[0]),
-                  ).isBefore(DateTime(
-                    DateTime.now().year,
-                    int.parse(b.date.split('/')[0]),
-                    int.parse(b.date.split('/')[0]),
-                  ))
-                      ? 1
-                      : 0);
-
-              snapshot.data!.sort((a, b) => int.parse(a.time.split(":").first)
-                  .compareTo(int.parse(b.time.split(":").first)));
-
               snapshot.data!.sort((a, b) =>
-                  (int.parse(a.time.split(":").first.toString()) <
-                          DateTime.now().hour)
-                      ? 1
-                      : 0);
+                  getBookingAsDateTime(a).isBefore(getBookingAsDateTime(b))
+                      ? 0
+                      : 1);
             }
           }
           return Container(
@@ -341,6 +325,16 @@ class _HomePageState extends State<HomePage> {
           ),
         )
       ],
+    );
+  }
+
+  DateTime getBookingAsDateTime(Booking booking) {
+    return DateTime(
+      DateTime.now().year,
+      int.parse(booking.date.split('/')[0]),
+      int.parse(booking.date.split('/')[1]),
+      int.parse(booking.time.split(":")[0]),
+      int.parse(booking.time.split(":")[1]),
     );
   }
 }
