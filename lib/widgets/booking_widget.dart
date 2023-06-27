@@ -48,10 +48,9 @@ class _BookingWidgetState extends State<BookingWidget> {
               child: Opacity(
                 opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&
                             !widget.isBooked ||
-                        ((getBookingAsDateTime(widget.booking.time,
-                                        widget.booking.date)
-                                    .isBefore(DateTime.now())) &&
-                                widget.isAdmin ||
+                        ((getBookingAsDateTime(
+                                    widget.booking.time, widget.booking.date)
+                                .isBefore(DateTime.now())) ||
                             (getBookingAsDateTime(widget.booking.time,
                                         widget.booking.date)
                                     .isBefore(DateTime.now()) &&
