@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FirebaseAuth.instance.currentUser!.email!
-            .contains("mahmoud.al808@gmail.com")
+            .contains("markmcquaid54@gmail.com")
         ? adminView()
         : userView();
   }
@@ -171,17 +171,14 @@ class _HomePageState extends State<HomePage> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.bookings.length > 0) {
-              snapshot.data!.bookings.sort((a, b) => DateTime(
-                    DateTime.now().year,
-                    int.parse(a.date.split('/')[0]),
-                    int.parse(a.date.split('/')[0]),
-                  ).isBefore(DateTime(
-                    DateTime.now().year,
-                    int.parse(b.date.split('/')[0]),
-                    int.parse(b.date.split('/')[0]),
-                  ))
-                      ? 1
-                      : 0);
+              /// Sort bookings by date
+              snapshot.data!.bookings.sort((a, b) => getBookingAsDateTime(a.time, a.date)
+                  .isBefore(getBookingAsDateTime(b.time, b.date))
+                  ? 0
+                  : 1);
+
+              /// Sort bookings by date
+              snapshot.data!.bookings.sort((a, b) => isBookingComplete(a) ? 1 : 0);
             }
           }
           return Container(
