@@ -100,12 +100,11 @@ class _BookingWidgetState extends State<BookingWidget> {
                                       color: darkGreen,
                                       child: Center(
                                         child: MediumTextWidget(
-                                          text: ((int.parse(widget.booking.time
+                                          text: (int.parse(widget.booking.time
                                                           .split(":")
                                                           .first
                                                           .toString()) <
-                                                      DateTime.now().hour) &&
-                                                  widget.isAdmin)
+                                                      DateTime.now().hour)
                                               ? "Done"
                                               : "Upcoming",
                                           color: Colors.black,
