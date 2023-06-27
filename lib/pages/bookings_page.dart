@@ -259,7 +259,6 @@ class _BookingsPageState extends State<BookingsPage> {
     Booking? booking = list.firstWhereOrNull((element) =>
         formatBookingDate(element).day ==
         currentDay.add(Duration(days: currentDayPage - 365)).day);
-    print(booking != null ? 0.5 : 1);
     return booking != null ? 0.5 : 1;
   }
 

@@ -122,7 +122,6 @@ class _HomePageState extends State<HomePage> {
                                   setState(() {
                                     currentDate =
                                         currentDate.add(Duration(days: 1));
-                                    print(currentDate);
                                   });
                                 },
                                 icon: Icon(
@@ -341,7 +340,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   bool isBookingComplete(Booking booking) {
-    print(getBookingAsDateTime(booking.time, booking.date));
     return DateTime.now()
         .isAfter(getBookingAsDateTime(booking.time, booking.date));
   }

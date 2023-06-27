@@ -56,7 +56,6 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                 width: Dimensions.width10 * 20,
                 child: ElevatedButton(
                   onPressed: () {
-                    print(int.parse(weightController.text));
                     if (nameController.text.toString().length > 1 &&
                         weightController.text.isNotEmpty) {
                       bool success = CloudFirestore().setUserInfo(
