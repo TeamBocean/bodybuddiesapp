@@ -88,31 +88,28 @@ class _BookingWidgetState extends State<BookingWidget> {
                                   fontSize: Dimensions.fontSize16,
                                 ),
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    width: Dimensions.width15 * 4.5,
-                                    height: Dimensions.height10 * 2,
-                                    child: Card(
-                                      margin: EdgeInsets.all(0),
-                                      elevation: 0,
-                                      color: darkGreen,
-                                      child: Center(
-                                        child: MediumTextWidget(
-                                          text: (getBookingAsDateTime(
-                                                      widget.booking.time,
-                                                      widget.booking.date)
-                                                  .isBefore(DateTime.now()))
-                                              ? "Done"
-                                              : "Upcoming",
-                                          color: Colors.black,
-                                          fontSize: Dimensions.fontSize10,
-                                        ),
-                                      ),
+
+                              /// Upcoming widget
+                              SizedBox(
+                                width: Dimensions.width15 * 4.5,
+                                height: Dimensions.height10 * 2,
+                                child: Card(
+                                  margin: EdgeInsets.all(0),
+                                  elevation: 0,
+                                  color: darkGreen,
+                                  child: Center(
+                                    child: MediumTextWidget(
+                                      text: (getBookingAsDateTime(
+                                                  widget.booking.time,
+                                                  widget.booking.date)
+                                              .isBefore(DateTime.now()))
+                                          ? "Done"
+                                          : "Upcoming",
+                                      color: Colors.black,
+                                      fontSize: Dimensions.fontSize10,
                                     ),
                                   ),
-                                ],
+                                ),
                               )
                             ],
                           ),
@@ -128,7 +125,6 @@ class _BookingWidgetState extends State<BookingWidget> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   SizedBox(
-                                    width: Dimensions.width15 * 7,
                                     height: Dimensions.height10 * 2.5,
                                     child: ElevatedButton(
                                       onPressed: () => widget.isBooked
