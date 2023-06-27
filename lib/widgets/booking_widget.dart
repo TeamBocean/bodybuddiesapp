@@ -53,8 +53,7 @@ class _BookingWidgetState extends State<BookingWidget> {
                                 .isBefore(DateTime.now())) ||
                             (getBookingAsDateTime(widget.booking.time,
                                         widget.booking.date)
-                                    .isBefore(DateTime.now()) &&
-                                widget.isAdmin))
+                                    .isBefore(DateTime.now())))
                     ? 0.5
                     : 1,
                 child: SizedBox(
