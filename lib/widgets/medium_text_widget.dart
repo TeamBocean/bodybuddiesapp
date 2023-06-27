@@ -18,6 +18,7 @@ class _MediumTextWidgetState extends State<MediumTextWidget> {
   Widget build(BuildContext context) {
     return Text(
       widget.text,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
           fontSize: widget.fontSize,
           color: widget.color,
