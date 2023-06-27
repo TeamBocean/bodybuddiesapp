@@ -44,8 +44,7 @@ class _BookingWidgetState extends State<BookingWidget> {
           if (snapshot.hasData) {
             return Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: Dimensions.width15 / 2,
-                  vertical: Dimensions.height10 / 2),
+                  horizontal: 0, vertical: Dimensions.height10 / 2),
               child: Opacity(
                 opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&
                             !widget.isBooked ||
@@ -82,9 +81,12 @@ class _BookingWidgetState extends State<BookingWidget> {
                                 text: widget.booking.time,
                                 fontSize: Dimensions.fontSize16,
                               ),
-                              MediumTextWidget(
-                                text: widget.booking.bookingName,
-                                fontSize: Dimensions.fontSize16,
+                              SizedBox(
+                                width: Dimensions.width20 * 9.5,
+                                child: MediumTextWidget(
+                                  text: widget.booking.bookingName,
+                                  fontSize: Dimensions.fontSize16,
+                                ),
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
