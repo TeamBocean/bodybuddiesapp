@@ -1,8 +1,9 @@
 name: Deploy iOS and Android App to App Store and Play Store
 on:
   push:
-    tags:
-      - 'v*'
+    # (1)
+    branches:
+      - "main"
 
 jobs:
   release-android:
