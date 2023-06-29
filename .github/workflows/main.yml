@@ -27,7 +27,7 @@ jobs:
       - name: Install pods
         run: cd ios && pod install && cd ..
       - name: Prebuild
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-sound-null-safety
       - name: Setup SSH Keys and known_hosts for fastlane match
         run: |
           ...
