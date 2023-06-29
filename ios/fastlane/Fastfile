@@ -100,7 +100,7 @@ desc "Bump build number based on most recent TestFlight build number"
 
       # build the app
       gym(
-        scheme: "example-scheme", # replace with name of your project’s scheme
+        scheme: "Runner", # replace with name of your project’s scheme
         output_name: output_name,
         configuration: "Release",
         export_options: {
