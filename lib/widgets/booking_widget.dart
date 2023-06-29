@@ -264,10 +264,11 @@ class _BookingWidgetState extends State<BookingWidget> {
   }
 
   DateTime getBookingAsDateTime(String time, String date) {
+    print(date);
     List<String> dateAsList = date.split("/");
 
     DateTime dateTime = DateTime.parse(
-        "${DateTime.now().year}-0${dateAsList.last}-${dateAsList.first} $time:00");
+        "${DateTime.now().year}-0${dateAsList.last}-0${dateAsList.first} $time:00");
     return dateTime;
   }
 
