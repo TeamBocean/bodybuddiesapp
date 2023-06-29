@@ -46,9 +46,9 @@ jobs:
           SIGNING_KEY_FILE_PATH: signing-cert.p12
 
       - name: Upload app-store ipa and dsyms to artifacts
-          uses: actions/upload-artifact@v2
-          with:
-            name: app-store ipa & dsyms
-            path: |
-              ${{ github.workspace }}/example-iOS.ipa
-              ${{ github.workspace }}/*.app.dSYM.zip
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-store ipa & dsyms
+          path: |
+            ${{ github.workspace }}/example-iOS.ipa
+            ${{ github.workspace }}/*.app.dSYM.zip
