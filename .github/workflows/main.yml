@@ -6,25 +6,38 @@ on:
       - "main"
 
 jobs:
-  deploy:
+  release-ios:
+    name: Build and release iOS app
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up ruby env
-        uses: ruby/setup-ruby@v1.138.0
+      - uses: maxim-lobanov/setup-xcode@v1
         with:
-          ruby-version: 3.2.1
-          bundler-cache: true
+          xcode-version: latest-stable
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2.8.0
+        with:
+          flutter-version: '3.3.8'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1.2'
+      - name: Install Fastlane
+        run: cd ios && bundle install && cd ..
+      - name: Install packages
+        run: flutter pub get
+      - name: Install pods
+        run: cd ios && pod install && cd ..
+      - name: Prebuild
+        run: flutter build ios --release --no-sound-null-safety
 
       - name: Decode signing certificate into a file
-        env:
-          CERTIFICATE_BASE64: ${{ secrets.IOS_DIST_SIGNING_KEY }}
-        run: |
-          echo $CERTIFICATE_BASE64 | base64 --decode > signing-cert.p12
+          env:
+            CERTIFICATE_BASE64: ${{ secrets.IOS_DIST_SIGNING_KEY }}
+          run: |
+            echo $CERTIFICATE_BASE64 | base64 --decode > signing-cert.p12
 
-      - name: Build & upload iOS binary
-        run: bundle exec fastlane ios build_upload_testflight
+      - name: Deploy to TestFlight
+        run: |
+          cd ./ios && bundle exec fastlane ios build_upload_testflight
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -33,9 +46,9 @@ jobs:
           SIGNING_KEY_FILE_PATH: signing-cert.p12
 
       - name: Upload app-store ipa and dsyms to artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: app-store ipa & dsyms
-          path: |
-            ${{ github.workspace }}/example-iOS.ipa
-            ${{ github.workspace }}/*.app.dSYM.zip
+          uses: actions/upload-artifact@v2
+          with:
+            name: app-store ipa & dsyms
+            path: |
+              ${{ github.workspace }}/example-iOS.ipa
+              ${{ github.workspace }}/*.app.dSYM.zip
