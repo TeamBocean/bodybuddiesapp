@@ -1,17 +1,16 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
+######## IOS CONFIGURATIONS
+# If you want to make the build automatically available to external groups,
+# add the name of the group to the array below, after "App Store Connect Users"
+groups = ["App Store Connect Users"]
+workspace = "Runner.xcworkspace"
 
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
+# If you build for multiple environments, you might wanna set this specifically on build_app
+configuration = 'release'
+scheme = "Runner"
+
+key_id = "V2P6M4245Q" # The key id of the p8 file
+issuer_id = "e1ecbc6d-48b9-4f38-a03f-613256cbf32f" # issuer id on appstore connect
+key_filepath = "AuthKey.p8"
 
 default_platform(:ios)
 platform :ios do
