@@ -51,9 +51,9 @@ class _BookingWidgetState extends State<BookingWidget> {
                         ((getBookingAsDateTime(
                                     widget.booking.time, widget.booking.date)
                                 .isBefore(DateTime.now())) ||
-                            (getBookingAsDateTime(widget.booking.time,
-                                        widget.booking.date)
-                                    .isBefore(DateTime.now())))
+                            (getBookingAsDateTime(
+                                    widget.booking.time, widget.booking.date)
+                                .isBefore(DateTime.now())))
                     ? 0.5
                     : 1,
                 child: SizedBox(
@@ -266,9 +266,13 @@ class _BookingWidgetState extends State<BookingWidget> {
   DateTime getBookingAsDateTime(String time, String date) {
     print(date);
     List<String> dateAsList = date.split("/");
-
+    String first = dateAsList.first.contains("0")
+        ? "${dateAsList.first}"
+        : dateAsList.first.length == 2
+            ? dateAsList.first
+            : "0${dateAsList.first}";
     DateTime dateTime = DateTime.parse(
-        "${DateTime.now().year}-0${dateAsList.last}-0${dateAsList.first} $time:00");
+        "${DateTime.now().year}-0${dateAsList.last}-$first $time:00");
     return dateTime;
   }
 

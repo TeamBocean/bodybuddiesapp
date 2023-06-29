@@ -329,10 +329,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   DateTime getBookingAsDateTime(String time, String date) {
+    print(date);
     List<String> dateAsList = date.split("/");
-
+    String first = dateAsList.first.contains("0")
+        ? "${dateAsList.first}"
+        : dateAsList.first.length == 2
+        ? dateAsList.first
+        : "0${dateAsList.first}";
     DateTime dateTime = DateTime.parse(
-        "${DateTime.now().year}-0${dateAsList.last}-${dateAsList.first} $time:00");
+        "${DateTime.now().year}-0${dateAsList.last}-$first $time:00");
     return dateTime;
   }
 
