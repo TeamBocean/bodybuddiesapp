@@ -14,21 +14,20 @@ jobs:
           with:
             xcode-version: latest-stable
       - uses: actions/checkout@v3
-      - name: Bundle install
-        run: cd ./ios && bundle install
-      - name: Setup JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: "12.x"
-      - name: Setup flutter
-        uses: subosito/flutter-action@v1
-        with:
-          flutter-version: "1.17.0"
-          channel: "stable"
-      - name: Install tools
-        run: |
-          flutter pub get
-          cd ./ios && pod install
+                - uses: subosito/flutter-action@v2.8.0
+                with:
+                  flutter-version: '3.3.8'
+      - uses: ruby/setup-ruby@v1
+          with:
+            ruby-version: '3.1.2'
+      - name: Install Fastlane
+          run: cd ios && bundle install && cd ..
+      - name: Install packages
+          run: flutter pub get
+      - name: Install pods
+          run: cd ios && pod install && cd ..
+      - name: Prebuild
+          run: flutter build ios --release --no-codesign
       - name: Setup SSH Keys and known_hosts for fastlane match
         run: |
           ...
