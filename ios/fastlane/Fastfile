@@ -84,7 +84,7 @@ desc "Bump build number based on most recent TestFlight build number"
      lane :build_release do |options|
       app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
 
-      profile_name = "match AppStore com.bodybuddies.bodybuddiesapp" # replace with the name of the profile to use for the build
+      profile_name = "Release" # replace with the name of the profile to use for the build
       output_name = "example-iOS" # specify the name of the .ipa file to generate
       export_method = "app-store" # specify the export method
 
