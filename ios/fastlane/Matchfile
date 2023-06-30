@@ -4,4 +4,4 @@ storage_mode("git")
 
 type("appstore") # The default type, can be: appstore, adhoc, enterprise or development
 username("mahmoudalmahroum808@icloud.com")
-app_identifier(["com.bodybuddies.bodybuddiesapp"])
+app_identifier(["LJ2Y4DXLD8.com.bodybuddies.bodybuddiesapp"])
