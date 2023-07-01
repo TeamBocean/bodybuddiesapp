@@ -52,6 +52,11 @@ platform :ios do
       scheme: "Runner",
       clean: true,
       export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+           "com.bodybuddies.bodybuddiesapp" => "match AppStore com.bodybuddies.bodybuddiesapp",
+        }
+      }
       output_name: "Recspot",
     )
   end
@@ -77,6 +82,11 @@ platform :ios do
       scheme: "staging",
       clean: true,
       export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+           "com.bodybuddies.bodybuddiesapp" => "match AppStore com.bodybuddies.bodybuddiesapp",
+        }
+      }
       output_name: "RecspotStaging",
     )
   end
@@ -103,6 +113,11 @@ platform :ios do
       scheme: "Runner",
       clean: true,
       export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+           "com.bodybuddies.bodybuddiesapp" => "match AppStore com.bodybuddies.bodybuddiesapp",
+        }
+      }
       output_name: "RecspotDev",
     )
   end
