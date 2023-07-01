@@ -1,0 +1,8 @@
+git_url("https://github.com/mahmoudal99/bodybuddies_ioscertificates")
+
+storage_mode("git")
+
+type("appstore") # The default type, can be: appstore, adhoc, enterprise or development
+
+username("mahmoudalmahroum808@icloud.com")
+app_identifier(["com.bodybuddies.bodybuddiesapp"])
