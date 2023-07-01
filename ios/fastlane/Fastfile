@@ -1,137 +1,228 @@
-######## IOS CONFIGURATIONS
-# If you want to make the build automatically available to external groups,
-# add the name of the group to the array below, after "App Store Connect Users"
-groups = ["App Store Connect Users"]
-workspace = "Runner.xcworkspace"
-
-# If you build for multiple environments, you might wanna set this specifically on build_app
-configuration = 'release'
-scheme = "Runner"
-
-key_id = "V2P6M4245Q" # The key id of the p8 file
-issuer_id = "e1ecbc6d-48b9-4f38-a03f-613256cbf32f" # issuer id on appstore connect
-key_filepath = "AuthKey.p8"
-
+# Automatically update fastlane
 default_platform(:ios)
-platform :ios do
-     desc "Load ASC API Key information to use in subsequent lanes"
-     lane :load_asc_api_key do
-       app_store_connect_api_key(
-         key_id: ENV["ASC_KEY_ID"],
-         issuer_id: ENV["ASC_ISSUER_ID"],
-         key_content: ENV["ASC_KEY"],
-         is_key_content_base64: true,
-         in_house: false # detecting this via ASC private key not currently supported
-       )
-     end
+
+
+TEMP_KEYCHAIN_NAME = "Runner"
+TEMP_KEYCHAIN_PASSWORD = "appname"
+
+# Remove the temporary keychain, if it exists
+def delete_temp_keychain(name)
+  delete_keychain(
+    name: name
+  ) if File.exist? File.expand_path("~/Library/Keychains/#{name}-db")
 end
-desc "Bump build number based on most recent TestFlight build number"
-     lane :fetch_and_increment_build_number do
-      #fetch read your app identifier defined in your Appfile
-      app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
-      api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
 
-      current_version = get_version_number(
-        target: "main-target" # replace with your main target, required if you have more than one non-test target
-      )
-      latest_build_number = latest_testflight_build_number(
-        api_key: api_key,
-        version: current_version,
-        app_identifier: app_identifier
-      )
-      increment_build_number(
-        build_number: (latest_build_number + 1),
-      )
-     end
+# Create the temporary keychain with name and password
+def create_temp_keychain(name, password)
+  create_keychain(
+    name: name,
+    password: password,
+    unlock: true,
+    timeout: 0
+  )
+end
+
+# Ensure we have a fresh, empty temporary keychain
+def ensure_temp_keychain(name, password)
+  delete_temp_keychain(name)
+  create_temp_keychain(name, password)
+end
 
 
-      desc "Installs signing certificate in the keychain and downloads provisioning profiles from App Store Connect"
-      lane :prepare_signing do |options|
-        team_id = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
-        api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+platform :ios do
 
-        keychain_name = "signing"
-        keychain_password = "temp"
+  desc "Generate prod iOS app"
+  lane :build_prod do
+    create_unlock_keychain
+    generate_signed_prod
+    delete_temp_keychain(TEMP_KEYCHAIN_NAME)
+  end
 
-        delete_keychain(
-          name: keychain_name
-        ) if File.exist? File.expand_path("~/Library/Keychains/#{keychain_name}-db")
+  desc "Build & sign production"
+  lane :generate_signed_prod do
+    disable_signing
+    # (optional, you must specify the path to your main Xcode project if it is not in the project root directory))
+    # match appstore
+   match_profile
+   match_profile_share_extension(
+    target:'prod'
+    )
+    # sh "bash ./flutter_build.sh --clean"
+    build_ios_app(
+      scheme: "Runner",
+      clean: true,
+      export_method: "app-store",
+      output_name: "Recspot",
+    )
+  end
 
-        create_keychain(
-          name: keychain_name,
-          password: keychain_password,
-          default_keychain: true,
-          unlock: true,
-          timeout: 3600
+  desc "Generate staging iOS app"
+  lane :build_staging do
+    create_unlock_keychain
+    generate_signed_staging
+    delete_temp_keychain(TEMP_KEYCHAIN_NAME)
+  end
+
+  desc "Build & sign Staging"
+  lane :generate_signed_staging do
+    disable_signing
+    # (optional, you must specify the path to your main Xcode project if it is not in the project root directory))
+    # match appstore
+    match_profile
+    match_profile_share_extension(
+        target:"stage"
+    )
+    # sh "bash ./flutter_build.sh --clean"
+    build_ios_app(
+      scheme: "staging",
+      clean: true,
+      export_method: "app-store",
+      output_name: "RecspotStaging",
+    )
+  end
+
+  desc "Generate dev iOS app"
+  lane :build_dev do
+    create_unlock_keychain
+    generate_signed_dev
+    delete_temp_keychain(TEMP_KEYCHAIN_NAME)
+  end
+
+  desc "Build & sign dev"
+  lane :generate_signed_dev do
+    disable_signing
+    # (optional, you must specify the path to your main Xcode project if it is not in the project root directory))
+    # match appstore
+    match_profile
+    match_profile_share_extension(
+    target:"test"
+    )
+    # sh "bash ./flutter_build.sh --clean"
+
+    build_ios_app(
+      scheme: "Runner",
+      clean: true,
+      export_method: "app-store",
+      output_name: "RecspotDev",
+    )
+  end
+
+
+  desc "Upload Production iOS app to AppStoreConnect"
+  lane :deploy_prod do |options|
+    create_unlock_keychain
+    increment_build_number(
+    build_number: (options[:resetBuild] ? 1 : latest_testflight_build_number + 1),
+    xcodeproj: "./Runner.xcodeproj")
+    increment_version_number(
+      version_number: "1.1.1",      # specify specific version number (optional, omitting it increments patch version number)
+      xcodeproj: "./Runner.xcodeproj"  # (optional, you must specify the path to your main Xcode project if it is not in the project root directory)
+    )
+    generate_signed_prod
+    pilot(
+        skip_submission: false,
+        skip_waiting_for_build_processing: true,
+        ipa: "./Recspot.ipa"
+    )
+    delete_temp_keychain(TEMP_KEYCHAIN_NAME)
+  end
+  
+  desc "Upload Staging app to AppStoreConnect"
+  lane :deploy_staging do 
+    create_unlock_keychain
+    increment_build_number(
+    build_number: latest_testflight_build_number + 1,
+    xcodeproj: "./Runner.xcodeproj")
+    generate_signed_staging
+    pilot(
+        skip_submission: false,
+        skip_waiting_for_build_processing: true,
+        ipa: "./RecspotStaging.ipa"
+    )
+    delete_temp_keychain(TEMP_KEYCHAIN_NAME)
+  end
+
+  desc "Upload Dev iOS app to AppStoreConnect"
+  lane :deploy_dev do
+    create_unlock_keychain
+    increment_build_number(
+    build_number: latest_testflight_build_number + 1,
+    xcodeproj: "./Runner.xcodeproj")
+    increment_version_number(
+      version_number: "3.0.0",      # specify specific version number (optional, omitting it increments patch version number)
+      xcodeproj: "./Runner.xcodeproj"  # (optional, you must specify the path to your main Xcode project if it is not in the project root directory)
+    )
+    generate_signed_dev
+    pilot(
+        skip_submission: false,
+        skip_waiting_for_build_processing: true,
+        ipa: "./RecspotDev.ipa"
+    )
+    delete_temp_keychain(TEMP_KEYCHAIN_NAME)
+  end
+
+  # desc "Upload iOS app to AppStore"
+  # lane :deploy_prod do
+  #   deliver(
+  #     skip_metadata: true,
+  #     skip_screenshots: true,
+  #     submit_for_review: true,
+  #     force: true,
+  #     ipa: "./Runner.ipa",
+  #   )
+  # end
+
+  desc "Disable Automatic signing"
+  lane :disable_signing do |options|
+
+    profile_names =  "match AppStore #{CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)}"
+
+  puts profile_names
+    disable_automatic_code_signing(
+      path: "./Runner.xcodeproj",
+      team_id: CredentialsManager::AppfileConfig.try_fetch_value(:team_id),
+      profile_name: "match AppStore #{CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)}",
+      code_sign_identity: "iPhone Distribution",
+    )
+  profile_names_share =  "match AppStore #{CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)}.Share-Extension"
+  puts profile_names_share
+        disable_automatic_code_signing(
+          path: "./Runner.xcodeproj",
+          team_id: CredentialsManager::AppfileConfig.try_fetch_value(:team_id),
+          profile_name: "match AppStore #{CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)}.Share-Extension",
+          code_sign_identity: "iPhone Distribution",
+          targets: ["Share Extension"]
         )
+  end
 
-        import_certificate(
-          certificate_path: ENV["SIGNING_KEY_FILE_PATH"],
-          certificate_password: ENV["SIGNING_KEY_PASSWORD"],
-          keychain_name: keychain_name,
-          keychain_password: keychain_password
-        )
+  desc "Keychain creation and unlocking."
+  lane :create_unlock_keychain do
+    keychain_name = TEMP_KEYCHAIN_NAME
+    keychain_password = TEMP_KEYCHAIN_PASSWORD
+    ensure_temp_keychain(keychain_name, keychain_password)
+    unlock_keychain( # By default the keychain is added to the existing. To replace them with the selected keychain you may use `:replace`
+      path: "~/Library/Keychains/#{keychain_name}-db",
+      password: keychain_password,
+      add_to_search_list: :add # To only add a keychain use `true` or `:add`.
+    )
+  end
+  desc "Match provisioning profile"
+  lane :match_profile do
+    match(
+      readonly: true,
+      keychain_name: TEMP_KEYCHAIN_NAME,
+      keychain_password: TEMP_KEYCHAIN_PASSWORD,
+    )
+  end
 
-        # fetches and installs provisioning profiles from ASC
-        sigh(
-          adhoc: options[:adhoc],
-          api_key: api_key,
-          readonly: true
-        )
-      end
-
-     desc "Build the iOS app for release"
-     lane :build_release do |options|
-      app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
-
-      profile_name = "Release" # replace with the name of the profile to use for the build
-      output_name = "example-iOS" # specify the name of the .ipa file to generate
-      export_method = "app-store" # specify the export method
-
-      # turn off automatic signing during build so correct code signing identity is guaranteed to be used
-      update_code_signing_settings(
-        use_automatic_signing: false,
-        targets: ["main-target"], # specify which targets to update code signing settings for
-        code_sign_identity: "Apple Distribution", # replace with name of code signing identity if different
-        bundle_identifier: app_identifier,
-        profile_name: profile_name,
-        build_configurations: ["Release"] # only toggle code signing settings for Release configurations
-      )
-
-      # build the app
-      gym(
-        scheme: "Runner", # replace with name of your project’s scheme
-        output_name: output_name,
-        configuration: "Release",
-        export_options: {
-          method: export_method,
-          provisioningProfiles: {
-            app_identifier => profile_name # here you can add any additional bundle identifiers and their associated provisioning profiles if you’re also building an app extension or other bundle identifier
-          }
-        }
-      )
-     end
-
-     desc "Upload to TestFlight / ASC"
-     lane :upload_release do
-      api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
-
-      deliver(
-          api_key: api_key,
-          skip_screenshots: true,
-          skip_metadata: true,
-          skip_app_version_update: true,
-          force: true, # skips verification of HTML preview file (since this will be run from a CI machine)
-          run_precheck_before_submit: false # not supported through ASC API yet
-      )
-     end
-
-desc "Build and upload to TestFlight"
-   lane :build_upload_testflight do
-     load_asc_api_key
-     prepare_signing
-     fetch_and_increment_build_number
-     build_release
-     upload_release
-   end
-
+  lane :match_profile_share_extension do |options|
+  target = options[:target]
+  identifier = target == 'prod'?  'com.bodybuddies.bodybuddiesapp' :  "com.bodybuddies.bodybuddiesapp"
+    match(
+    type: 'appstore',
+    app_identifier:identifier,
+    keychain_name: TEMP_KEYCHAIN_NAME,
+    keychain_password: TEMP_KEYCHAIN_PASSWORD,
+    )
+  end
+end
