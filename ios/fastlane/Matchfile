@@ -1,4 +1,4 @@
-git_url("https://github.com/mahmoudal99/bodybuddies_ioscertificates")
+git_url("git@github.com:mahmoudal99/bodybuddies_ioscertificates.git")
 
 storage_mode("git")
 
