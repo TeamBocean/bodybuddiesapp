@@ -1,4 +1,3 @@
-import 'package:apple_sign_in/scope.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/apple_sign_in_btn.dart';
 import 'package:bodybuddiesapp/widgets/google_sign_in_btn.dart';

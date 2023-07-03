@@ -1,4 +1,4 @@
-import 'package:apple_sign_in/apple_sign_in.dart';
+import 'package:apple_sign_in_safety/apple_sign_in.dart';
 
 class AppleSignInAvailable {
   AppleSignInAvailable(this.isAvailable);
