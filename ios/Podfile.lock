@@ -602,7 +602,7 @@ PODS:
   - AppAuth/Core (1.6.2)
   - AppAuth/ExternalUserAgent (1.6.2):
     - AppAuth/Core
-  - apple_sign_in (0.0.1):
+  - apple_sign_in_safety (0.0.1):
     - Flutter
   - BoringSSL-GRPC (0.0.24):
     - BoringSSL-GRPC/Implementation (= 0.0.24)
@@ -797,7 +797,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - apple_sign_in (from `.symlinks/plugins/apple_sign_in/ios`)
+  - apple_sign_in_safety (from `.symlinks/plugins/apple_sign_in_safety/ios`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
@@ -841,8 +841,8 @@ SPEC REPOS:
     - StripeUICore
 
 EXTERNAL SOURCES:
-  apple_sign_in:
-    :path: ".symlinks/plugins/apple_sign_in/ios"
+  apple_sign_in_safety:
+    :path: ".symlinks/plugins/apple_sign_in_safety/ios"
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
   firebase_auth:
@@ -871,7 +871,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   abseil: ebe5b5529fb05d93a8bdb7951607be08b7fa71bc
   AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
-  apple_sign_in: 7716c7ddfa195aeab7dec0dc374ef4ff45d1adb4
+  apple_sign_in_safety: bfb9413e302f29c4464f57434a12f172f02a24f9
   BoringSSL-GRPC: 3175b25143e648463a56daeaaa499c6cb86dad33
   cloud_firestore: 464ad9bbaa030ab2b2ef28e386b41f0dacfd8b01
   Firebase: 0219acf760880eeec8ce479895bd7767466d9f81
