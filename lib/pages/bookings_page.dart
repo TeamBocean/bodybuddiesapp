@@ -222,17 +222,23 @@ class _BookingsPageState extends State<BookingsPage> {
                                         ? [noBookings()]
                                         : slots
                                             .map((booking) => AbsorbPointer(
-                                                  absorbing: snapshot
-                                                              .data!.bookings
-                                                              .firstWhereOrNull((element) =>
-                                                                  formatBookingDate(
+                                                  absorbing: snapshot.data!.bookings.firstWhereOrNull((element) =>
+                                                              formatBookingDate(
                                                                           element)
                                                                       .day ==
                                                                   currentDay
                                                                       .add(Duration(
                                                                           days: currentDayPage -
                                                                               365))
-                                                                      .day) !=
+                                                                      .day &&
+                                                              formatBookingDate(
+                                                                          element)
+                                                                      .month ==
+                                                                  currentDay
+                                                                      .add(Duration(
+                                                                          days: currentDayPage -
+                                                                              365))
+                                                                      .month) !=
                                                           null
                                                       ? true
                                                       : false,
