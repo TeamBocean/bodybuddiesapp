@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import '../services/cloud_firestore.dart';
 
 void bookingDialog(BuildContext context, Booking booking, int month) {
+  print("here");
   showDialog(
       context: context,
       builder: (_) => AlertDialog(
