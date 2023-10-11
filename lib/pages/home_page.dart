@@ -337,8 +337,12 @@ class _HomePageState extends State<HomePage> {
         ? dateAsList.first
         : "0${dateAsList.first}";
     DateTime dateTime = DateTime.parse(
-        "${DateTime.now().year}-0${dateAsList.last}-$first $time:00");
+        "${DateTime.now().year}-${formatMonth(dateAsList.last)}-$first $time:00");
     return dateTime;
+  }
+
+  String formatMonth(String month) {
+    return month.length > 1 ? month : "0${month}";
   }
 
   bool isBookingComplete(Booking booking) {
