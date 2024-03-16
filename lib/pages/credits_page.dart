@@ -1,16 +1,15 @@
 import 'dart:convert';
-
-import 'package:bodybuddiesapp/models/user.dart';
-import 'package:bodybuddiesapp/services/cloud_firestore.dart';
-import 'package:bodybuddiesapp/services/email.dart';
-import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-import '../utils/dimensions.dart';
-import '../widgets/medium_text_widget.dart';
+import '../../models/user.dart';
+import '../../services/cloud_firestore.dart';
+import '../../services/email.dart';
+import '../../utils/colors.dart';
+import '../../utils/dimensions.dart';
+import '../../widgets/medium_text_widget.dart';
 
 class CreditsPage extends StatefulWidget {
   const CreditsPage({Key? key}) : super(key: key);
@@ -38,53 +37,57 @@ class _CreditsPageState extends State<CreditsPage> {
           padding: EdgeInsets.symmetric(
               horizontal: Dimensions.width20 * 2,
               vertical: Dimensions.height20),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 3,
-                    child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            isBuddy = false;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: isBuddy ? darkGrey : darkGreen),
-                        child: MediumTextWidget(
-                          text: "Personal",
-                          fontSize: Dimensions.fontSize14,
-                        )),
-                  ),
-                  SizedBox(
-                    width: Dimensions.width20,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 3,
-                    child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            isBuddy = true;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: !isBuddy ? darkGrey : darkGreen),
-                        child: MediumTextWidget(
-                          text: "Buddy",
-                          fontSize: Dimensions.fontSize14,
-                        )),
-                  ),
-                ],
-              ),
-              paymentOptionWidget(
-                  isBuddy ? 450 : 350, "8", isBuddy ? "2" : "2"),
-              paymentOptionWidget(
-                  isBuddy ? 650 : 550, "12", isBuddy ? "3" : "3"),
-              paymentOptionWidget(
-                  isBuddy ? 1800 : 1450, "36", isBuddy ? "3" : "3"),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 3,
+                      child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              isBuddy = false;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: isBuddy ? darkGrey : darkGreen),
+                          child: MediumTextWidget(
+                            text: "Personal",
+                            fontSize: Dimensions.fontSize14,
+                          )),
+                    ),
+                    SizedBox(
+                      width: Dimensions.width20,
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 3,
+                      child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              isBuddy = true;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: !isBuddy ? darkGrey : darkGreen),
+                          child: MediumTextWidget(
+                            text: "Buddy",
+                            fontSize: Dimensions.fontSize14,
+                          )),
+                    ),
+                  ],
+                ),
+                paymentOptionWidget(
+                    isBuddy ? 500 : 400, "8", isBuddy ? "2" : "2"),
+                paymentOptionWidget(
+                    isBuddy ? 550 : 650, "12", isBuddy ? "2" : "2"),
+                paymentOptionWidget(
+                    isBuddy ? 1200 : 1000, "24", isBuddy ? "3" : "3"),
+                paymentOptionWidget(
+                    isBuddy ? 1800 : 1500, "36", isBuddy ? "3" : "3"),
+              ],
+            ),
           ),
         ),
       ),
@@ -168,16 +171,16 @@ class _CreditsPageState extends State<CreditsPage> {
   Future<void> makePayment(double price, int credits) async {
     try {
       paymentIntent =
-          await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
+      await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
       //Payment Sheet
       await Stripe.instance
           .initPaymentSheet(
-              paymentSheetParameters: SetupPaymentSheetParameters(
-                  paymentIntentClientSecret: paymentIntent!['client_secret'],
-                  // applePay: const PaymentSheetApplePay(merchantCountryCode: '+92',),
-                  // googlePay: const PaymentSheetGooglePay(testEnv: true, currencyCode: "US", merchantCountryCode: "+92"),
-                  style: ThemeMode.dark,
-                  merchantDisplayName: 'Adnan'))
+          paymentSheetParameters: SetupPaymentSheetParameters(
+              paymentIntentClientSecret: paymentIntent!['client_secret'],
+              // applePay: const PaymentSheetApplePay(merchantCountryCode: '+92',),
+              // googlePay: const PaymentSheetGooglePay(testEnv: true, currencyCode: "US", merchantCountryCode: "+92"),
+              style: ThemeMode.dark,
+              merchantDisplayName: 'Mark'))
           .then((value) {});
 
       displayPaymentSheet(credits);
@@ -195,21 +198,21 @@ class _CreditsPageState extends State<CreditsPage> {
         showDialog(
             context: context,
             builder: (_) => AlertDialog(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                          ),
-                          Text("Payment Successfull"),
-                        ],
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
                       ),
+                      Text("Payment Successfull"),
                     ],
                   ),
-                ));
+                ],
+              ),
+            ));
         // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("paid successfully")));
 
         paymentIntent = null;
@@ -221,8 +224,8 @@ class _CreditsPageState extends State<CreditsPage> {
       showDialog(
           context: context,
           builder: (_) => const AlertDialog(
-                content: Text("Cancelled "),
-              ));
+            content: Text("Cancelled "),
+          ));
     } catch (e) {
       print('$e');
     }
@@ -241,7 +244,7 @@ class _CreditsPageState extends State<CreditsPage> {
         Uri.parse('https://api.stripe.com/v1/payment_intents'),
         headers: {
           'Authorization':
-              'Bearer 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',
+          'Bearer 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',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: body,
