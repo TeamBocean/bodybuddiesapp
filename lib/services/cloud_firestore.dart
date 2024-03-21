@@ -63,6 +63,24 @@ class CloudFirestore {
     }
   }
 
+  Future<bool> updateBookingName(String month, String day, String documentId, String newName) async {
+    try {
+      reference
+          .collection("bookings-list")
+          .doc(DateTime.now().year.toString())
+          .collection(month)
+          .doc(day)
+          .collection("bookings")
+          .doc(documentId)
+          .update({"name": newName});
+
+      return true;
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
   bool updateUserWeight(int value) {
     final FirebaseAuth auth = FirebaseAuth.instance;
     try {
@@ -118,7 +136,7 @@ class CloudFirestore {
         .collection("bookings")
         .snapshots()
         .map((event) =>
-            event.docs.map((e) => Booking.fromJson(e.data())).toList());
+            event.docs.map((e) => Booking.fromJson(e.data(), e.id)).toList());
   }
 
   /// Create a booking
@@ -161,6 +179,7 @@ class CloudFirestore {
 
   void removeUserBooking(Booking booking, String userID) {
     EmailService().sendBookingCancellationToMark(new Booking(
+        id: booking.id,
         bookingName: booking.bookingName,
         price: booking.price,
         time: booking.time,

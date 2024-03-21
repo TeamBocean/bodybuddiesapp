@@ -21,7 +21,7 @@ class UserModel {
 
     return UserModel(
         credits: data['credits'],
-        bookings: list.map((booking) => Booking.fromJson(booking)).toList(),
+        bookings: list.map((booking) => Booking.fromJson(booking, "")).toList(),
         active: data['active'],
         creditType: data['credit_type'],
         weight: data['weight'],

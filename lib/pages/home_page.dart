@@ -4,6 +4,7 @@ import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -28,8 +29,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return FirebaseAuth.instance.currentUser!.email!
-            .contains("markmcquaid54@gmail.com")
+    return FirebaseAuth.instance.currentUser!.email!.contains(
+            kDebugMode ? "mahmoud.al808@gmail.com" : "markmcquaid54@gmail.com")
         ? adminView()
         : userView();
   }
@@ -143,12 +144,55 @@ class _HomePageState extends State<HomePage> {
                                     mainAxisSize: MainAxisSize.max,
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: snapshot.data!
-                                        .map((booking) => BookingWidget(
-                                              isBooked: true,
-                                              slots: [],
-                                              booking: booking,
-                                              isAdmin: true,
-                                              month: 0,
+                                        .map((booking) => GestureDetector(
+                                              onDoubleTap: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  TextEditingController nameController = TextEditingController();
+                                                  return AlertDialog(
+                                                    title: Text('Update Name'),
+                                                    content: TextField(
+                                                      controller: nameController,
+                                                      decoration: InputDecoration(hintText: "Enter new name"),
+                                                    ),
+                                                    actions: <Widget>[
+                                                      ElevatedButton(
+                                                        child: Text('Update'),
+                                                        onPressed: () {
+                                                          String newName = nameController.text;
+                                                          // Assuming there's a method in CloudFirestore class to update booking name
+                                                          CloudFirestore().updateBookingName(
+                                                            booking.date.split("/")[1],
+                                                            booking.date.split("/")[0],
+                                                            booking.id,
+                                                            newName,
+                                                          ).then((success) {
+                                                            if (success) {
+                                                              Navigator.of(context).pop();
+                                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                                SnackBar(content: Text('Name updated successfully')),
+                                                              );
+                                                            } else {
+                                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                                SnackBar(content: Text('Failed to update name')),
+                                                              );
+                                                            }
+                                                          });
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                              },
+                                              child: BookingWidget(
+                                                isBooked: true,
+                                                slots: [],
+                                                booking: booking,
+                                                isAdmin: true,
+                                                month: 0,
+                                              ),
                                             ))
                                         .toList(),
                                   ),
@@ -172,13 +216,15 @@ class _HomePageState extends State<HomePage> {
           if (snapshot.hasData) {
             if (snapshot.data!.bookings.length > 0) {
               /// Sort bookings by date
-              snapshot.data!.bookings.sort((a, b) => getBookingAsDateTime(a.time, a.date)
-                  .isBefore(getBookingAsDateTime(b.time, b.date))
-                  ? 0
-                  : 1);
+              snapshot.data!.bookings.sort((a, b) =>
+                  getBookingAsDateTime(a.time, a.date)
+                          .isBefore(getBookingAsDateTime(b.time, b.date))
+                      ? 0
+                      : 1);
 
               /// Sort bookings by date
-              snapshot.data!.bookings.sort((a, b) => isBookingComplete(a) ? 1 : 0);
+              snapshot.data!.bookings
+                  .sort((a, b) => isBookingComplete(a) ? 1 : 0);
             }
           }
           return Container(
@@ -334,8 +380,8 @@ class _HomePageState extends State<HomePage> {
     String first = dateAsList.first.contains("0")
         ? "${dateAsList.first}"
         : dateAsList.first.length == 2
-        ? dateAsList.first
-        : "0${dateAsList.first}";
+            ? dateAsList.first
+            : "0${dateAsList.first}";
     DateTime dateTime = DateTime.parse(
         "${DateTime.now().year}-${formatMonth(dateAsList.last)}-$first $time:00");
     return dateTime;
