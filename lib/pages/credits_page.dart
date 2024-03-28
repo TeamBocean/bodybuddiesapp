@@ -81,7 +81,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 paymentOptionWidget(
                     isBuddy ? 500 : 400, "8", isBuddy ? "2" : "2"),
                 paymentOptionWidget(
-                    isBuddy ? 550 : 650, "12", isBuddy ? "2" : "2"),
+                    isBuddy ? 650 : 550, "12", isBuddy ? "2" : "2"),
                 paymentOptionWidget(
                     isBuddy ? 1200 : 1000, "24", isBuddy ? "3" : "3"),
                 paymentOptionWidget(
@@ -117,11 +117,6 @@ class _CreditsPageState extends State<CreditsPage> {
                   ),
                   SizedBox(
                     height: Dimensions.height10,
-                  ),
-                  MediumTextWidget(
-                    text: "${session.toString()} Sessions per week",
-                    fontSize: Dimensions.fontSize14,
-                    color: Colors.grey,
                   ),
                 ],
               ),

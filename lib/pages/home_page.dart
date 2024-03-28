@@ -146,45 +146,71 @@ class _HomePageState extends State<HomePage> {
                                     children: snapshot.data!
                                         .map((booking) => GestureDetector(
                                               onDoubleTap: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (BuildContext context) {
-                                                  TextEditingController nameController = TextEditingController();
-                                                  return AlertDialog(
-                                                    title: Text('Update Name'),
-                                                    content: TextField(
-                                                      controller: nameController,
-                                                      decoration: InputDecoration(hintText: "Enter new name"),
-                                                    ),
-                                                    actions: <Widget>[
-                                                      ElevatedButton(
-                                                        child: Text('Update'),
-                                                        onPressed: () {
-                                                          String newName = nameController.text;
-                                                          // Assuming there's a method in CloudFirestore class to update booking name
-                                                          CloudFirestore().updateBookingName(
-                                                            booking.date.split("/")[1],
-                                                            booking.date.split("/")[0],
-                                                            booking.id,
-                                                            newName,
-                                                          ).then((success) {
-                                                            if (success) {
-                                                              Navigator.of(context).pop();
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                SnackBar(content: Text('Name updated successfully')),
-                                                              );
-                                                            } else {
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                SnackBar(content: Text('Failed to update name')),
-                                                              );
-                                                            }
-                                                          });
-                                                        },
+                                                showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    TextEditingController
+                                                        nameController =
+                                                        TextEditingController();
+                                                    return AlertDialog(
+                                                      title:
+                                                          Text('Update Name'),
+                                                      content: TextField(
+                                                        controller:
+                                                            nameController,
+                                                        decoration: InputDecoration(
+                                                            hintText:
+                                                                "Enter new name"),
                                                       ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
+                                                      actions: <Widget>[
+                                                        ElevatedButton(
+                                                          child: Text('Update'),
+                                                          onPressed: () {
+                                                            String newName =
+                                                                nameController
+                                                                    .text;
+                                                            // Assuming there's a method in CloudFirestore class to update booking name
+                                                            CloudFirestore()
+                                                                .updateBookingName(
+                                                              booking.date
+                                                                  .split(
+                                                                      "/")[1],
+                                                              booking.date
+                                                                  .split(
+                                                                      "/")[0],
+                                                              booking.id,
+                                                              newName,
+                                                            )
+                                                                .then(
+                                                                    (success) {
+                                                              if (success) {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                                ScaffoldMessenger.of(
+                                                                        context)
+                                                                    .showSnackBar(
+                                                                  SnackBar(
+                                                                      content: Text(
+                                                                          'Name updated successfully')),
+                                                                );
+                                                              } else {
+                                                                ScaffoldMessenger.of(
+                                                                        context)
+                                                                    .showSnackBar(
+                                                                  SnackBar(
+                                                                      content: Text(
+                                                                          'Failed to update name')),
+                                                                );
+                                                              }
+                                                            });
+                                                          },
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
                                               },
                                               child: BookingWidget(
                                                 isBooked: true,
