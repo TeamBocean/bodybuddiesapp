@@ -78,14 +78,10 @@ class _CreditsPageState extends State<CreditsPage> {
                     ),
                   ],
                 ),
-                paymentOptionWidget(
-                    isBuddy ? 500 : 400, "8", isBuddy ? "2" : "2"),
-                paymentOptionWidget(
-                    isBuddy ? 650 : 550, "12", isBuddy ? "2" : "2"),
-                paymentOptionWidget(
-                    isBuddy ? 1200 : 1000, "24", isBuddy ? "3" : "3"),
-                paymentOptionWidget(
-                    isBuddy ? 1800 : 1500, "36", isBuddy ? "3" : "3"),
+                paymentOptionWidget(isBuddy ? 500 : 400, "8", "8"),
+                paymentOptionWidget(isBuddy ? 650 : 550, "12", "12"),
+                paymentOptionWidget(isBuddy ? 1200 : 1000, "24", "24"),
+                paymentOptionWidget(isBuddy ? 1800 : 1500, "36", "36"),
               ],
             ),
           ),
@@ -119,6 +115,10 @@ class _CreditsPageState extends State<CreditsPage> {
                     height: Dimensions.height10,
                   ),
                 ],
+              ),
+              MediumTextWidget(
+                text: "${session} Sessions",
+                fontSize: Dimensions.fontSize14,
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,16 +166,16 @@ class _CreditsPageState extends State<CreditsPage> {
   Future<void> makePayment(double price, int credits) async {
     try {
       paymentIntent =
-      await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
+          await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
       //Payment Sheet
       await Stripe.instance
           .initPaymentSheet(
-          paymentSheetParameters: SetupPaymentSheetParameters(
-              paymentIntentClientSecret: paymentIntent!['client_secret'],
-              // applePay: const PaymentSheetApplePay(merchantCountryCode: '+92',),
-              // googlePay: const PaymentSheetGooglePay(testEnv: true, currencyCode: "US", merchantCountryCode: "+92"),
-              style: ThemeMode.dark,
-              merchantDisplayName: 'Mark'))
+              paymentSheetParameters: SetupPaymentSheetParameters(
+                  paymentIntentClientSecret: paymentIntent!['client_secret'],
+                  // applePay: const PaymentSheetApplePay(merchantCountryCode: '+92',),
+                  // googlePay: const PaymentSheetGooglePay(testEnv: true, currencyCode: "US", merchantCountryCode: "+92"),
+                  style: ThemeMode.dark,
+                  merchantDisplayName: 'Mark'))
           .then((value) {});
 
       displayPaymentSheet(credits);
@@ -193,21 +193,21 @@ class _CreditsPageState extends State<CreditsPage> {
         showDialog(
             context: context,
             builder: (_) => AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                          ),
+                          Text("Payment Successfull"),
+                        ],
                       ),
-                      Text("Payment Successfull"),
                     ],
                   ),
-                ],
-              ),
-            ));
+                ));
         // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("paid successfully")));
 
         paymentIntent = null;
@@ -219,8 +219,8 @@ class _CreditsPageState extends State<CreditsPage> {
       showDialog(
           context: context,
           builder: (_) => const AlertDialog(
-            content: Text("Cancelled "),
-          ));
+                content: Text("Cancelled "),
+              ));
     } catch (e) {
       print('$e');
     }
@@ -239,7 +239,7 @@ class _CreditsPageState extends State<CreditsPage> {
         Uri.parse('https://api.stripe.com/v1/payment_intents'),
         headers: {
           'Authorization':
-          'Bearer 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',
+              'Bearer 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',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: body,
