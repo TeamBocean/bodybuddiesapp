@@ -63,7 +63,8 @@ class CloudFirestore {
     }
   }
 
-  Future<bool> updateBookingName(String month, String day, String documentId, String newName) async {
+  Future<bool> updateBookingName(
+      String month, String day, String documentId, String newName) async {
     try {
       reference
           .collection("bookings-list")
@@ -173,7 +174,7 @@ class CloudFirestore {
         .collection(month.toString())
         .doc(booking.date.split("/").first)
         .collection("bookings")
-        .doc()
+        .doc(booking.id)
         .set(bookingAsMap);
   }
 
@@ -211,6 +212,7 @@ class CloudFirestore {
 
   void removeBooking(Booking booking) {
     List<String> dateAsList = booking.date.replaceAll("/", ".").split(".");
+    DateTime dateTime = getBookingDateTime(booking.date, booking.time);
     reference
         .collection("bookings")
         .doc(DateTime.now().year.toString())
@@ -218,6 +220,15 @@ class CloudFirestore {
       "${dateAsList[1]}.${dateAsList[0]}":
           FieldValue.arrayRemove([booking.time])
     });
+
+    reference
+        .collection("bookings-list")
+        .doc(dateTime.year.toString())
+        .collection(dateTime.month.toString())
+        .doc(dateTime.day.toString())
+        .collection("bookings")
+        .doc(booking.id)
+        .delete();
   }
 
   /// Create a booking

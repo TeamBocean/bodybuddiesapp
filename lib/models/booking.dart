@@ -14,7 +14,7 @@ class Booking {
 
   factory Booking.fromJson(var data, String id) {
     return Booking(
-        id: id,
+        id: data['id'],
         bookingName: data['name'],
         price: data['price'].toDouble(),
         time: data['time'],
@@ -22,6 +22,12 @@ class Booking {
   }
 
   Map<String, dynamic> toJson() {
-    return {"name": bookingName, "price": price, "time": time, "date": date};
+    return {
+      "name": bookingName,
+      "price": price,
+      "time": time,
+      "date": date,
+      "id": id
+    };
   }
 }
