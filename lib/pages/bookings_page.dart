@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 import '../models/bookings.dart';
 import '../models/user.dart';
 import '../services/cloud_firestore.dart';
@@ -102,12 +103,14 @@ class _BookingsPageState extends State<BookingsPage> {
                   ),
                   bookings != null ? bookings!.list : {})) {
           } else {
+            var uuid = Uuid();
             setState(() {
               slots.add(BookingWidget(
                 isBooked: false,
                 isAdmin: false,
                 slots: slots,
                 booking: Booking(
+                  id: uuid.v1(),
                   bookingName: "",
                   price: 1,
                   date: currentDay.day.toString() +
