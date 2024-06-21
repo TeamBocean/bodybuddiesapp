@@ -14,7 +14,7 @@ class Booking {
 
   factory Booking.fromJson(var data, String id) {
     return Booking(
-        id: data['id'],
+        id: data['id'] ?? "",
         bookingName: data['name'],
         price: data['price'].toDouble(),
         time: data['time'],
