@@ -162,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 width: Dimensions.width20 * 5,
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                        primary: background,
+                        backgroundColor: background,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                             borderRadius:

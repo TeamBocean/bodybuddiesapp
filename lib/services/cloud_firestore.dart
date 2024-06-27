@@ -272,4 +272,21 @@ class CloudFirestore {
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .update({"active": value, "credit_type": ""});
   }
+
+  /// Create a booking
+  /// Send booking confirmation email to customer
+  /// Send booking confirmation email to Mark
+  void addUserSubscription(
+      String userID, int credits, String subscription, double price) {
+    reference.collection("users").doc(userID).update({
+      "subscriptions": FieldValue.arrayUnion([
+        {
+          "date": DateTime.now(),
+          "credits": credits,
+          "type": subscription,
+          "price": price
+        }
+      ])
+    });
+  }
 }

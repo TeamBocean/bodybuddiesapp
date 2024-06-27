@@ -121,7 +121,7 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                                       height: Dimensions.height50,
                                       child: ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                              primary: darkGreen,
+                                              backgroundColor: darkGreen,
                                               shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(
@@ -183,7 +183,7 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                               height: Dimensions.height50,
                               child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                      primary: darkGreen,
+                                      backgroundColor: darkGreen,
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                               Dimensions.width15))),

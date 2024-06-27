@@ -21,7 +21,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       alignment: Alignment.bottomCenter,
       child: Theme(
         data: Theme.of(context).copyWith(
-          backgroundColor: background,
+          scaffoldBackgroundColor: background,
           splashColor: Colors.transparent,
         ),
         child: BottomNavigationBar(

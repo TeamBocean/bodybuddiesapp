@@ -90,7 +90,7 @@ class _SignInPageState extends State<SignInPage> {
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                  primary: darkGreen,
+                  backgroundColor: darkGreen,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(Dimensions.width10))),
               child: MediumTextWidget(
