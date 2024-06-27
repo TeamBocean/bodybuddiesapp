@@ -77,7 +77,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                      primary: darkGreen,
+                      backgroundColor: darkGreen,
                       shape: RoundedRectangleBorder(
                           borderRadius:
                               BorderRadius.circular(Dimensions.width10))),

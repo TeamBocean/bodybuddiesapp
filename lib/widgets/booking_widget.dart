@@ -133,7 +133,7 @@ class _BookingWidgetState extends State<BookingWidget> {
                                               : bookingDialog(context,
                                                   widget.booking, widget.month),
                                       style: ElevatedButton.styleFrom(
-                                          primary: Colors.grey),
+                                          backgroundColor: Colors.grey),
                                       child: Center(
                                         child: MediumTextWidget(
                                           text: widget.isBooked

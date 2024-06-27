@@ -22,7 +22,7 @@ class _MainScaffoldState extends State<Wrapper> {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(backgroundColor: background, fontFamily: 'Satoshi'),
+      theme: ThemeData(scaffoldBackgroundColor: background, fontFamily: 'Satoshi'),
       home: SignInPage(),
     );
   }

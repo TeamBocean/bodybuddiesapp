@@ -175,20 +175,25 @@ class _CreditsPageState extends State<CreditsPage> {
                   // applePay: const PaymentSheetApplePay(merchantCountryCode: '+92',),
                   // googlePay: const PaymentSheetGooglePay(testEnv: true, currencyCode: "US", merchantCountryCode: "+92"),
                   style: ThemeMode.dark,
-                  merchantDisplayName: 'Mark'))
+                  merchantDisplayName: 'Mark')
+      )
           .then((value) {});
 
-      displayPaymentSheet(credits);
+      displayPaymentSheet(credits, price);
     } catch (e, s) {
       print('exception:$e$s');
     }
   }
 
-  displayPaymentSheet(int credits) async {
+  displayPaymentSheet(int credits, double price) async {
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
         CloudFirestore().addCredits(credits,
             FirebaseAuth.instance.currentUser!.uid, isBuddy ? "2:1" : "1:1");
+        CloudFirestore().addUserSubscription(
+            FirebaseAuth.instance.currentUser!.uid,
+            credits,
+            isBuddy ? "2:1" : "1:1", price);
         EmailService().sendSubscriptionConfirmationToUser();
         showDialog(
             context: context,

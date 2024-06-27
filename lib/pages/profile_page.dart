@@ -89,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                   },
                                                   style: ElevatedButton
                                                       .styleFrom(
-                                                      primary:
+                                                      backgroundColor:
                                                       darkGreen),
                                                   child: Text("Update")),
                                               ElevatedButton(
@@ -98,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                   },
                                                   style: ElevatedButton
                                                       .styleFrom(
-                                                      primary:
+                                                      backgroundColor:
                                                       darkGrey),
                                                   child: Text("Cancel")),
                                             ],
@@ -159,7 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                              primary:
+                                                              backgroundColor:
                                                                   darkGreen),
                                                       child: Text("Update")),
                                                   ElevatedButton(
@@ -168,7 +168,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                              primary:
+                                                              backgroundColor:
                                                                   darkGrey),
                                                       child: Text("Cancel")),
                                                 ],
@@ -210,7 +210,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                              primary:
+                                                              backgroundColor:
                                                                   Colors.red),
                                                       child: Text("Yes")),
                                                   ElevatedButton(
@@ -219,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                       },
                                                       style: ElevatedButton
                                                           .styleFrom(
-                                                              primary:
+                                                              backgroundColor:
                                                                   darkGrey),
                                                       child: Text("No")),
                                                 ],
@@ -240,7 +240,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: Dimensions.width20 * 5,
                             child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    primary: background,
+                                    backgroundColor: background,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
