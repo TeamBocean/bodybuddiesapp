@@ -7,9 +7,6 @@ import 'package:bodybuddiesapp/widgets/booking_dialog.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-
-import '../services/email.dart';
 
 class BookingWidget extends StatefulWidget {
   Booking booking;
@@ -75,9 +72,20 @@ class _BookingWidgetState extends State<BookingWidget> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              MediumTextWidget(
-                                text: widget.booking.time,
-                                fontSize: Dimensions.fontSize16,
+                              Row(
+                                children: [
+                                  MediumTextWidget(
+                                    text: widget.booking.time,
+                                    fontSize: Dimensions.fontSize16,
+                                  ),
+                                  Visibility(
+                                    visible: widget.isBooked,
+                                    child: MediumTextWidget(
+                                      text: " | ${widget.booking.trainer}",
+                                      fontSize: Dimensions.fontSize16,
+                                    ),
+                                  ),
+                                ],
                               ),
                               SizedBox(
                                 width: Dimensions.width20 * 9.5,
