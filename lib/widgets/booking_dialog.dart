@@ -1,27 +1,35 @@
-import 'package:bodybuddiesapp/models/booking.dart';
-import 'package:bodybuddiesapp/models/user.dart';
-import 'package:bodybuddiesapp/pages/credits_page.dart';
-import 'package:bodybuddiesapp/utils/colors.dart';
-import 'package:bodybuddiesapp/utils/dimensions.dart';
-import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
+import '../models/booking.dart';
+import '../models/user.dart';
+import '../pages/credits_page.dart';
 import '../services/cloud_firestore.dart';
+import '../utils/colors.dart';
+import '../utils/dimensions.dart';
+import 'medium_text_widget.dart';
 
 void bookingDialog(BuildContext context, Booking booking, int month) {
-  print("here");
+  String selectedValue = "";
   showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) =>
+          AlertDialog(
             backgroundColor: darkGrey,
             contentPadding: EdgeInsets.zero,
             content: Padding(
               padding: EdgeInsets.symmetric(
                   horizontal: Dimensions.width15, vertical: Dimensions.width15),
               child: SizedBox(
-                height: MediaQuery.of(context).size.height / 2,
-                width: MediaQuery.of(context).size.width,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height / 2,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width,
                 child: Stack(
                   children: [
                     Align(
@@ -107,6 +115,58 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                           Divider(
                             color: Colors.white,
                           ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              MediumTextWidget(
+                                text: "Trainer",
+                                fontSize: Dimensions.fontSize14,
+                              ),
+                              FutureBuilder<List<dynamic>>(
+                                  future: CloudFirestore().getAllPTs(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      List<String> pts = snapshot.data!
+                                          .map((item) =>
+                                          item['name'].toString())
+                                          .toList();
+                                      pts.add("Mark");
+                                      selectedValue = pts[pts.length - 1];
+                                      return StatefulBuilder(
+                                        builder: (BuildContext context,
+                                            StateSetter setState) {
+                                          return DropdownButton<String>(
+                                            value: selectedValue,
+                                            icon: const Icon(
+                                              Icons.arrow_downward,
+                                              color: Colors.white,
+                                            ),
+                                            dropdownColor: darkGrey,
+                                            style: TextStyle(
+                                                color: Colors.white),
+                                            onChanged: (String? newValue) {
+                                              setState(() {
+                                                selectedValue = newValue!;
+                                              });
+                                            },
+                                            items: pts.map<
+                                                DropdownMenuItem<String>>((
+                                                String value) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Text(value),
+                                              );
+                                            }).toList(),
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      return Container();
+                                    }
+                                  }
+                              ),
+                            ],
+                          ),
                           SizedBox(
                             height: Dimensions.height30,
                           ),
@@ -124,25 +184,30 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                                               backgroundColor: darkGreen,
                                               shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          Dimensions.width15))),
-                                          onPressed: () {
+                                                  BorderRadius.circular(
+                                                      Dimensions.width15))),
+                                          onPressed: () async {
+                                            UserModel user =
+                                            await CloudFirestore()
+                                                .getUserData(FirebaseAuth
+                                                .instance
+                                                .currentUser!
+                                                .uid);
                                             if (snapshot.data!.credits > 0) {
+                                              var uuid = Uuid();
+                                              Booking userBooking = Booking(
+                                                  id: uuid.v1(),
+                                                  bookingName: user.name,
+                                                  trainer: selectedValue,
+                                                  price: booking.price,
+                                                  time: booking.time,
+                                                  date: booking.date);
                                               CloudFirestore().addUserBooking(
-                                                  booking,
+                                                  userBooking,
                                                   FirebaseAuth.instance
                                                       .currentUser!.uid,
                                                   month,
-                                                  FirebaseAuth
-                                                              .instance
-                                                              .currentUser!
-                                                              .displayName !=
-                                                          null
-                                                      ? FirebaseAuth
-                                                          .instance
-                                                          .currentUser!
-                                                          .displayName!
-                                                      : "");
+                                                  user.name);
                                               CloudFirestore().decreaseCredits(
                                                   1,
                                                   FirebaseAuth.instance
@@ -151,8 +216,8 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                                             } else {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
-                                                      content: Text(
-                                                          "You are out of credits")));
+                                                  content: Text(
+                                                      "You are out of credits")));
                                             }
                                           },
                                           child: MediumTextWidget(
@@ -171,9 +236,9 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                           ),
                           Center(
                               child: MediumTextWidget(
-                            text: "OR",
-                            fontSize: Dimensions.fontSize16,
-                          )),
+                                text: "OR",
+                                fontSize: Dimensions.fontSize16,
+                              )),
                           SizedBox(
                             height: Dimensions.height10,
                           ),
