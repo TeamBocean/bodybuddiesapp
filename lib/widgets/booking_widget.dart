@@ -14,6 +14,7 @@ class BookingWidget extends StatefulWidget {
   bool isAdmin;
   int month;
   List<Widget> slots;
+  String trainer;
 
   BookingWidget(
       {super.key,
@@ -21,6 +22,7 @@ class BookingWidget extends StatefulWidget {
       required this.isBooked,
       required this.month,
       required this.slots,
+      this.trainer = "",
       required this.isAdmin});
 
   @override
@@ -138,8 +140,11 @@ class _BookingWidgetState extends State<BookingWidget> {
                                           : isAlreadyBooked(widget.booking,
                                                   snapshot.data!.list)
                                               ? print("Not available")
-                                              : bookingDialog(context,
-                                                  widget.booking, widget.month),
+                                              : bookingDialog(
+                                                  context,
+                                                  widget.booking,
+                                                  widget.month,
+                                                  widget.trainer),
                                       style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.grey),
                                       child: Center(
@@ -277,8 +282,8 @@ class _BookingWidgetState extends State<BookingWidget> {
     String first = dateAsList.first.contains("0")
         ? "${dateAsList.first}"
         : dateAsList.first.length == 2
-        ? dateAsList.first
-        : "0${dateAsList.first}";
+            ? dateAsList.first
+            : "0${dateAsList.first}";
     DateTime dateTime = DateTime.parse(
         "${DateTime.now().year}-${formatMonth(dateAsList.last)}-$first $time:00");
     return dateTime;

@@ -10,26 +10,20 @@ import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import 'medium_text_widget.dart';
 
-void bookingDialog(BuildContext context, Booking booking, int month) {
+void bookingDialog(
+    BuildContext context, Booking booking, int month, String trainer) {
   String selectedValue = "";
   showDialog(
       context: context,
-      builder: (_) =>
-          AlertDialog(
+      builder: (_) => AlertDialog(
             backgroundColor: darkGrey,
             contentPadding: EdgeInsets.zero,
             content: Padding(
               padding: EdgeInsets.symmetric(
                   horizontal: Dimensions.width15, vertical: Dimensions.width15),
               child: SizedBox(
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height / 2,
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width,
+                height: MediaQuery.of(context).size.height / 2,
+                width: MediaQuery.of(context).size.width,
                 child: Stack(
                   children: [
                     Align(
@@ -122,48 +116,9 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                                 text: "Trainer",
                                 fontSize: Dimensions.fontSize14,
                               ),
-                              FutureBuilder<List<dynamic>>(
-                                  future: CloudFirestore().getAllPTs(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      List<String> pts = snapshot.data!
-                                          .map((item) =>
-                                          item['name'].toString())
-                                          .toList();
-                                      pts.add("Mark");
-                                      selectedValue = pts[pts.length - 1];
-                                      return StatefulBuilder(
-                                        builder: (BuildContext context,
-                                            StateSetter setState) {
-                                          return DropdownButton<String>(
-                                            value: selectedValue,
-                                            icon: const Icon(
-                                              Icons.arrow_downward,
-                                              color: Colors.white,
-                                            ),
-                                            dropdownColor: darkGrey,
-                                            style: TextStyle(
-                                                color: Colors.white),
-                                            onChanged: (String? newValue) {
-                                              setState(() {
-                                                selectedValue = newValue!;
-                                              });
-                                            },
-                                            items: pts.map<
-                                                DropdownMenuItem<String>>((
-                                                String value) {
-                                              return DropdownMenuItem<String>(
-                                                value: value,
-                                                child: Text(value),
-                                              );
-                                            }).toList(),
-                                          );
-                                        },
-                                      );
-                                    } else {
-                                      return Container();
-                                    }
-                                  }
+                              MediumTextWidget(
+                                text: trainer,
+                                fontSize: Dimensions.fontSize14,
                               ),
                             ],
                           ),
@@ -184,15 +139,15 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                                               backgroundColor: darkGreen,
                                               shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                  BorderRadius.circular(
-                                                      Dimensions.width15))),
+                                                      BorderRadius.circular(
+                                                          Dimensions.width15))),
                                           onPressed: () async {
                                             UserModel user =
-                                            await CloudFirestore()
-                                                .getUserData(FirebaseAuth
-                                                .instance
-                                                .currentUser!
-                                                .uid);
+                                                await CloudFirestore()
+                                                    .getUserData(FirebaseAuth
+                                                        .instance
+                                                        .currentUser!
+                                                        .uid);
                                             if (snapshot.data!.credits > 0) {
                                               var uuid = Uuid();
                                               Booking userBooking = Booking(
@@ -216,8 +171,8 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                                             } else {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
-                                                  content: Text(
-                                                      "You are out of credits")));
+                                                      content: Text(
+                                                          "You are out of credits")));
                                             }
                                           },
                                           child: MediumTextWidget(
@@ -236,9 +191,9 @@ void bookingDialog(BuildContext context, Booking booking, int month) {
                           ),
                           Center(
                               child: MediumTextWidget(
-                                text: "OR",
-                                fontSize: Dimensions.fontSize16,
-                              )),
+                            text: "OR",
+                            fontSize: Dimensions.fontSize16,
+                          )),
                           SizedBox(
                             height: Dimensions.height10,
                           ),
