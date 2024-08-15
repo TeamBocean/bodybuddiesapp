@@ -22,6 +22,9 @@ class BookingsPage extends StatefulWidget {
 
 class _BookingsPageState extends State<BookingsPage> {
   List<Widget> dates = [];
+  String selectedValue = "Mark";
+  final DateFormat _dateFormat = DateFormat('HH:mm');
+
   String _day = DateTime.now().day.toString();
   String _month = DateTime.now().month.toString();
   DateTime currentDay = DateTime.now();
@@ -68,14 +71,9 @@ class _BookingsPageState extends State<BookingsPage> {
     setState(() {
       slots.clear();
       currentDay = DateTime.now().add(Duration(days: currentDayPage - 365));
-      DateTime startTime = currentDay.weekday % 2 == 0
-          ? DateTime(
-              currentDay.year, currentDay.month, currentDay.day, 14, 15, 0)
-          : DateTime(
-              currentDay.year, currentDay.month, currentDay.day, 06, 30, 0);
-      DateTime endTime = DateTime(
-          currentDay.year, currentDay.month, currentDay.day, 20, 30, 0);
-      if (currentDay.weekday != 6 && currentDay.weekday != 7) {
+      DateTime startTime = _getSessionsStartTime();
+      DateTime endTime = _getSessionsEndTime();
+      if (isCurrentDayNotWeekend()) {
         DateFormat df = new DateFormat('HH:mm');
 
         while (startTime.isBefore(endTime)) {
@@ -107,6 +105,7 @@ class _BookingsPageState extends State<BookingsPage> {
             setState(() {
               slots.add(BookingWidget(
                 isBooked: false,
+                trainer: selectedValue,
                 isAdmin: false,
                 slots: slots,
                 booking: Booking(
@@ -125,8 +124,78 @@ class _BookingsPageState extends State<BookingsPage> {
 
           startTime = timeIncrement;
         }
+      } else if (selectedValue == "Mandalena") {
+        while (startTime.isBefore(endTime)) {
+          DateTime timeSlot = startTime.add(const Duration(minutes: 15));
+          if (_isSlotAvailable(timeSlot)) {
+            slots.add(_buildBookingWidget(timeSlot));
+          }
+          startTime = timeSlot;
+        }
       }
     });
+  }
+
+  Widget _buildBookingWidget(DateTime timeSlot) {
+    var uuid = const Uuid();
+    return BookingWidget(
+      isBooked: false,
+      isAdmin: false,
+      slots: slots,
+      booking: Booking(
+        id: uuid.v1(),
+        bookingName: "",
+        price: 1,
+        date: "${currentDay.day}/${currentDay.month}",
+        time: _dateFormat.format(timeSlot),
+      ),
+      month: currentDay.month,
+      trainer: selectedValue,
+    );
+  }
+
+  bool _isSlotAvailable(DateTime timeSlot) {
+    List<DateTime> timesToCheck = [
+      timeSlot.add(const Duration(minutes: 15)),
+      timeSlot.add(const Duration(minutes: 30)),
+      timeSlot.subtract(const Duration(minutes: 15)),
+      timeSlot.subtract(const Duration(minutes: 30)),
+    ];
+
+    return timesToCheck.every((time) => !_isAlreadyBooked(time));
+  }
+
+  bool _isAlreadyBooked(DateTime time) {
+    if (bookings == null) return false;
+
+    String date = "${time.day}/${time.month}";
+    String timeString = _dateFormat.format(time);
+
+    List<dynamic>? bookedTimes =
+        bookings!.list[time.month.toString()]?[time.day.toString()];
+    return bookedTimes != null && bookedTimes.contains(timeString);
+  }
+
+  bool isCurrentDayNotWeekend() {
+    return currentDay.weekday != 6 &&
+        currentDay.weekday != 7 &&
+        (selectedValue != "Mandalena");
+  }
+
+  DateTime _getSessionsStartTime() {
+    return selectedValue == "Mandalena"
+        ? DateTime(currentDay.year, currentDay.month, currentDay.day, 6, 45)
+        : (currentDay.weekday.isEven
+            ? DateTime(
+                currentDay.year, currentDay.month, currentDay.day, 14, 15)
+            : DateTime(
+                currentDay.year, currentDay.month, currentDay.day, 6, 30));
+  }
+
+  DateTime _getSessionsEndTime() {
+    return selectedValue == "Mandalena"
+        ? DateTime(currentDay.year, currentDay.month, currentDay.day, 21, 00)
+        : DateTime(currentDay.year, currentDay.month, currentDay.day, 20, 30);
   }
 
   @override
