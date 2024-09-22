@@ -81,6 +81,7 @@ class _BookingsPageState extends State<BookingsPage> {
           if (isAlreadyBooked(
                   Booking(
                     bookingName: "",
+                    trainer: selectedValue,
                     price: 1,
                     date: currentDay.day.toString() +
                         "/" +
@@ -93,6 +94,7 @@ class _BookingsPageState extends State<BookingsPage> {
                   Booking(
                     bookingName: "",
                     price: 1,
+                    trainer: selectedValue,
                     date: currentDay.day.toString() +
                         "/" +
                         currentDay.month.toString(),
@@ -111,6 +113,7 @@ class _BookingsPageState extends State<BookingsPage> {
                 booking: Booking(
                   id: uuid.v1(),
                   bookingName: "",
+                  trainer: selectedValue,
                   price: 1,
                   date: currentDay.day.toString() +
                       "/" +
@@ -145,6 +148,7 @@ class _BookingsPageState extends State<BookingsPage> {
       booking: Booking(
         id: uuid.v1(),
         bookingName: "",
+        trainer: selectedValue,
         price: 1,
         date: "${currentDay.day}/${currentDay.month}",
         time: _dateFormat.format(timeSlot),
@@ -212,33 +216,7 @@ class _BookingsPageState extends State<BookingsPage> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: MediumTextWidget(
-                            text:
-                                "${months[DateTime.now().add(Duration(days: currentDayPage - 365)).month - 1]} ${DateTime.now().add(Duration(days: currentDayPage - 365)).year}",
-                            fontSize: Dimensions.fontSize18,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(right: Dimensions.width15),
-                          child: Align(
-                            alignment: Alignment.topRight,
-                            child: IconButton(
-                              onPressed: () => showCalendarDialog(),
-                              splashRadius: 0.1,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                  minWidth: 22, maxWidth: 22),
-                              icon: Icon(Icons.calendar_month),
-                              color: Colors.white,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                    _buildHeader(),
                     SizedBox(
                       height: Dimensions.height10,
                     ),
@@ -331,6 +309,98 @@ class _BookingsPageState extends State<BookingsPage> {
             }),
       ),
     );
+  }
+
+  Widget _buildHeader() {
+    return Stack(
+      children: [
+        FutureBuilder<List<dynamic>>(
+            future: CloudFirestore().getAllPTs(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<String> pts = snapshot.data!
+                    .map((item) => item['name'].toString())
+                    .toList();
+                pts.add("Mark");
+                return StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setState) {
+                    return Padding(
+                      padding: EdgeInsets.only(left: Dimensions.width10),
+                      child: DropdownButton<String>(
+                        value: selectedValue,
+                        icon: const Icon(
+                          Icons.arrow_downward,
+                          color: Colors.white,
+                        ),
+                        dropdownColor: darkGrey,
+                        style: TextStyle(color: Colors.white),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedValue = newValue!;
+                          });
+                          initDates(context);
+                        },
+                        items:
+                            pts.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                );
+              } else {
+                return Container();
+              }
+            }),
+        Align(
+          alignment: Alignment.center,
+          child: MediumTextWidget(
+            text: "${months[currentDay.month - 1]} ${currentDay.year}",
+            fontSize: Dimensions.fontSize18,
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(right: Dimensions.width15),
+          child: Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              onPressed: _showCalendarDialog,
+              splashRadius: 0.1,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 22, maxWidth: 22),
+              icon: Icon(Icons.calendar_month),
+              color: Colors.white,
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Future<void> _showCalendarDialog() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _currentDate,
+      firstDate: _currentDate,
+      lastDate: DateTime(_currentDate.year, 12, 30),
+    );
+
+    if (pickedDate != null) {
+      _onDateTap(pickedDate);
+    }
+  }
+
+  void _onDateTap(DateTime date) {
+    setState(() {
+      int pageIndex = date.difference(_currentDate).inDays;
+      if (pageIndex < 0) pageIndex += 365;
+      pageController.jumpToPage(pageIndex + 365);
+      currentDay = date;
+      initDates(context);
+    });
   }
 
   double getOpacity(List<Booking> list) {

@@ -57,15 +57,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
             BottomNavigationBarItem(
               backgroundColor: background,
               icon: Image.asset(
-                ASSETS + "nutrition.png",
-                color: widget.currentIndex == 2 ? darkGreen : Colors.white,
-                height: Dimensions.height25,
-              ),
-              label: "Nutrition",
-            ),
-            BottomNavigationBarItem(
-              backgroundColor: background,
-              icon: Image.asset(
                 ASSETS + "account.png",
                 color: widget.currentIndex == 3 ? darkGreen : Colors.white,
                 height: Dimensions.height25,

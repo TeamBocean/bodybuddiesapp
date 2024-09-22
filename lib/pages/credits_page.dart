@@ -34,9 +34,7 @@ class _CreditsPageState extends State<CreditsPage> {
         width: MediaQuery.of(context).size.width,
         color: background,
         child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: Dimensions.width20 * 2,
-              vertical: Dimensions.height20),
+          padding: EdgeInsets.symmetric(vertical: Dimensions.height20),
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -78,10 +76,20 @@ class _CreditsPageState extends State<CreditsPage> {
                     ),
                   ],
                 ),
-                paymentOptionWidget(isBuddy ? 500 : 400, "8", "8"),
-                paymentOptionWidget(isBuddy ? 650 : 550, "12", "12"),
-                paymentOptionWidget(isBuddy ? 1200 : 1000, "24", "24"),
-                paymentOptionWidget(isBuddy ? 1800 : 1500, "36", "36"),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    paymentOptionWidget(isBuddy ? 500 : 400, "8", "8"),
+                    paymentOptionWidget(isBuddy ? 650 : 550, "12", "12"),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    paymentOptionWidget(isBuddy ? 1200 : 1000, "24", "24"),
+                    paymentOptionWidget(isBuddy ? 1800 : 1500, "36", "36"),
+                  ],
+                ),
               ],
             ),
           ),
@@ -94,8 +102,8 @@ class _CreditsPageState extends State<CreditsPage> {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: Dimensions.height12),
       child: Container(
-        width: MediaQuery.of(context).size.width,
-        height: Dimensions.height12 * 15,
+        width: MediaQuery.of(context).size.width / 2.1,
+        height: Dimensions.height12 * 22,
         color: darkGrey,
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -175,8 +183,7 @@ class _CreditsPageState extends State<CreditsPage> {
                   // applePay: const PaymentSheetApplePay(merchantCountryCode: '+92',),
                   // googlePay: const PaymentSheetGooglePay(testEnv: true, currencyCode: "US", merchantCountryCode: "+92"),
                   style: ThemeMode.dark,
-                  merchantDisplayName: 'Mark')
-      )
+                  merchantDisplayName: 'Mark'))
           .then((value) {});
 
       displayPaymentSheet(credits, price);
@@ -193,7 +200,8 @@ class _CreditsPageState extends State<CreditsPage> {
         CloudFirestore().addUserSubscription(
             FirebaseAuth.instance.currentUser!.uid,
             credits,
-            isBuddy ? "2:1" : "1:1", price);
+            isBuddy ? "2:1" : "1:1",
+            price);
         EmailService().sendSubscriptionConfirmationToUser();
         showDialog(
             context: context,
