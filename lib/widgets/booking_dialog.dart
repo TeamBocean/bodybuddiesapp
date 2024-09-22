@@ -12,7 +12,6 @@ import 'medium_text_widget.dart';
 
 void bookingDialog(
     BuildContext context, Booking booking, int month, String trainer) {
-  String selectedValue = "";
   showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -150,10 +149,11 @@ void bookingDialog(
                                                         .uid);
                                             if (snapshot.data!.credits > 0) {
                                               var uuid = Uuid();
+                                              print(trainer);
                                               Booking userBooking = Booking(
                                                   id: uuid.v1(),
                                                   bookingName: user.name,
-                                                  trainer: selectedValue,
+                                                  trainer: trainer,
                                                   price: booking.price,
                                                   time: booking.time,
                                                   date: booking.date);

@@ -28,7 +28,6 @@ class _BookingsPageState extends State<MainScaffold> {
     pages = [
       HomePage(),
       BookingsPage(),
-      NutrientsPage(),
       SettingsPage(),
     ];
     _controller = PageController(initialPage: 0);
