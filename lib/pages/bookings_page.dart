@@ -150,7 +150,7 @@ class _BookingsPageState extends State<BookingsPage> {
         bookingName: "",
         trainer: selectedValue,
         price: 1,
-        date: "${currentDay.day}/${currentDay.month}",
+        date: "${currentDay.day}/${currentDay.month}/${currentDay.year}",
         time: _dateFormat.format(timeSlot),
       ),
       month: currentDay.month,

@@ -9,21 +9,24 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class BookingWidget extends StatefulWidget {
-  Booking booking;
-  bool isBooked;
-  bool isAdmin;
-  int month;
-  List<Widget> slots;
-  String trainer;
+  final Booking booking;
+  final bool isBooked;
+  final bool isAdmin;
+  final int month;
+  final int day;
+  final List<Widget> slots;
+  final String trainer;
 
-  BookingWidget(
-      {super.key,
+  const BookingWidget(
+      {Key? key,
       required this.booking,
       required this.isBooked,
       required this.month,
       required this.slots,
-      this.trainer = "",
-      required this.isAdmin});
+      required this.isAdmin,
+      this.day = 0,
+      this.trainer = ""})
+      : super(key: key);
 
   @override
   State<BookingWidget> createState() => _BookingWidgetState();
@@ -31,273 +34,281 @@ class BookingWidget extends StatefulWidget {
 
 class _BookingWidgetState extends State<BookingWidget> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return StreamBuilder<Bookings>(
-        stream: CloudFirestore().streamBookedDates(""),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return Padding(
+      stream: CloudFirestore().streamBookedDates(""),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final isBooked = isAlreadyBooked(widget.booking, snapshot.data!.list);
+          final isPast =
+              getBookingAsDateTime(widget.booking.time, widget.booking.date)
+                  .isBefore(DateTime.now());
+          final isDisabled = (isBooked && !widget.isBooked) || isPast;
+
+          return AbsorbPointer(
+            absorbing: isDisabled,
+            child: Padding(
               padding: EdgeInsets.symmetric(
                   horizontal: 0, vertical: Dimensions.height10 / 2),
               child: Opacity(
-                opacity: isAlreadyBooked(widget.booking, snapshot.data!.list) &&
-                            !widget.isBooked ||
-                        ((getBookingAsDateTime(
-                                    widget.booking.time, widget.booking.date)
-                                .isBefore(DateTime.now())) ||
-                            (getBookingAsDateTime(
-                                    widget.booking.time, widget.booking.date)
-                                .isBefore(DateTime.now())) && (widget.trainer == widget.booking.trainer))
-                    ? 0.5
-                    : 1,
+                opacity: isDisabled ? 0.5 : 1,
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
-                  height: Dimensions.height10 * 12,
+                  height: 165,
                   child: Card(
                     shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(Dimensions.width15)),
+                      borderRadius: BorderRadius.circular(Dimensions.width15),
+                    ),
                     color: darkGrey,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: Dimensions.width15,
-                          vertical: Dimensions.width15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      padding: EdgeInsets.all(15),
+                      child: Stack(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  MediumTextWidget(
-                                    text: widget.booking.time,
-                                    fontSize: Dimensions.fontSize16,
-                                  ),
-                                  Visibility(
-                                    visible: widget.isBooked,
-                                    child: MediumTextWidget(
-                                      text: " | ${widget.booking.trainer}",
-                                      fontSize: Dimensions.fontSize16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                width: Dimensions.width20 * 9.5,
-                                child: MediumTextWidget(
-                                  text: widget.booking.bookingName,
-                                  fontSize: Dimensions.fontSize16,
-                                ),
-                              ),
-
-                              /// Upcoming widget
-                              SizedBox(
-                                width: Dimensions.width15 * 4.5,
-                                height: Dimensions.height10 * 2,
-                                child: Card(
-                                  margin: EdgeInsets.all(0),
-                                  elevation: 0,
-                                  color: darkGreen,
-                                  child: Center(
-                                    child: MediumTextWidget(
-                                      text: (getBookingAsDateTime(
-                                                  widget.booking.time,
-                                                  widget.booking.date)
-                                              .isBefore(DateTime.now()))
-                                          ? "Done"
-                                          : "Upcoming",
-                                      color: Colors.black,
-                                      fontSize: Dimensions.fontSize10,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              MediumTextWidget(
-                                text: widget.booking.date,
-                                fontSize: Dimensions.fontSize16,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    height: Dimensions.height10 * 2.5,
-                                    child: ElevatedButton(
-                                      onPressed: () => widget.isBooked
-                                          ? print("Booked")
-                                          : isAlreadyBooked(widget.booking,
-                                                  snapshot.data!.list)
-                                              ? print("Not available")
-                                              : bookingDialog(
-                                                  context,
-                                                  widget.booking,
-                                                  widget.month,
-                                                  widget.trainer),
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.grey),
-                                      child: Center(
-                                        child: MediumTextWidget(
-                                          text: widget.isBooked
-                                              ? "Booked"
-                                              : isAlreadyBooked(widget.booking,
-                                                      snapshot.data!.list)
-                                                  ? "Unavailable"
-                                                  : "Book",
-                                          color: Colors.black,
-                                          fontSize: Dimensions.fontSize12,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: Dimensions.width10,
-                                  ),
-                                  Visibility(
-                                    visible: widget.isBooked,
-                                    child: IconButton(
-                                        padding: EdgeInsets.zero,
-                                        constraints: BoxConstraints(),
-                                        onPressed: () {
-                                          showDialog(
-                                              context: context,
-                                              builder: (_) => AlertDialog(
-                                                    contentPadding:
-                                                        EdgeInsets.zero,
-                                                    content: Container(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                              .size
-                                                              .width,
-                                                      height:
-                                                          Dimensions.height10 *
-                                                              12,
-                                                      color: darkGrey,
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .center,
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Padding(
-                                                            padding: EdgeInsets.only(
-                                                                top: Dimensions
-                                                                    .height10),
-                                                            child: Center(
-                                                              child: Text(
-                                                                "Are you sure you want to cancel your booking?",
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .center,
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        Dimensions
-                                                                            .fontSize16,
-                                                                    color: Colors
-                                                                        .white),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: [
-                                                              IconButton(
-                                                                  onPressed:
-                                                                      () {
-                                                                    Navigator.pop(
-                                                                        context,
-                                                                        'dialog');
-                                                                  },
-                                                                  icon: Icon(
-                                                                    Icons.close,
-                                                                    color: Colors
-                                                                        .red,
-                                                                  )),
-                                                              IconButton(
-                                                                  onPressed:
-                                                                      () {
-                                                                    CloudFirestore().removeUserBooking(
-                                                                        widget
-                                                                            .booking,
-                                                                        FirebaseAuth
-                                                                            .instance
-                                                                            .currentUser!
-                                                                            .uid);
-                                                                    Navigator.pop(
-                                                                        context,
-                                                                        'dialog');
-                                                                  },
-                                                                  icon: Icon(
-                                                                    Icons.check,
-                                                                    color: Colors
-                                                                        .green,
-                                                                  ))
-                                                            ],
-                                                          )
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ));
-                                        },
-                                        icon: Icon(
-                                          Icons.delete,
-                                          color: Colors.grey,
-                                        )),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
+                          _buildBookingInfo(),
+                          Align(
+                              alignment: Alignment.centerRight,
+                              child: _buildBookingActions(
+                                  context, snapshot.data!.list)),
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
-            );
-          } else {
-            return Text("Loading");
-          }
-        });
+            ),
+          );
+        } else {
+          return const Text("Loading");
+        }
+      },
+    );
+  }
+
+  Widget _buildBookingInfo() {
+    final isPast =
+        getBookingAsDateTime(widget.booking.time, widget.booking.date)
+            .isBefore(DateTime.now());
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Row(
+          children: [
+            MediumTextWidget(
+              text: widget.booking.time,
+              fontSize: Dimensions.fontSize16,
+            ),
+            Visibility(
+              visible: widget.isBooked,
+              child: MediumTextWidget(
+                text: " | ${widget.booking.trainer}",
+                fontSize: Dimensions.fontSize16,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(
+          width: Dimensions.width20 * 9.5,
+          child: MediumTextWidget(
+            text: widget.booking.bookingName,
+            fontSize: Dimensions.fontSize16,
+          ),
+        ),
+        SizedBox(
+          width: Dimensions.width15 * 5,
+          height: Dimensions.height10 * 2.5,
+          child: Card(
+            margin: EdgeInsets.all(0),
+            elevation: 0,
+            color: darkGreen,
+            child: Center(
+              child: MediumTextWidget(
+                text: isPast ? "Done" : "Upcoming",
+                color: Colors.black,
+                fontSize: Dimensions.fontSize12,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Column _buildBookingActions(BuildContext context, Map bookings) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        MediumTextWidget(
+          text: _formatDate(widget.booking.date),
+          fontSize: Dimensions.fontSize15,
+        ),
+        SizedBox(
+          height: Dimensions.height10 * 3,
+          width: Dimensions.width10 * 12,
+          child: ElevatedButton(
+            onPressed: () => _handleBookingButtonPress(context, bookings),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+            child: Center(
+              child: MediumTextWidget(
+                text: _getBookingButtonText(bookings),
+                color: Colors.black,
+                fontSize: Dimensions.fontSize12,
+              ),
+            ),
+          ),
+        ),
+        if (widget.isBooked)
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(),
+            onPressed: () => _showCancelBookingDialog(context),
+            icon: Icon(Icons.delete, color: Colors.grey),
+          ),
+      ],
+    );
+  }
+
+  void _handleBookingButtonPress(BuildContext context, Map bookings) {
+    if (widget.isBooked) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Booked")));
+    } else if (isAlreadyBooked(widget.booking, bookings)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Not Available")));
+    } else {
+      bookingDialog(
+          context, widget.booking, widget.month, widget.day, widget.trainer);
+    }
+  }
+
+  String _getBookingButtonText(Map bookings) {
+    if (widget.isBooked) {
+      return "Booked";
+    } else if (isAlreadyBooked(widget.booking, bookings)) {
+      return "Unavailable";
+    } else {
+      return "Book";
+    }
+  }
+
+  void _showCancelBookingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        contentPadding: EdgeInsets.zero,
+        content: Container(
+          width: MediaQuery.of(context).size.width,
+          height: Dimensions.height10 * 12,
+          color: darkGrey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: Dimensions.height10),
+                child: Center(
+                  child: Text(
+                    "Are you sure you want to cancel your booking?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: Dimensions.fontSize16, color: Colors.white),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context, 'dialog'),
+                    icon: Icon(Icons.close, color: Colors.red),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      CloudFirestore().removeUserBooking(widget.booking,
+                          FirebaseAuth.instance.currentUser!.uid);
+                      Navigator.pop(context, 'dialog');
+                      setState(() {});
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text("Booking Successfully Deleted")));
+                    },
+                    icon: Icon(Icons.check, color: Colors.green),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   DateTime getBookingAsDateTime(String time, String date) {
-    print(date);
     List<String> dateAsList = date.split("/");
-    String first = dateAsList.first.contains("0")
-        ? "${dateAsList.first}"
-        : dateAsList.first.length == 2
-            ? dateAsList.first
-            : "0${dateAsList.first}";
+    String day = dateAsList.first.padLeft(2, '0');
+    String month = formatMonth(dateAsList[1]);
+    String year = dateAsList.length > 2
+        ? dateAsList.last
+        : DateTime.now().year.toString(); // Use current year if missing
     DateTime dateTime = DateTime.parse(
-        "${DateTime.now().year}-${formatMonth(dateAsList.last)}-$first $time:00");
+      "$year-$month-$day $time:00",
+    );
     return dateTime;
   }
 
   String formatMonth(String month) {
-    return month.length > 1 ? month : "0${month}";
+    return month.padLeft(2, '0');
   }
 
   bool isAlreadyBooked(Booking booking, Map bookings) {
-    List<dynamic>? bookedTimes = bookings
-            .containsKey(booking.date.split('/').last)
-        ? bookings[booking.date.split('/').last][booking.date.split('/').first]
-        : [];
-    return bookedTimes != null ? bookedTimes.contains(booking.time) : false;
+    List<dynamic>? bookedTimes =
+        bookings[booking.date.split('/').last]?[booking.date.split('/').first];
+    return bookedTimes != null && bookedTimes.contains(booking.time);
+  }
+
+  String _formatDate(String date) {
+    List<String> dateParts = date.split('/');
+    int day = int.parse(dateParts.first);
+    int month = int.parse(dateParts[1]);
+    String suffix = _getDaySuffix(day);
+    return '$day$suffix ${_getMonthName(month)}';
+  }
+
+  String _getMonthName(int month) {
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ];
+    if (month < 1 || month > 12) {
+      throw RangeError("Invalid month index: $month");
+    }
+    return monthNames[month - 1];
+  }
+
+  String _getDaySuffix(int day) {
+    if (day >= 11 && day <= 13) {
+      return 'th';
+    }
+    switch (day % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
   }
 }
