@@ -7,10 +7,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/constants.dart';
 import '../utils/dimensions.dart';
 import '../widgets/medium_text_widget.dart';
+import '../widgets/no_bookings_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -27,32 +29,62 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return FirebaseAuth.instance.currentUser!.email!.contains(
-            kDebugMode ? "mahmoud.al808@gmail.com" : "markmcquaid54@gmail.com")
-        ? adminView()
-        : userView();
+  Future<String> getUserName(String userId) async {
+    UserModel userModel = await CloudFirestore().getUserData(userId);
+    return userModel.name;
   }
 
-  Widget adminView() {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+        future: getUserName(FirebaseAuth.instance.currentUser!.uid),
+        builder: (context, userData) {
+          if (userData.hasData) {
+            return userView();
+          } else {
+            return Container();
+          }
+        });
+  }
+
+  Widget adminView(String name) {
     return StreamBuilder<List<Booking>>(
         stream: CloudFirestore()
             .streamAllBookings(currentDate.month, currentDate.day),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            if (snapshot.data!.length > 0) {
-              /// Sort bookings by date
-              snapshot.data!.sort((a, b) => getBookingAsDateTime(a.time, a.date)
-                      .isBefore(getBookingAsDateTime(b.time, b.date))
-                  ? 0
-                  : 1);
+            if (snapshot.data!.isNotEmpty) {
+              // Sort bookings by completion status (completed bookings at the bottom)
+              snapshot.data!.removeWhere((booking) {
+                print(booking.date);
+                // Split the booking date into day and month
+                List<String> dateParts = booking.date.split('/');
+                int bookingDay = int.parse(dateParts[0]);
+                int bookingMonth = int.parse(dateParts[1]);
+                int bookingYear = dateParts.length == 3
+                    ? int.parse(dateParts[2])
+                    : DateTime.now().year;
 
-              /// Sort bookings by date
-              snapshot.data!.sort((a, b) => isBookingComplete(a) ? 1 : 0);
+                // Keep only if both day and month match exactly
+                return !(bookingDay == currentDate.day &&
+                    bookingMonth == currentDate.month &&
+                    bookingYear == currentDate.year);
+              });
             }
           }
-          return Container(
+          if (name == "BODY BUDDIES HEALTH & FITNESS") {
+            name = "Mark";
+          }
+          if (!kDebugMode) {
+            try {
+              snapshot.data!.removeWhere((booking) => booking.trainer != name);
+            } catch (e) {
+              if (kDebugMode) {
+                print(e);
+              }
+            }
+          }
+          return SizedBox(
             height: MediaQuery.of(context).size.height,
             child: SafeArea(
               child: Padding(
@@ -101,7 +133,7 @@ class _HomePageState extends State<HomePage> {
                                         currentDate.subtract(Duration(days: 1));
                                   });
                                 },
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.arrow_back_ios,
                                   color: Colors.white,
                                 )),
@@ -112,8 +144,7 @@ class _HomePageState extends State<HomePage> {
                                 });
                               },
                               child: MediumTextWidget(
-                                text:
-                                    "${DateFormat.yMMMEd().format(currentDate)}",
+                                text: DateFormat.yMMMEd().format(currentDate),
                                 fontSize: Dimensions.fontSize18,
                                 color: darkGreen,
                               ),
@@ -125,7 +156,7 @@ class _HomePageState extends State<HomePage> {
                                         currentDate.add(Duration(days: 1));
                                   });
                                 },
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.arrow_forward_ios,
                                   color: Colors.white,
                                 )),
@@ -159,9 +190,10 @@ class _HomePageState extends State<HomePage> {
                                                       content: TextField(
                                                         controller:
                                                             nameController,
-                                                        decoration: InputDecoration(
-                                                            hintText:
-                                                                "Enter new name"),
+                                                        decoration:
+                                                            const InputDecoration(
+                                                                hintText:
+                                                                    "Enter new name"),
                                                       ),
                                                       actions: <Widget>[
                                                         ElevatedButton(
@@ -191,7 +223,7 @@ class _HomePageState extends State<HomePage> {
                                                                 ScaffoldMessenger.of(
                                                                         context)
                                                                     .showSnackBar(
-                                                                  SnackBar(
+                                                                  const SnackBar(
                                                                       content: Text(
                                                                           'Name updated successfully')),
                                                                 );
@@ -199,7 +231,7 @@ class _HomePageState extends State<HomePage> {
                                                                 ScaffoldMessenger.of(
                                                                         context)
                                                                     .showSnackBar(
-                                                                  SnackBar(
+                                                                  const SnackBar(
                                                                       content: Text(
                                                                           'Failed to update name')),
                                                                 );
@@ -224,7 +256,10 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               )
-                            : noBookings("No Sessions Today", false)
+                            : NoBookingsWidget(
+                                message: "No Sessions Today",
+                                showSubHeading: false,
+                              )
                         : MediumTextWidget(text: "Loading...")
                   ],
                 ),
@@ -235,25 +270,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget userView() {
-    return StreamBuilder<UserModel>(
-        stream: CloudFirestore()
-            .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+    return FutureBuilder<UserModel>(
+        future: CloudFirestore()
+            .getUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            if (snapshot.data!.bookings.length > 0) {
-              /// Sort bookings by date
-              snapshot.data!.bookings.sort((a, b) =>
-                  getBookingAsDateTime(a.time, a.date)
-                          .isBefore(getBookingAsDateTime(b.time, b.date))
-                      ? 0
-                      : 1);
+            snapshot.data!.bookings.removeWhere((booking) {
+              // Split the booking date into day and month
+              List<String> dateParts = booking.date.split('/');
+              int bookingDay = int.parse(dateParts[0]);
+              int bookingMonth = int.parse(dateParts[1]);
+              int bookingYear = dateParts.length == 3
+                  ? int.parse(dateParts[2])
+                  : DateTime.now().year;
 
-              /// Sort bookings by date
-              snapshot.data!.bookings
-                  .sort((a, b) => isBookingComplete(a) ? 1 : 0);
-            }
+              // Keep only if both day and month match exactly
+              return !(bookingDay == currentDate.day &&
+                  bookingMonth == currentDate.month &&
+                  bookingYear == currentDate.year);
+            });
           }
-          return Container(
+          return SizedBox(
             height: MediaQuery.of(context).size.height,
             child: SafeArea(
               child: Padding(
@@ -296,13 +333,52 @@ class _HomePageState extends State<HomePage> {
                               text: "Upcoming Bookings",
                               fontSize: Dimensions.fontSize22,
                             )),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    currentDate =
+                                        currentDate.subtract(Duration(days: 1));
+                                  });
+                                },
+                                icon: const Icon(
+                                  Icons.arrow_back_ios,
+                                  color: Colors.white,
+                                )),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  currentDate = DateTime.now();
+                                });
+                              },
+                              child: MediumTextWidget(
+                                text: DateFormat.yMMMEd().format(currentDate),
+                                fontSize: Dimensions.fontSize18,
+                                color: darkGreen,
+                              ),
+                            ),
+                            IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    currentDate = currentDate
+                                        .add(const Duration(days: 1));
+                                  });
+                                },
+                                icon: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white,
+                                )),
+                          ],
+                        ),
                       ],
                     ),
                     snapshot.hasData
                         ? snapshot.data!.bookings.isNotEmpty
                             ? Padding(
                                 padding: EdgeInsets.only(
-                                    top: Dimensions.height35 * 3.2,
+                                    top: Dimensions.height35 * 5,
                                     bottom: Dimensions.height10 * 6),
                                 child: SingleChildScrollView(
                                   child: Column(
@@ -311,7 +387,7 @@ class _HomePageState extends State<HomePage> {
                                     children: snapshot.data!.bookings
                                         .map((booking) => BookingWidget(
                                               isBooked: true,
-                                              slots: [],
+                                              slots: const [],
                                               booking: booking,
                                               isAdmin: false,
                                               month: 0,
@@ -320,7 +396,9 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               )
-                            : noBookings("You Have No Bookings", true)
+                            : NoBookingsWidget(
+                                message: "You Have No Bookings",
+                                showSubHeading: true)
                         : MediumTextWidget(text: "Loading...")
                   ],
                 ),
@@ -331,9 +409,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget userInformationHeader() {
-    return StreamBuilder<UserModel>(
-        stream: CloudFirestore()
-            .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+    return FutureBuilder<UserModel>(
+        future: CloudFirestore()
+            .getUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return Column(
@@ -343,7 +421,10 @@ class _HomePageState extends State<HomePage> {
                     text: getTodaysDate(),
                     color: darkGreen,
                     fontSize: Dimensions.fontSize14),
-                MediumTextWidget(text: "Hi, ${snapshot.data!.name}"),
+                SizedBox(
+                    width: Dimensions.screenWidth / 2,
+                    child:
+                        MediumTextWidget(text: "Hi, ${snapshot.data!.name}")),
                 MediumTextWidget(
                   text: "Remaining Credits: ${snapshot.data!.credits}",
                   fontSize: Dimensions.fontSize14,
@@ -369,47 +450,26 @@ class _HomePageState extends State<HomePage> {
     return "${months[DateTime.now().month - 1]}, ${DateTime.now().day}";
   }
 
-  Widget noBookings(String message, bool showSubHeading) {
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Align(
-          alignment: Alignment.center,
-          child: Image.asset(
-            "${ASSETS}no_bookings.png",
-            height: Dimensions.height10 * 15,
-          ),
-        ),
-        MediumTextWidget(
-          text: message,
-          fontSize: Dimensions.fontSize20,
-        ),
-        SizedBox(
-          height: Dimensions.height10,
-        ),
-        Visibility(
-          visible: showSubHeading,
-          child: MediumTextWidget(
-            text: "Click On Bookings To Get Started",
-            fontSize: Dimensions.fontSize12,
-            color: Colors.grey,
-          ),
-        )
-      ],
-    );
-  }
-
   DateTime getBookingAsDateTime(String time, String date) {
-    print(date);
     List<String> dateAsList = date.split("/");
-    String first = dateAsList.first.contains("0")
-        ? "${dateAsList.first}"
-        : dateAsList.first.length == 2
-            ? dateAsList.first
-            : "0${dateAsList.first}";
-    DateTime dateTime = DateTime.parse(
-        "${DateTime.now().year}-${formatMonth(dateAsList.last)}-$first $time:00");
+    String day = dateAsList.first.padLeft(2, '0');
+    String month = formatMonth(dateAsList[1]);
+
+    int year;
+    if (dateAsList.length == 3) {
+      // If year is included in the date
+      year = int.parse(dateAsList[2]);
+    } else {
+      // If year is not included, determine based on the current month
+      int currentYear = DateTime.now().year;
+
+      // Use current year for future dates, previous year for past dates
+      year = currentYear;
+    }
+
+    // Ensure the date string is formatted correctly
+    String formattedDate = "$year-$month-$day $time:00";
+    DateTime dateTime = DateTime.parse(formattedDate);
     return dateTime;
   }
 

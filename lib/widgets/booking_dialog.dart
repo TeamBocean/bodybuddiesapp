@@ -11,7 +11,7 @@ import '../utils/dimensions.dart';
 import 'medium_text_widget.dart';
 
 void bookingDialog(
-    BuildContext context, Booking booking, int month, String trainer) {
+    BuildContext context, Booking booking, int month, int day, String trainer) {
   showDialog(
       context: context,
       builder: (_) => AlertDialog(
