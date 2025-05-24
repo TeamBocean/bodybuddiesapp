@@ -507,10 +507,11 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   DateTime formatBookingDate(Booking booking) {
+    List<String> dateParts = booking.date.split('/');
     return DateTime(
-      DateTime.now().add(Duration(days: currentDayPage - 365)).year,
-      int.parse(booking.date.split('/')[0]),
-      int.parse(booking.date.split('/')[0]),
+      dateParts.length == 3 ? int.parse(dateParts[2]) : DateTime.now().year,
+      int.parse(dateParts[1]),
+      int.parse(dateParts[0]),
     );
   }
 
@@ -651,9 +652,13 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   bool isAlreadyBooked(Booking booking, Map bookings) {
-    List<dynamic>? bookedTimes = bookings
-            .containsKey(booking.date.split('/').last)
-        ? bookings[booking.date.split('/').last][booking.date.split('/').first]
+    List<String> dateParts = booking.date.split('/');
+    String month = dateParts[1];
+    String day = dateParts[0];
+    String year = dateParts.length == 3 ? dateParts[2] : DateTime.now().year.toString();
+    
+    List<dynamic>? bookedTimes = bookings.containsKey(month)
+        ? bookings[month][day]
         : [];
     return bookedTimes != null ? bookedTimes.contains(booking.time) : false;
   }

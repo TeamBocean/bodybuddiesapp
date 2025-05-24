@@ -154,23 +154,30 @@ class CloudFirestore {
   }
 
   void addBooking(Booking booking, int month, String username) {
-    List<String> dateAsList = booking.date.replaceAll("/", ".").split(".");
+    List<String> dateAsList = booking.date.split('/');
+    String day = dateAsList[0];
+    String monthStr = dateAsList[1];
+    String year = dateAsList.length == 3 ? dateAsList[2] : DateTime.now().year.toString();
+
     reference
         .collection("bookings")
-        .doc(DateTime.now().year.toString())
+        .doc(year)
         .update({
-      "${dateAsList[1]}.${dateAsList[0]}": FieldValue.arrayUnion([booking.time])
+      "$monthStr.$day": FieldValue.arrayUnion([booking.time])
     });
 
-    addPublicBooking(booking, month, username);
+    addPublicBooking(booking, int.parse(monthStr), username);
   }
 
   void addPublicBooking(Booking booking, int month, String username) {
     Map<String, dynamic> bookingAsMap = booking.toJson();
     bookingAsMap['name'] = username;
+    List<String> dateParts = booking.date.split('/');
+    String year = dateParts.length == 3 ? dateParts[2] : DateTime.now().year.toString();
+    
     reference
         .collection("bookings-list")
-        .doc(DateTime.now().year.toString())
+        .doc(year)
         .collection(month.toString())
         .doc(booking.date.split("/").first)
         .collection("bookings")
@@ -203,7 +210,7 @@ class CloudFirestore {
     List<String> timeAsList = time.split(":");
     List<String> dateAsList = date.split("/");
     return DateTime(
-        DateTime.now().year,
+        dateAsList.length == 3 ? int.parse(dateAsList[2]) : DateTime.now().year,
         int.parse(dateAsList[1]),
         int.parse(dateAsList[0]),
         int.parse(timeAsList[0]),
@@ -211,19 +218,22 @@ class CloudFirestore {
   }
 
   void removeBooking(Booking booking) {
-    List<String> dateAsList = booking.date.replaceAll("/", ".").split(".");
+    List<String> dateAsList = booking.date.split('/');
+    String day = dateAsList[0];
+    String month = dateAsList[1];
+    String year = dateAsList.length == 3 ? dateAsList[2] : DateTime.now().year.toString();
+    
     DateTime dateTime = getBookingDateTime(booking.date, booking.time);
     reference
         .collection("bookings")
-        .doc(DateTime.now().year.toString())
+        .doc(year)
         .update({
-      "${dateAsList[1]}.${dateAsList[0]}":
-          FieldValue.arrayRemove([booking.time])
+      "$month.$day": FieldValue.arrayRemove([booking.time])
     });
 
     reference
         .collection("bookings-list")
-        .doc(dateTime.year.toString())
+        .doc(year)
         .collection(dateTime.month.toString())
         .doc(dateTime.day.toString())
         .collection("bookings")
