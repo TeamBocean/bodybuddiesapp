@@ -326,42 +326,32 @@ class _BookingsPageState extends State<BookingsPage>
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: EdgeInsets.only(
-                                bottom:
-                                    Dimensions.height50 + Dimensions.height20),
+                                bottom: Dimensions.height50 + Dimensions.height20),
                             child: SizedBox(
                               height: MediaQuery.of(context).size.height -
-                                  (Dimensions.height50 * 4 +
-                                      Dimensions.height10 * 8),
+                                  (Dimensions.height50 * 4 + Dimensions.height10 * 8),
                               child: SingleChildScrollView(
                                 physics: const BouncingScrollPhysics(),
                                 child: Column(
                                   children: slots.length == 0
                                       ? [noBookings()]
-                                      : slots
-                                          .map((booking) => AbsorbPointer(
-                                                absorbing: snapshot.data!.bookings.firstWhereOrNull((element) =>
-                                                            formatBookingDate(
-                                                                        element)
-                                                                    .day ==
-                                                                currentDay
-                                                                    .add(Duration(
-                                                                        days: currentDayPage -
-                                                                            365))
-                                                                    .day &&
-                                                            formatBookingDate(
-                                                                        element)
-                                                                    .month ==
-                                                                currentDay
-                                                                    .add(Duration(
-                                                                        days: currentDayPage -
-                                                                            365))
-                                                                    .month) !=
-                                                        null
-                                                    ? true
-                                                    : false,
-                                                child: booking,
-                                              ))
-                                          .toList(),
+                                      : slots.map((booking) {
+                                          bool isBooked = snapshot.data?.bookings.firstWhereOrNull((element) =>
+                                              formatBookingDate(element).day ==
+                                                  currentDay.add(Duration(days: currentDayPage - 365)).day &&
+                                              formatBookingDate(element).month ==
+                                                  currentDay.add(Duration(days: currentDayPage - 365)).month) !=
+                                              null ?? false;
+                                          
+                                          return AnimatedSwitcher(
+                                            duration: const Duration(milliseconds: 300),
+                                            child: AbsorbPointer(
+                                              key: ValueKey<bool>(isBooked),
+                                              absorbing: isBooked,
+                                              child: booking,
+                                            ),
+                                          );
+                                        }).toList(),
                                 ),
                               ),
                             ),
