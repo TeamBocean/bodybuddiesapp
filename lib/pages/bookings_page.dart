@@ -328,12 +328,12 @@ class _BookingsPageState extends State<BookingsPage> {
                       padding: EdgeInsets.only(left: Dimensions.width10),
                       child: DropdownButton<String>(
                         value: selectedValue,
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_downward,
-                          color: Colors.white,
+                          color: Theme.of(context).iconTheme.color ?? Theme.of(context).textTheme.bodyLarge?.color,
                         ),
-                        dropdownColor: darkGrey,
-                        style: TextStyle(color: Colors.white),
+                        dropdownColor: Theme.of(context).cardTheme.color,
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black),
                         onChanged: (String? newValue) {
                           setState(() {
                             selectedValue = newValue!;
@@ -371,8 +371,10 @@ class _BookingsPageState extends State<BookingsPage> {
               splashRadius: 0.1,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 22, maxWidth: 22),
-              icon: Icon(Icons.calendar_month),
-              color: Colors.white,
+              icon: Icon(
+                Icons.calendar_month,
+                color: Theme.of(context).iconTheme.color ?? Theme.of(context).textTheme.bodyLarge?.color,
+              ),
             ),
           ),
         )
@@ -443,7 +445,7 @@ class _BookingsPageState extends State<BookingsPage> {
           width: Dimensions.width10 * 4,
           height: Dimensions.height10 * 5.5,
           child: Card(
-            color: isCurrent ? darkGreen : darkGrey,
+            color: isCurrent ? Theme.of(context).colorScheme.primary : Theme.of(context).cardTheme.color,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(Dimensions.width10 / 2)),
             child: Column(
@@ -452,10 +454,12 @@ class _BookingsPageState extends State<BookingsPage> {
                 MediumTextWidget(
                   text: dateTime.day.toString(),
                   fontSize: Dimensions.fontSize10,
+                  color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
                 ),
                 MediumTextWidget(
                   text: weekDay,
                   fontSize: Dimensions.fontSize10,
+                  color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
                 ),
               ],
             ),
@@ -508,6 +512,7 @@ class _BookingsPageState extends State<BookingsPage> {
           MediumTextWidget(
             text: "No Sessions available today!",
             fontSize: Dimensions.fontSize20,
+            color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
           ),
           SizedBox(
             height: Dimensions.height10,
@@ -515,7 +520,7 @@ class _BookingsPageState extends State<BookingsPage> {
           MediumTextWidget(
             text: "We're back on Monday",
             fontSize: Dimensions.fontSize12,
-            color: Colors.grey,
+            color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
           )
         ],
       ),

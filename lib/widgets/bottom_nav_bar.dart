@@ -21,44 +21,46 @@ class _BottomNavBarState extends State<BottomNavBar> {
       alignment: Alignment.bottomCenter,
       child: Theme(
         data: Theme.of(context).copyWith(
-          scaffoldBackgroundColor: background,
+          scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
           splashColor: Colors.transparent,
         ),
         child: BottomNavigationBar(
-          backgroundColor: Color(0xff2B2B2B),
+          backgroundColor: Theme.of(context).colorScheme.surface,
           onTap: onTabTapped,
           currentIndex: widget.currentIndex,
-          selectedLabelStyle: TextStyle(color: Colors.white),
-          unselectedLabelStyle:
-              TextStyle(color: Colors.white, fontSize: Dimensions.fontSize12),
-          selectedItemColor: Colors.green,
+          selectedLabelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+          unselectedLabelStyle: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontSize: Dimensions.fontSize12
+          ),
+          selectedItemColor: Theme.of(context).colorScheme.primary,
           type: BottomNavigationBarType.fixed,
-          unselectedItemColor: Colors.white,
+          unselectedItemColor: Theme.of(context).textTheme.bodyLarge?.color,
           elevation: 0,
           items: [
             BottomNavigationBarItem(
-              backgroundColor: background,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               icon: Image.asset(
                 ASSETS + "home.png",
-                color: widget.currentIndex == 0 ? darkGreen : Colors.white,
+                color: widget.currentIndex == 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).textTheme.bodyLarge?.color,
                 height: Dimensions.height25,
               ),
               label: "Home",
             ),
             BottomNavigationBarItem(
-              backgroundColor: background,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               icon: Image.asset(
                 ASSETS + "bookings.png",
-                color: widget.currentIndex == 1 ? darkGreen : Colors.white,
+                color: widget.currentIndex == 1 ? Theme.of(context).colorScheme.primary : Theme.of(context).textTheme.bodyLarge?.color,
                 height: Dimensions.height25,
               ),
               label: "Bookings",
             ),
             BottomNavigationBarItem(
-              backgroundColor: background,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               icon: Image.asset(
                 ASSETS + "account.png",
-                color: widget.currentIndex == 3 ? darkGreen : Colors.white,
+                color: widget.currentIndex == 3 ? Theme.of(context).colorScheme.primary : Theme.of(context).textTheme.bodyLarge?.color,
                 height: Dimensions.height25,
               ),
               label: "Account",

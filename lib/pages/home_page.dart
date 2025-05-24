@@ -6,6 +6,7 @@ import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,12 +22,28 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   DateTime currentDate = DateTime.now();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<String> getUserName(String userId) async {
@@ -133,9 +150,9 @@ class _HomePageState extends State<HomePage> {
                                         currentDate.subtract(Duration(days: 1));
                                   });
                                 },
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.arrow_back_ios,
-                                  color: Colors.white,
+                                  color: Theme.of(context).iconTheme.color ?? Theme.of(context).textTheme.bodyLarge?.color,
                                 )),
                             GestureDetector(
                               onTap: () {
@@ -146,7 +163,7 @@ class _HomePageState extends State<HomePage> {
                               child: MediumTextWidget(
                                 text: DateFormat.yMMMEd().format(currentDate),
                                 fontSize: Dimensions.fontSize18,
-                                color: darkGreen,
+                                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
                               ),
                             ),
                             IconButton(
@@ -156,9 +173,9 @@ class _HomePageState extends State<HomePage> {
                                         currentDate.add(Duration(days: 1));
                                   });
                                 },
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.arrow_forward_ios,
-                                  color: Colors.white,
+                                  color: Theme.of(context).iconTheme.color ?? Theme.of(context).textTheme.bodyLarge?.color,
                                 )),
                           ],
                         ),
@@ -271,12 +288,10 @@ class _HomePageState extends State<HomePage> {
 
   Widget userView() {
     return FutureBuilder<UserModel>(
-        future: CloudFirestore()
-            .getUserData(FirebaseAuth.instance.currentUser!.uid),
+        future: CloudFirestore().getUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             snapshot.data!.bookings.removeWhere((booking) {
-              // Split the booking date into day and month
               List<String> dateParts = booking.date.split('/');
               int bookingDay = int.parse(dateParts[0]);
               int bookingMonth = int.parse(dateParts[1]);
@@ -284,7 +299,6 @@ class _HomePageState extends State<HomePage> {
                   ? int.parse(dateParts[2])
                   : DateTime.now().year;
 
-              // Keep only if both day and month match exactly
               return !(bookingDay == currentDate.day &&
                   bookingMonth == currentDate.month &&
                   bookingYear == currentDate.year);
@@ -302,104 +316,147 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            userInformationHeader(),
-                            FirebaseAuth.instance.currentUser!.photoURL != null
-                                ? CircleAvatar(
-                                    backgroundColor: Colors.grey.shade400,
-                                    radius: Dimensions.width27,
-                                    backgroundImage: NetworkImage(
-                                      FirebaseAuth.instance.currentUser!
-                                          .photoURL as String,
-                                    ),
-                                  )
-                                : CircleAvatar(
-                                    backgroundColor: Colors.grey.shade400,
-                                    radius: Dimensions.width27,
-                                    child: MediumTextWidget(
-                                        text: snapshot.hasData
-                                            ? snapshot.data!.name
-                                                .substring(0, 1)
-                                            : "",
-                                        color: Colors.black),
-                                  )
+                            Expanded(
+                              child: userInformationHeader(),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                // TODO: Navigate to profile
+                              },
+                              child: Hero(
+                                tag: 'profile_avatar',
+                                child: FirebaseAuth.instance.currentUser!.photoURL != null
+                                    ? CircleAvatar(
+                                        backgroundColor: Colors.grey.shade400,
+                                        radius: Dimensions.width27,
+                                        backgroundImage: NetworkImage(
+                                          FirebaseAuth.instance.currentUser!.photoURL as String,
+                                        ),
+                                      )
+                                    : CircleAvatar(
+                                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                        radius: Dimensions.width27,
+                                        child: MediumTextWidget(
+                                            text: snapshot.hasData
+                                                ? snapshot.data!.name.substring(0, 1).toUpperCase()
+                                                : "",
+                                            color: Theme.of(context).colorScheme.primary),
+                                      ),
+                              ),
+                            ),
                           ],
                         ),
-                        SizedBox(
-                          height: Dimensions.height20,
-                        ),
+                        SizedBox(height: Dimensions.height20),
                         Align(
                             alignment: Alignment.topLeft,
                             child: MediumTextWidget(
                               text: "Upcoming Bookings",
                               fontSize: Dimensions.fontSize22,
                             )),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    currentDate =
-                                        currentDate.subtract(Duration(days: 1));
-                                  });
-                                },
-                                icon: const Icon(
-                                  Icons.arrow_back_ios,
-                                  color: Colors.white,
-                                )),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  currentDate = DateTime.now();
-                                });
-                              },
-                              child: MediumTextWidget(
-                                text: DateFormat.yMMMEd().format(currentDate),
-                                fontSize: Dimensions.fontSize18,
-                                color: darkGreen,
+                        Container(
+                          margin: EdgeInsets.symmetric(vertical: Dimensions.height10),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
                               ),
-                            ),
-                            IconButton(
-                                onPressed: () {
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                  onPressed: () {
+                                    HapticFeedback.lightImpact();
+                                    setState(() {
+                                      currentDate = currentDate.subtract(const Duration(days: 1));
+                                    });
+                                  },
+                                  icon: Icon(
+                                    Icons.arrow_back_ios,
+                                    color: Theme.of(context).iconTheme.color,
+                                  )),
+                              GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
                                   setState(() {
-                                    currentDate = currentDate
-                                        .add(const Duration(days: 1));
+                                    currentDate = DateTime.now();
                                   });
                                 },
-                                icon: const Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Colors.white,
-                                )),
-                          ],
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: Dimensions.width15,
+                                    vertical: Dimensions.height10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: currentDate.day == DateTime.now().day
+                                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: MediumTextWidget(
+                                    text: DateFormat.yMMMEd().format(currentDate),
+                                    fontSize: Dimensions.fontSize16,
+                                    color: currentDate.day == DateTime.now().day
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                  onPressed: () {
+                                    HapticFeedback.lightImpact();
+                                    setState(() {
+                                      currentDate = currentDate.add(const Duration(days: 1));
+                                    });
+                                  },
+                                  icon: Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: Theme.of(context).iconTheme.color,
+                                  )),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                     snapshot.hasData
                         ? snapshot.data!.bookings.isNotEmpty
-                            ? Padding(
-                                padding: EdgeInsets.only(
-                                    top: Dimensions.height35 * 5,
-                                    bottom: Dimensions.height10 * 6),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: snapshot.data!.bookings
-                                        .map((booking) => BookingWidget(
-                                              isBooked: true,
-                                              slots: const [],
-                                              booking: booking,
-                                              isAdmin: false,
-                                              month: 0,
-                                            ))
-                                        .toList(),
+                            ? FadeTransition(
+                                opacity: _fadeAnimation,
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                      top: Dimensions.height35 * 5,
+                                      bottom: Dimensions.height10 * 6),
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: snapshot.data!.bookings
+                                          .map((booking) => BookingWidget(
+                                                isBooked: true,
+                                                slots: const [],
+                                                booking: booking,
+                                                isAdmin: false,
+                                                month: 0,
+                                              ))
+                                          .toList(),
+                                    ),
                                   ),
                                 ),
                               )
                             : NoBookingsWidget(
-                                message: "You Have No Bookings",
+                                message: "No plans yet! Ready to schedule one?",
                                 showSubHeading: true)
-                        : MediumTextWidget(text: "Loading...")
+                        : Center(
+                            child: CircularProgressIndicator(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          )
                   ],
                 ),
               ),
@@ -410,8 +467,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget userInformationHeader() {
     return FutureBuilder<UserModel>(
-        future: CloudFirestore()
-            .getUserData(FirebaseAuth.instance.currentUser!.uid),
+        future: CloudFirestore().getUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return Column(
@@ -419,31 +475,48 @@ class _HomePageState extends State<HomePage> {
               children: [
                 MediumTextWidget(
                     text: getTodaysDate(),
-                    color: darkGreen,
+                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     fontSize: Dimensions.fontSize14),
-                SizedBox(
-                    width: Dimensions.screenWidth / 2,
-                    child:
-                        MediumTextWidget(text: "Hi, ${snapshot.data!.name}")),
+                SizedBox(height: Dimensions.height5),
                 MediumTextWidget(
-                  text: "Remaining Credits: ${snapshot.data!.credits}",
-                  fontSize: Dimensions.fontSize14,
+                  text: "Hi, ${snapshot.data!.name}",
+                  color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+                ),
+                SizedBox(height: Dimensions.height10),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Dimensions.width10,
+                    vertical: Dimensions.height5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.star,
+                        size: Dimensions.iconSize16,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      SizedBox(width: Dimensions.width5),
+                      MediumTextWidget(
+                        text: "${snapshot.data!.credits} Credits",
+                        fontSize: Dimensions.fontSize14,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             );
           } else {
-            return MediumTextWidget(
-              text: "Loading...",
-              fontSize: Dimensions.fontSize14,
+            return const Center(
+              child: CircularProgressIndicator(),
             );
           }
         });
-  }
-
-  String? getDisplayName() {
-    return FirebaseAuth.instance.currentUser!.displayName != null
-        ? FirebaseAuth.instance.currentUser!.displayName
-        : "";
   }
 
   String getTodaysDate() {
