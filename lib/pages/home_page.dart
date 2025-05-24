@@ -408,11 +408,19 @@ class _HomePageState extends State<HomePage>
                                     color: Theme.of(context).iconTheme.color,
                                   )),
                               GestureDetector(
-                                onTap: () {
+                                onTap: () async {
                                   HapticFeedback.lightImpact();
-                                  setState(() {
-                                    currentDate = DateTime.now();
-                                  });
+                                  DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: currentDate,
+                                    firstDate: DateTime(DateTime.now().year, 1, 1),
+                                    lastDate: DateTime(DateTime.now().year, 12, 31),
+                                  );
+                                  if (pickedDate != null) {
+                                    setState(() {
+                                      currentDate = pickedDate;
+                                    });
+                                  }
                                 },
                                 child: Container(
                                   padding: EdgeInsets.symmetric(
