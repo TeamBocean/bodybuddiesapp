@@ -612,7 +612,7 @@ class _BookingsPageState extends State<BookingsPage>
             ),
             SizedBox(height: Dimensions.height10),
             MediumTextWidget(
-              text: "But we'll be back tomorrow – see you then!",
+              text: "But we'll be back on Monday – see you then!",
               fontSize: Dimensions.fontSize14,
               color:
                   Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
