@@ -20,6 +20,34 @@ class _MySessionsPageState extends State<MySessionsPage> {
   bool _showCompletedSessions = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Add a test dummy booking
+    _addTestBooking();
+  }
+
+  void _addTestBooking() async {
+    // Create a test booking that's already completed (yesterday)
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    final testBooking = Booking(
+      id: 'test-${DateTime.now().millisecondsSinceEpoch}',
+      bookingName: 'Test User',
+      trainer: 'Mark',
+      price: 1,
+      date: '${yesterday.day}/${yesterday.month}/${yesterday.year}',
+      time: '10:00',
+    );
+
+    // // Add the test booking to Firestore
+    // CloudFirestore().addUserBooking(
+    //   testBooking,
+    //   FirebaseAuth.instance.currentUser!.uid,
+    //   yesterday.month,
+    //   'Test User',
+    // );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +55,8 @@ class _MySessionsPageState extends State<MySessionsPage> {
         backgroundColor: background,
       ),
       body: StreamBuilder<UserModel?>(
-        stream: CloudFirestore().streamUserData(FirebaseAuth.instance.currentUser!.uid),
+        stream: CloudFirestore()
+            .streamUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -42,7 +71,8 @@ class _MySessionsPageState extends State<MySessionsPage> {
           final thisMonthBookings = user.bookings.where((booking) {
             final parts = booking.date.split('/');
             final bookingMonth = int.parse(parts[1]);
-            final bookingYear = parts.length == 3 ? int.parse(parts[2]) : currentYear;
+            final bookingYear =
+                parts.length == 3 ? int.parse(parts[2]) : currentYear;
             return bookingMonth == currentMonth && bookingYear == currentYear;
           }).toList();
 
@@ -57,7 +87,22 @@ class _MySessionsPageState extends State<MySessionsPage> {
             final bookingDateTime = _getBookingDateTime(booking);
             return _showCompletedSessions || bookingDateTime.isAfter(now);
           }).toList()
-            ..sort((a, b) => _getBookingDateTime(b).compareTo(_getBookingDateTime(a)));
+            ..sort((a, b) {
+              final aDateTime = _getBookingDateTime(a);
+              final bDateTime = _getBookingDateTime(b);
+              
+              // If both are upcoming or both are completed
+              if ((aDateTime.isAfter(now) && bDateTime.isAfter(now)) ||
+                  (!aDateTime.isAfter(now) && !bDateTime.isAfter(now))) {
+                // For upcoming: earliest first, for completed: most recent first
+                return aDateTime.isAfter(now)
+                    ? aDateTime.compareTo(bDateTime)
+                    : bDateTime.compareTo(aDateTime);
+              }
+              
+              // If one is upcoming and one is completed, upcoming comes first
+              return aDateTime.isAfter(now) ? -1 : 1;
+            });
 
           return SingleChildScrollView(
             child: Padding(
@@ -98,7 +143,7 @@ class _MySessionsPageState extends State<MySessionsPage> {
                     ),
                   ),
                   SizedBox(height: Dimensions.height20),
-                  
+
                   // All Bookings Section Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -119,19 +164,26 @@ class _MySessionsPageState extends State<MySessionsPage> {
                             vertical: Dimensions.height5,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
                             children: [
                               Icon(
-                                _showCompletedSessions ? Icons.visibility : Icons.visibility_off,
+                                _showCompletedSessions
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                                 color: Theme.of(context).colorScheme.primary,
                                 size: Dimensions.iconSize20,
                               ),
                               SizedBox(width: Dimensions.width5),
                               MediumTextWidget(
-                                text: _showCompletedSessions ? "Hide Completed" : "Show Completed",
+                                text: _showCompletedSessions
+                                    ? "Hide Completed"
+                                    : "Show Completed",
                                 fontSize: Dimensions.fontSize14,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
@@ -142,17 +194,20 @@ class _MySessionsPageState extends State<MySessionsPage> {
                     ],
                   ),
                   SizedBox(height: Dimensions.height10),
-                  ...allBookings.map((booking) => Padding(
-                    padding: EdgeInsets.only(bottom: Dimensions.height10),
-                    child: BookingWidget(
-                      isBooked: true,
-                      slots: const [],
-                      booking: booking,
-                      isAdmin: false,
-                      month: 0,
-                    ),
-                  )).toList(),
-                  SizedBox(height: Dimensions.height10*6),
+                  ...allBookings
+                      .map((booking) => Padding(
+                            padding:
+                                EdgeInsets.only(bottom: Dimensions.height10),
+                            child: BookingWidget(
+                              isBooked: true,
+                              slots: const [],
+                              booking: booking,
+                              isAdmin: false,
+                              month: 0,
+                            ),
+                          ))
+                      .toList(),
+                  SizedBox(height: Dimensions.height10 * 6),
                 ],
               ),
             ),
@@ -162,7 +217,8 @@ class _MySessionsPageState extends State<MySessionsPage> {
     );
   }
 
-  Widget _buildStatRow(BuildContext context, String title, String value, IconData icon) {
+  Widget _buildStatRow(
+      BuildContext context, String title, String value, IconData icon) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -203,9 +259,8 @@ class _MySessionsPageState extends State<MySessionsPage> {
     List<String> dateParts = booking.date.split('/');
     int bookingDay = int.parse(dateParts[0]);
     int bookingMonth = int.parse(dateParts[1]);
-    int bookingYear = dateParts.length == 3
-        ? int.parse(dateParts[2])
-        : DateTime.now().year;
+    int bookingYear =
+        dateParts.length == 3 ? int.parse(dateParts[2]) : DateTime.now().year;
 
     List<String> timeParts = booking.time.split(':');
     int hour = int.parse(timeParts[0]);
@@ -213,4 +268,4 @@ class _MySessionsPageState extends State<MySessionsPage> {
 
     return DateTime(bookingYear, bookingMonth, bookingDay, hour, minute);
   }
-} 
+}
