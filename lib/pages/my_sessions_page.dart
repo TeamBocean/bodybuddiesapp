@@ -82,6 +82,12 @@ class _MySessionsPageState extends State<MySessionsPage> {
             return bookingDateTime.isAfter(now);
           }).toList();
 
+          // Filter completed bookings
+          final completedBookings = user.bookings.where((booking) {
+            final bookingDateTime = _getBookingDateTime(booking);
+            return bookingDateTime.isBefore(now);
+          }).toList();
+
           // Filter and sort all bookings
           final allBookings = user.bookings.where((booking) {
             final bookingDateTime = _getBookingDateTime(booking);
@@ -138,6 +144,13 @@ class _MySessionsPageState extends State<MySessionsPage> {
                           "Sessions This Month",
                           thisMonthBookings.length.toString(),
                           Icons.fitness_center,
+                        ),
+                        SizedBox(height: Dimensions.height15),
+                        _buildStatRow(
+                          context,
+                          "Completed Sessions",
+                          completedBookings.length.toString(),
+                          Icons.check_circle_outline,
                         ),
                       ],
                     ),
