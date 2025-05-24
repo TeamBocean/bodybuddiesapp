@@ -51,16 +51,16 @@ post_install do |installer|
               xcconfig_mod = xcconfig.gsub(/DT_TOOLCHAIN_DIR/, "TOOLCHAIN_DIR")
               File.open(xcconfig_path, "w") { |file| file << xcconfig_mod }
     end
-    
+
     # Fix for BoringSSL-GRPC
     if target.name == 'BoringSSL-GRPC'
       target.build_configurations.each do |config|
         config.build_settings['OTHER_CFLAGS'] = '$(inherited) -Wno-shorten-64-to-32'
         config.build_settings['GCC_OPTIMIZATION_LEVEL'] = '0'
         config.build_settings['COMPILER_INDEX_STORE_ENABLE'] = 'NO'
-        config.build_settings['OTHER_CFLAGS'] = '$(inherited) -Wno-shorten-64-to-32 -Wno-comma -Wno-unreachable-code -Wno-conditional-uninitialized -Wno-deprecated-declarations -Wno-semicolon-before-method-body -Wno-unused-variable -Wno-format -Wno-missing-field-initializers -Wno-sign-conversion -Wno-unused-parameter -Wno-shorten-64-to-32 -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation -Wno-objc-interface-ivars -Wno-documentation-deprecated-sync -Wno-pedantic -Wno-extra-semi -Wno-pedantic-ms-format -Wno-bad-function-cast -Wno-c++11-long-long -Wno-c++11-extensions -Wno-c99-extensions -Wno-c11-extensions -Wno-gnu -Wno-gcc-line-marker -Wno-gcc-compat -Wno-gnu-zero-variadic-macro-arguments -Wno-gnu-statement-expression -Wno-gnu-compound-literal-initializer -Wno-gnu-empty-initializer -Wno-gnu-empty-struct -Wno-gnu-flexible-array-initializer -Wno-gnu-redeclared-enum -Wno-gnu-variable-sized-type-not-at-end -Wno-gnu-zero-variadic-macro-arguments -Wno-gnu-statement-expression -Wno-gnu-compound-literal-initializer -Wno-gnu-empty-initializer -Wno-gnu-empty-struct -Wno-gnu-flexible-array-initializer -Wno-gnu-redeclared-enum -Wno-gnu-variable-sized-type-not-at-end'
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', 'OPENSSL_NO_ASM=1']
       end
-      
+
       # Remove -GCC_WARN_INHIBIT_ALL_WARNINGS flag from build phase
       target.source_build_phase.files.each do |file|
         if file.settings && file.settings['COMPILER_FLAGS']
