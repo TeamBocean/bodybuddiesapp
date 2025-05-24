@@ -60,6 +60,8 @@ dependencies:
   shared_preferences: ^2.1.1
   flutter_native_splash: ^2.2.19
   provider: ^6.1.1
+  package_info_plus: ^4.2.0
+  flutter_svg: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -115,10 +117,10 @@ flutter:
       fonts:
         - asset: fonts/Satoshi-Medium.otf
           weight: 500
-        - asset: fonts/Satoshi-Regular.otf
-          weight: 400
-        - asset: fonts/Satoshi-Bold.otf
-          weight: 700
+#        - asset: fonts/Satoshi-Regular.otf
+#          weight: 400
+#        - asset: fonts/Satoshi-Bold.otf
+#          weight: 700
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

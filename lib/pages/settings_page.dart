@@ -7,6 +7,7 @@ import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
+import 'package:bodybuddiesapp/widgets/version_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -195,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     SettingsOption(
                       title: "Training Credits",
-                      subtitle: "See your remaining sessions",
+                      subtitle: "Purchase new credits.",
                       icon: Icons.monetization_on,
                       onTap: () {
                         HapticFeedback.lightImpact();
@@ -308,6 +309,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 SizedBox(height: Dimensions.height20),
+                VersionText(),
                 // Add extra padding for bottom navigation bar
                 SizedBox(height: Dimensions.height10 * 6),
               ],

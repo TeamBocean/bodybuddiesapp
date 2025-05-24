@@ -25,19 +25,25 @@ class NoBookingsWidget extends StatelessWidget {
             height: Dimensions.height10 * 15,
           ),
         ),
-        MediumTextWidget(
-          text: message,
-          fontSize: Dimensions.fontSize20,
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: Dimensions.fontSize20,
+          ),
         ),
         SizedBox(
           height: Dimensions.height10,
         ),
         Visibility(
           visible: showSubHeading,
-          child: MediumTextWidget(
-            text: "Click On Bookings To Get Started",
-            fontSize: Dimensions.fontSize12,
-            color: Colors.grey,
+          child: Visibility(
+            visible: showSubHeading,
+            child: MediumTextWidget(
+              text: "Click On Bookings To Get Started",
+              fontSize: Dimensions.fontSize14,
+              color: Colors.grey,
+            ),
           ),
         )
       ],

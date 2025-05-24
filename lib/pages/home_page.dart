@@ -14,6 +14,7 @@ import '../utils/constants.dart';
 import '../utils/dimensions.dart';
 import '../widgets/medium_text_widget.dart';
 import '../widgets/no_bookings_widget.dart';
+import 'credits_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -413,8 +414,10 @@ class _HomePageState extends State<HomePage>
                                   DateTime? pickedDate = await showDatePicker(
                                     context: context,
                                     initialDate: currentDate,
-                                    firstDate: DateTime(DateTime.now().year, 1, 1),
-                                    lastDate: DateTime(DateTime.now().year, 12, 31),
+                                    firstDate:
+                                        DateTime(DateTime.now().year, 1, 1),
+                                    lastDate:
+                                        DateTime(DateTime.now().year, 12, 31),
                                   );
                                   if (pickedDate != null) {
                                     setState(() {
@@ -495,9 +498,47 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ),
                               )
-                            : NoBookingsWidget(
-                                message: "No plans yet! Ready to schedule one?",
-                                showSubHeading: true)
+                            : snapshot.data!.credits == 0
+                                ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      NoBookingsWidget(
+                                        message:
+                                            "Oops, you're out of credits. Let's top you up so you can keep training!",
+                                        showSubHeading: false,
+                                      ),
+                                      SizedBox(height: Dimensions.height20),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const CreditsPage(),
+                                            ),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: Dimensions.width20,
+                                            vertical: Dimensions.height10,
+                                          ),
+                                        ),
+                                        child: MediumTextWidget(
+                                          text: "Get Credits",
+                                          color: Colors.white,
+                                          fontSize: Dimensions.fontSize16,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : NoBookingsWidget(
+                                    message:
+                                        "Looks like you've got a free day!\nLet's fix that with a session.",
+                                    showSubHeading: true)
                         : Center(
                             child: CircularProgressIndicator(
                               color: Theme.of(context).colorScheme.primary,

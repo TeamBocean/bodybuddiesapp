@@ -62,12 +62,12 @@ class _BottomNavBarState extends State<BottomNavBar> {
             ),
             BottomNavigationBarItem(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              icon: Image.asset(
-                ASSETS + "account.png",
+              icon: Icon(
+                Icons.settings,
                 color: widget.currentIndex == 2
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).textTheme.bodyLarge?.color,
-                height: Dimensions.height25,
+                size: Dimensions.height25,
               ),
               label: "Settings",
             ),

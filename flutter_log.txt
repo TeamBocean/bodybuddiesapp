@@ -1,0 +1,39 @@
+Downloading Web SDK...                                             16.9s
+Downloading CanvasKit...                                         1,918ms
+Downloading darwin-x64/FlutterMacOS.framework tools...              5.5s
+Downloading darwin-x64/gen_snapshot tools...                     1,678ms
+Downloading darwin-x64-profile/FlutterMacOS.framework tools...         3.2s
+Downloading darwin-x64-profile tools...                          1,047ms
+Downloading darwin-x64-profile/gen_snapshot tools...             1,748ms
+Downloading darwin-x64-release/FlutterMacOS.framework tools...      2,570ms
+Downloading darwin-x64-release tools...                          1,236ms
+Downloading darwin-x64-release/gen_snapshot tools...             1,658ms
+Launching lib/main.dart on iPhone 14 in debug mode...
+Running pod install...                                              6.7s
+Running Xcode build...                                          
+Xcode build done.                                           23.2s
+Failed to build iOS app
+Error output from Xcode build:
+↳
+    --- xcodebuild: WARNING: Using the first of multiple matching destinations:
+    { platform:iOS Simulator, id:26E204B1-5953-48C6-82D9-4D7A72A666F7, OS:18.2, name:iPhone 14 }
+    { platform:iOS Simulator, id:26E204B1-5953-48C6-82D9-4D7A72A666F7, OS:18.2, name:iPhone 14 }
+    ** BUILD FAILED **
+
+
+Xcode's output:
+↳
+    Writing result bundle at path:
+    	/var/folders/6k/3s5jh3x13qj90h5wddy6tdc40000gn/T/flutter_tools.j8psd0/flutter_ios_build_temp_dirGdWTBp/temporary_xcresult_bundle
+
+    clang: error: unsupported option '-G' for target 'x86_64-apple-ios13.0-simulator'
+    warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'gRPC-Core' from project 'Pods')
+    warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'gRPC-C++' from project 'Pods')
+    warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'abseil' from project 'Pods')
+    note: Run script build phase 'Run Script' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'Runner' from project 'Runner')
+    note: Run script build phase 'Thin Binary' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'Runner' from project 'Runner')
+    warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'Libuv-gRPC' from project 'Pods')
+    warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'BoringSSL-GRPC' from project 'Pods')
+
+Could not build the application for the simulator.
+Error launching application on iPhone 14.

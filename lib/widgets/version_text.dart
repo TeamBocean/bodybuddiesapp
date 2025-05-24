@@ -14,15 +14,19 @@ class _VersionTextState extends State<VersionText> {
 
   @override
   void initState() {
-    loadPackageInfo();
     super.initState();
+    loadPackageInfo();
   }
 
-  void loadPackageInfo() async {
-    var result = await PackageInfo.fromPlatform();
-    setState(() {
-      packageInfo = result;
-    });
+  Future<void> loadPackageInfo() async {
+    try {
+      var result = await PackageInfo.fromPlatform();
+      setState(() {
+        packageInfo = result;
+      });
+    } catch (e) {
+      print("Error loading package info: $e");
+    }
   }
 
   @override
@@ -30,7 +34,7 @@ class _VersionTextState extends State<VersionText> {
     var theme = Theme.of(context);
     return Center(
       child: Text(
-        "Trakr v${packageInfo != null ? packageInfo!.version : ""} [${packageInfo != null ? packageInfo!.buildNumber : ""}]",
+        "BodyBuddies v${packageInfo?.version ?? "N/A"} [${packageInfo?.buildNumber ?? "N/A"}]",
         style: TextStyle(
             color: theme.brightness == Brightness.dark
                 ? Colors.grey[300]
