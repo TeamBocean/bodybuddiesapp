@@ -1,8 +1,13 @@
-import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 
 class Dimensions {
-  static double screenHeight = Get.context!.height;
-  static double screenWidth = Get.context!.width;
+  static late double screenHeight;
+  static late double screenWidth;
+
+  static void init(BuildContext context) {
+    screenHeight = MediaQuery.of(context).size.height;
+    screenWidth = MediaQuery.of(context).size.width;
+  }
 
   /// Height
   static double height1 = screenHeight / 852;
@@ -34,8 +39,6 @@ class Dimensions {
   static double height46 = screenHeight / 18.52;
   static double height50 = screenHeight / 17.04;
 
-
-
   /// Width
   static double width0p5 = screenWidth / 786;
   static double width1 = screenWidth / 393;
@@ -62,7 +65,6 @@ class Dimensions {
   static double width60 = screenWidth / 6.55;
   static double width96 = screenWidth / 4.093;
 
-
   /// Font Size
   static double fontSize7 = screenHeight / 121.714;
   static double fontSize10 = screenHeight / 85.2;
@@ -85,5 +87,4 @@ class Dimensions {
   static double iconSize13 = screenHeight / 65.54;
   static double iconSize15 = screenHeight / 56.8;
   static double iconSize16 = screenHeight / 53.25;
-
 }
