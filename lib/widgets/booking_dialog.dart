@@ -156,7 +156,7 @@ void bookingDialog(
                                                   trainer: trainer,
                                                   price: booking.price,
                                                   time: booking.time,
-                                                  date: booking.date);
+                                                  date: "${booking.date}/${DateTime.now().year}");
                                               CloudFirestore().addUserBooking(
                                                   userBooking,
                                                   FirebaseAuth.instance
