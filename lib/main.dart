@@ -29,7 +29,6 @@ void main() async {
     );
   } catch (e) {
     print('Initialization error: $e');
-    // You might want to show an error screen here
     runApp(
       MaterialApp(
         home: Scaffold(

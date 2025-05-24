@@ -22,15 +22,22 @@ class UserModel {
 
   factory UserModel.fromJson(var data) {
     List<dynamic> list = data['bookings'] ?? [];
-    List<dynamic> subs = data['subscriptions'] ?? [];
-    
+    List<dynamic> subs = [];
+    try {
+      subs = data['subscriptions'] ?? [];
+    } catch (e) {
+      subs = [];
+      print(e);
+    }
     return UserModel(
-        credits: data['credits'] ?? 0,
+        credits: data['credits'],
         bookings: list.map((booking) => Booking.fromJson(booking, "")).toList(),
-        subscriptions: subs.map((sub) => Subscription.fromJson(sub)).toList(),
-        active: data['active'] ?? false,
-        creditType: data['credit_type'] ?? "",
-        weight: data['weight'] ?? 0,
-        name: data['name'] ?? "");
+        subscriptions: subs.isEmpty
+            ? []
+            : subs.map((sub) => Subscription.fromJson(sub)).toList(),
+        active: data['active'],
+        creditType: data['credit_type'],
+        weight: data['weight'],
+        name: data['name']);
   }
 }

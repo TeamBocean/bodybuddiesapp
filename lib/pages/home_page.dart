@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../utils/constants.dart';
 import '../utils/dimensions.dart';
@@ -40,6 +41,162 @@ class _HomePageState extends State<HomePage>
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
     _animationController.forward();
+    _checkAppVersion();
+  }
+
+  Future<void> _checkAppVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastVersion = prefs.getString('last_app_version');
+    final packageInfo = await PackageInfo.fromPlatform();
+    final currentVersion = packageInfo.version;
+
+    if (lastVersion != currentVersion) {
+      if (mounted) {
+        _showWhatsNewModal();
+        await prefs.setString('last_app_version', currentVersion);
+      }
+    }
+  }
+
+  void _showWhatsNewModal() {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Builder(
+            builder: (BuildContext builderContext) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(builderContext).colorScheme.background,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: EdgeInsets.all(Dimensions.width10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(Dimensions.width15),
+                      decoration: BoxDecoration(
+                        color: Theme.of(builderContext).colorScheme.background,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Image.asset(ASSETS + "logo.png", height: 100,),
+                    ),
+                    SizedBox(height: Dimensions.height20),
+                    MediumTextWidget(
+                      text: "What's New in BodyBuddies!",
+                      fontSize: Dimensions.fontSize14,
+                      color: Theme.of(builderContext).colorScheme.primary,
+                    ),
+                    SizedBox(height: Dimensions.height20),
+                    Container(
+                      padding: EdgeInsets.all(Dimensions.width15),
+                      decoration: BoxDecoration(
+                        color: Theme.of(builderContext).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildWhatsNewItem(
+                            context: builderContext,
+                            icon: Icons.calendar_today,
+                            title: "Improved UI",
+                            description: "Brand new UI for smoother experience.",
+                          ),
+                          SizedBox(height: Dimensions.height15),
+                          _buildWhatsNewItem(
+                            context: builderContext,
+                            icon: Icons.notifications,
+                            title: "Bug Fixes & Improvements",
+                            description: "Under the hood fixes.",
+                          ),
+                          SizedBox(height: Dimensions.height15),
+                          _buildWhatsNewItem(
+                            context: builderContext,
+                            icon: Icons.speed,
+                            title: "New Sessions Page",
+                            description: "New page to see your bookings.",
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: Dimensions.height20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(builderContext).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Dimensions.width10 * 3,
+                          vertical: Dimensions.height10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: MediumTextWidget(
+                        text: "Got it!",
+                        color: Colors.white,
+                        fontSize: Dimensions.fontSize16,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildWhatsNewItem({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.all(Dimensions.width10),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+            size: Dimensions.iconSize16,
+          ),
+        ),
+        SizedBox(width: Dimensions.width15),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MediumTextWidget(
+                text: title,
+                fontSize: Dimensions.fontSize14,
+                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.white,
+              ),
+              SizedBox(height: Dimensions.height5),
+              MediumTextWidget(
+                text: description,
+                fontSize: Dimensions.fontSize12,
+                color: Colors.grey,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -189,7 +346,8 @@ class _HomePageState extends State<HomePage>
                                       Theme.of(context)
                                           .textTheme
                                           .bodyLarge
-                                          ?.color,
+                                          ?.color ??
+                                      Colors.black,
                                 )),
                           ],
                         ),
@@ -319,234 +477,219 @@ class _HomePageState extends State<HomePage>
                   bookingYear == currentDate.year);
             });
           }
-          return SizedBox(
-            height: MediaQuery.of(context).size.height,
-            child: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
-                child: Stack(
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
+            child: Stack(
+              children: [
+                Column(
                   children: [
-                    Column(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: userInformationHeader(),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                HapticFeedback.lightImpact();
-                                // TODO: Navigate to profile
-                              },
-                              child: Hero(
-                                tag: 'profile_avatar',
-                                child: FirebaseAuth
-                                            .instance.currentUser!.photoURL !=
-                                        null
-                                    ? CircleAvatar(
-                                        backgroundColor: Colors.grey.shade400,
-                                        radius: Dimensions.width27,
-                                        backgroundImage: NetworkImage(
-                                          FirebaseAuth.instance.currentUser!
-                                              .photoURL as String,
-                                        ),
-                                      )
-                                    : CircleAvatar(
-                                        backgroundColor: Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withOpacity(0.1),
-                                        radius: Dimensions.width27,
-                                        child: MediumTextWidget(
-                                            text: snapshot.hasData
-                                                ? snapshot.data!.name
-                                                    .substring(0, 1)
-                                                    .toUpperCase()
-                                                : "",
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary),
-                                      ),
-                              ),
-                            ),
-                          ],
+                        Expanded(
+                          child: userInformationHeader(),
                         ),
-                        SizedBox(height: Dimensions.height20),
-                        Align(
-                            alignment: Alignment.topLeft,
-                            child: MediumTextWidget(
-                              text: "Upcoming Bookings",
-                              fontSize: Dimensions.fontSize22,
-                            )),
-                        Container(
-                          margin: EdgeInsets.symmetric(
-                              vertical: Dimensions.height10),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                  onPressed: () {
-                                    HapticFeedback.lightImpact();
-                                    setState(() {
-                                      currentDate = currentDate
-                                          .subtract(const Duration(days: 1));
-                                    });
-                                  },
-                                  icon: Icon(
-                                    Icons.arrow_back_ios,
-                                    color: Theme.of(context).iconTheme.color,
-                                  )),
-                              GestureDetector(
-                                onTap: () async {
-                                  HapticFeedback.lightImpact();
-                                  DateTime? pickedDate = await showDatePicker(
-                                    context: context,
-                                    initialDate: currentDate,
-                                    firstDate:
-                                        DateTime(DateTime.now().year, 1, 1),
-                                    lastDate:
-                                        DateTime(DateTime.now().year, 12, 31),
-                                  );
-                                  if (pickedDate != null) {
-                                    setState(() {
-                                      currentDate = pickedDate;
-                                    });
-                                  }
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: Dimensions.width15,
-                                    vertical: Dimensions.height10,
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            // TODO: Navigate to profile
+                          },
+                          child: Hero(
+                            tag: 'profile_avatar',
+                            child: FirebaseAuth.instance.currentUser!.photoURL != null
+                                ? CircleAvatar(
+                                    backgroundColor: Colors.grey.shade400,
+                                    radius: Dimensions.width27,
+                                    backgroundImage: NetworkImage(
+                                      FirebaseAuth.instance.currentUser!.photoURL as String,
+                                    ),
+                                  )
+                                : CircleAvatar(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withOpacity(0.1),
+                                    radius: Dimensions.width27,
+                                    child: MediumTextWidget(
+                                        text: snapshot.hasData
+                                            ? snapshot.data!.name
+                                                .substring(0, 1)
+                                                .toUpperCase()
+                                            : "",
+                                        color: Theme.of(context).colorScheme.primary),
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: currentDate.day == DateTime.now().day
-                                        ? Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withOpacity(0.1)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: MediumTextWidget(
-                                    text:
-                                        DateFormat.yMMMEd().format(currentDate),
-                                    fontSize: Dimensions.fontSize16,
-                                    color: currentDate.day == DateTime.now().day
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context)
-                                                .textTheme
-                                                .bodyLarge
-                                                ?.color ??
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .onSurface,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                  onPressed: () {
-                                    HapticFeedback.lightImpact();
-                                    setState(() {
-                                      currentDate = currentDate
-                                          .add(const Duration(days: 1));
-                                    });
-                                  },
-                                  icon: Icon(
-                                    Icons.arrow_forward_ios,
-                                    color: Theme.of(context).iconTheme.color,
-                                  )),
-                            ],
                           ),
                         ),
                       ],
                     ),
-                    snapshot.hasData
-                        ? snapshot.data!.bookings.isNotEmpty
-                            ? FadeTransition(
-                                opacity: _fadeAnimation,
-                                child: Padding(
-                                  padding: EdgeInsets.only(
-                                      top: Dimensions.height35 * 6.5,
-                                      bottom: Dimensions.height10 * 6),
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: snapshot.data!.bookings
-                                          .map((booking) => BookingWidget(
-                                                isBooked: true,
-                                                slots: const [],
-                                                booking: booking,
-                                                isAdmin: false,
-                                                month: 0,
-                                              ))
-                                          .toList(),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : snapshot.data!.credits == 0
-                                ? Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      NoBookingsWidget(
-                                        message:
-                                            "Oops, you're out of credits. Let's top you up so you can keep training!",
-                                        showSubHeading: false,
-                                      ),
-                                      SizedBox(height: Dimensions.height20),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const CreditsPage(),
-                                            ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: Dimensions.width20,
-                                            vertical: Dimensions.height10,
-                                          ),
-                                        ),
-                                        child: MediumTextWidget(
-                                          text: "Get Credits",
-                                          color: Colors.white,
-                                          fontSize: Dimensions.fontSize16,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : NoBookingsWidget(
-                                    message:
-                                        "Looks like you've got a free day!\nLet's fix that with a session.",
-                                    showSubHeading: true)
-                        : Center(
-                            child: CircularProgressIndicator(
-                              color: Theme.of(context).colorScheme.primary,
+                    SizedBox(height: Dimensions.height20),
+                    Align(
+                        alignment: Alignment.topLeft,
+                        child: MediumTextWidget(
+                          text: "Upcoming Bookings",
+                          fontSize: Dimensions.fontSize22,
+                        )),
+                    Container(
+                      margin: EdgeInsets.symmetric(vertical: Dimensions.height10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                setState(() {
+                                  currentDate = currentDate
+                                      .subtract(const Duration(days: 1));
+                                });
+                              },
+                              icon: Icon(
+                                Icons.arrow_back_ios,
+                                color: Theme.of(context).iconTheme.color,
+                              )),
+                          GestureDetector(
+                            onTap: () async {
+                              HapticFeedback.lightImpact();
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: currentDate,
+                                firstDate: DateTime(DateTime.now().year, 1, 1),
+                                lastDate: DateTime(DateTime.now().year, 12, 31),
+                              );
+                              if (pickedDate != null) {
+                                setState(() {
+                                  currentDate = pickedDate;
+                                });
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: Dimensions.width15,
+                                vertical: Dimensions.height10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: currentDate.day == DateTime.now().day
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withOpacity(0.1)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: MediumTextWidget(
+                                text: DateFormat.yMMMEd().format(currentDate),
+                                fontSize: Dimensions.fontSize16,
+                                color: currentDate.day == DateTime.now().day
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.color ??
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                              ),
                             ),
-                          )
+                          ),
+                          IconButton(
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                setState(() {
+                                  currentDate = currentDate
+                                      .add(const Duration(days: 1));
+                                });
+                              },
+                              icon: Icon(
+                                Icons.arrow_forward_ios,
+                                color: Theme.of(context).iconTheme.color,
+                              )),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-              ),
+                snapshot.hasData
+                    ? snapshot.data!.bookings.isNotEmpty
+                        ? FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  top: Dimensions.height35 * 6.5,
+                                  bottom: Dimensions.height10 * 6),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: snapshot.data!.bookings
+                                      .map((booking) => BookingWidget(
+                                            isBooked: true,
+                                            slots: const [],
+                                            booking: booking,
+                                            isAdmin: false,
+                                            month: 0,
+                                          ))
+                                      .toList(),
+                                ),
+                              ),
+                            ),
+                          )
+                        : snapshot.data!.credits == 0
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  NoBookingsWidget(
+                                    message:
+                                        "Oops, you're out of credits. Let's top you up so you can keep training!",
+                                    showSubHeading: false,
+                                  ),
+                                  SizedBox(height: Dimensions.height20),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const CreditsPage(),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: Dimensions.width20,
+                                        vertical: Dimensions.height10,
+                                      ),
+                                    ),
+                                    child: MediumTextWidget(
+                                      text: "Get Credits",
+                                      color: Colors.white,
+                                      fontSize: Dimensions.fontSize16,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : NoBookingsWidget(
+                                message:
+                                    "Looks like you've got a free day!\nLet's fix that with a session.",
+                                showSubHeading: true)
+                    : Center(
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      )
+              ],
             ),
           );
         });
