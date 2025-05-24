@@ -33,12 +33,15 @@ class BookingWidget extends StatefulWidget {
 }
 
 class _BookingWidgetState extends State<BookingWidget> {
+  Bookings? _previousData;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Bookings>(
       stream: CloudFirestore().streamBookedDates(""),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
+          _previousData = snapshot.data;
           final isBooked = isAlreadyBooked(widget.booking, snapshot.data!.list);
           final isPast =
               getBookingAsDateTime(widget.booking.time, widget.booking.date)
@@ -77,8 +80,95 @@ class _BookingWidgetState extends State<BookingWidget> {
               ),
             ),
           );
+        } else if (_previousData != null) {
+          // Use previous data while loading
+          final isBooked = isAlreadyBooked(widget.booking, _previousData!.list);
+          final isPast =
+              getBookingAsDateTime(widget.booking.time, widget.booking.date)
+                  .isBefore(DateTime.now());
+          final isDisabled = (isBooked && !widget.isBooked) || isPast;
+
+          return AbsorbPointer(
+            absorbing: isDisabled,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: 0, vertical: Dimensions.height10 / 2),
+              child: Opacity(
+                opacity: isDisabled ? 0.5 : 1,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 165,
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(Dimensions.width15),
+                    ),
+                    color: darkGrey,
+                    child: Padding(
+                      padding: EdgeInsets.all(15),
+                      child: Stack(
+                        children: [
+                          _buildBookingInfo(),
+                          Align(
+                              alignment: Alignment.centerRight,
+                              child: _buildBookingActions(
+                                  context, _previousData!.list)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
         } else {
-          return const Text("Loading");
+          // Show a skeleton loading state for the first load
+          return Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: 0, vertical: Dimensions.height10 / 2),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 165,
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Dimensions.width15),
+                ),
+                color: darkGrey,
+                child: Padding(
+                  padding: EdgeInsets.all(15),
+                  child: Stack(
+                    children: [
+                      _buildBookingInfo(),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            Container(
+                              width: 100,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
         }
       },
     );
