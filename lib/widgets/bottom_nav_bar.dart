@@ -63,8 +63,19 @@ class _BottomNavBarState extends State<BottomNavBar> {
             BottomNavigationBarItem(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               icon: Icon(
-                Icons.settings,
+                Icons.history,
                 color: widget.currentIndex == 2
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).textTheme.bodyLarge?.color,
+                size: Dimensions.height25,
+              ),
+              label: "My Sessions",
+            ),
+            BottomNavigationBarItem(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              icon: Icon(
+                Icons.settings,
+                color: widget.currentIndex == 3
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).textTheme.bodyLarge?.color,
                 size: Dimensions.height25,

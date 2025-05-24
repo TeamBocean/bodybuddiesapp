@@ -478,7 +478,7 @@ class _HomePageState extends State<HomePage>
                                 opacity: _fadeAnimation,
                                 child: Padding(
                                   padding: EdgeInsets.only(
-                                      top: Dimensions.height35 * 5,
+                                      top: Dimensions.height35 * 6.5,
                                       bottom: Dimensions.height10 * 6),
                                   child: SingleChildScrollView(
                                     child: Column(

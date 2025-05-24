@@ -9,6 +9,7 @@ import '../utils/dimensions.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'bookings_page.dart';
 import 'home_page.dart';
+import 'my_sessions_page.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({Key? key}) : super(key: key);
@@ -27,6 +28,7 @@ class _BookingsPageState extends State<MainScaffold> {
     pages = [
       HomePage(),
       BookingsPage(),
+      MySessionsPage(),
       SettingsPage(),
     ];
     _controller = PageController(initialPage: 0);
