@@ -17,6 +17,8 @@ class MySessionsPage extends StatefulWidget {
 }
 
 class _MySessionsPageState extends State<MySessionsPage> {
+  bool _showCompletedSessions = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,6 +51,13 @@ class _MySessionsPageState extends State<MySessionsPage> {
             final bookingDateTime = _getBookingDateTime(booking);
             return bookingDateTime.isAfter(now);
           }).toList();
+
+          // Filter and sort all bookings
+          final allBookings = user.bookings.where((booking) {
+            final bookingDateTime = _getBookingDateTime(booking);
+            return _showCompletedSessions || bookingDateTime.isAfter(now);
+          }).toList()
+            ..sort((a, b) => _getBookingDateTime(b).compareTo(_getBookingDateTime(a)));
 
           return SingleChildScrollView(
             child: Padding(
@@ -90,13 +99,50 @@ class _MySessionsPageState extends State<MySessionsPage> {
                   ),
                   SizedBox(height: Dimensions.height20),
                   
-                  // All Bookings Section
-                  MediumTextWidget(
-                    text: "All Sessions",
-                    fontSize: Dimensions.fontSize22,
+                  // All Bookings Section Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      MediumTextWidget(
+                        text: "All Sessions",
+                        fontSize: Dimensions.fontSize22,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _showCompletedSessions = !_showCompletedSessions;
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Dimensions.width10,
+                            vertical: Dimensions.height5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _showCompletedSessions ? Icons.visibility : Icons.visibility_off,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: Dimensions.iconSize20,
+                              ),
+                              SizedBox(width: Dimensions.width5),
+                              MediumTextWidget(
+                                text: _showCompletedSessions ? "Hide Completed" : "Show Completed",
+                                fontSize: Dimensions.fontSize14,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: Dimensions.height10),
-                  ...user.bookings.map((booking) => Padding(
+                  ...allBookings.map((booking) => Padding(
                     padding: EdgeInsets.only(bottom: Dimensions.height10),
                     child: BookingWidget(
                       isBooked: true,
