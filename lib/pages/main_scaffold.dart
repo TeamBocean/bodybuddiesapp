@@ -15,47 +15,60 @@ class MainScaffold extends StatefulWidget {
   const MainScaffold({Key? key}) : super(key: key);
 
   @override
-  State<MainScaffold> createState() => _BookingsPageState();
+  State<MainScaffold> createState() => _MainScaffoldState();
 }
 
-class _BookingsPageState extends State<MainScaffold> {
-  List<Widget> pages = [];
-  int currentIndex = 0;
-  PageController? _controller;
+class _MainScaffoldState extends State<MainScaffold> {
+  final List<Widget> _pages = [
+    const HomePage(),
+    const BookingsPage(),
+    const MySessionsPage(),
+    const SettingsPage(),
+  ];
+  
+  int _currentIndex = 0;
+  late final PageController _controller;
 
   @override
   void initState() {
-    pages = [
-      HomePage(),
-      BookingsPage(),
-      MySessionsPage(),
-      SettingsPage(),
-    ];
-    _controller = PageController(initialPage: 0);
     super.initState();
+    _controller = PageController(initialPage: 0);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Stack(
-        children: [
-          PageView(
-            physics: NeverScrollableScrollPhysics(),
-            children: pages,
-            controller: _controller,
-            onPageChanged: (page) {
-              setState(() {
-                currentIndex = page;
-              });
-            },
-          ),
-          BottomNavBar(
-            currentIndex: currentIndex,
-            controller: _controller,
-          )
-        ],
+      body: SafeArea(
+        child: Stack(
+          children: [
+            PageView(
+              physics: const NeverScrollableScrollPhysics(),
+              children: _pages,
+              controller: _controller,
+              onPageChanged: (page) {
+                setState(() {
+                  _currentIndex = page;
+                });
+              },
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: BottomNavBar(
+                currentIndex: _currentIndex,
+                controller: _controller,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

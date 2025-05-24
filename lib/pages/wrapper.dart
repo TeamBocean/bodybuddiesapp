@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:bodybuddiesapp/providers/theme_provider.dart';
 import 'package:bodybuddiesapp/utils/app_theme.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'bookings_page.dart';
 
@@ -16,13 +17,29 @@ class Wrapper extends StatefulWidget {
   const Wrapper({Key? key}) : super(key: key);
 
   @override
-  State<Wrapper> createState() => _MainScaffoldState();
+  State<Wrapper> createState() => _WrapperState();
 }
 
-class _MainScaffoldState extends State<Wrapper> {
+class _WrapperState extends State<Wrapper> {
   @override
   Widget build(BuildContext context) {
     Dimensions.init(context);
-    return SignInPage();
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.active) {
+          User? user = snapshot.data;
+          if (user == null) {
+            return const SignInPage();
+          }
+          return const MainScaffold();
+        }
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+    );
   }
 }
