@@ -21,24 +21,16 @@ class UserModel {
       required this.weight});
 
   factory UserModel.fromJson(var data) {
-    print(data['bookings']);
-    List<dynamic> list = data['bookings'];
-    List<dynamic> subs = [];
-    try {
-      subs = data['subscriptions'];
-    } catch (e) {
-      subs = [];
-      print(e);
-    }
+    List<dynamic> list = data['bookings'] ?? [];
+    List<dynamic> subs = data['subscriptions'] ?? [];
+    
     return UserModel(
-        credits: data['credits'],
+        credits: data['credits'] ?? 0,
         bookings: list.map((booking) => Booking.fromJson(booking, "")).toList(),
-        subscriptions: subs.isEmpty
-            ? []
-            : subs.map((sub) => Subscription.fromJson(sub)).toList(),
-        active: data['active'],
-        creditType: data['credit_type'],
-        weight: data['weight'],
-        name: data['name']);
+        subscriptions: subs.map((sub) => Subscription.fromJson(sub)).toList(),
+        active: data['active'] ?? false,
+        creditType: data['credit_type'] ?? "",
+        weight: data['weight'] ?? 0,
+        name: data['name'] ?? "");
   }
 }
