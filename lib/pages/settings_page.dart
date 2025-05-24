@@ -9,6 +9,7 @@ import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../services/authentication.dart';
@@ -24,193 +25,280 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
-    final labelColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey;
+    final textColor =
+        Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
+    final labelColor =
+        Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey;
 
     return Container(
       height: MediaQuery.of(context).size.height,
       child: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                SizedBox(height: Dimensions.height20),
+                // Profile Header
+                Stack(
+                  alignment: Alignment.center,
                   children: [
-                    MediumTextWidget(text: "Profile", color: textColor),
-                    // Icon(
-                    //   Icons.notification_add,
-                    //   color: Colors.yellow,
-                    // )
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        // TODO: Implement profile picture change
+                      },
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: Dimensions.width50,
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.1),
+                            backgroundImage: FirebaseAuth.instance.currentUser?.photoURL != null
+                                ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
+                                : null,
+                            child: FirebaseAuth.instance.currentUser?.photoURL == null
+                                ? StreamBuilder<UserModel>(
+                                    stream: CloudFirestore().streamUserData(
+                                        FirebaseAuth.instance.currentUser!.uid),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData &&
+                                          snapshot.data!.name.isNotEmpty) {
+                                        return MediumTextWidget(
+                                          text: snapshot.data!.name
+                                              .substring(0, 1)
+                                              .toUpperCase(),
+                                          fontSize: Dimensions.fontSize32,
+                                          color:
+                                              Theme.of(context).colorScheme.primary,
+                                        );
+                                      }
+                                      return Icon(
+                                        Icons.person,
+                                        size: Dimensions.width15 * 3,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      );
+                                    },
+                                  )
+                                : null,
+                          ),
+                          // Positioned(
+                          //   right: 0,
+                          //   bottom: 0,
+                          //   child: Container(
+                          //     padding: EdgeInsets.all(Dimensions.width5),
+                          //     decoration: BoxDecoration(
+                          //       color: Theme.of(context).colorScheme.primary,
+                          //       shape: BoxShape.circle,
+                          //     ),
+                          //     child: Icon(
+                          //       Icons.edit,
+                          //       size: Dimensions.iconSize16,
+                          //       color: Theme.of(context).colorScheme.onPrimary,
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                SizedBox(
-                  height: Dimensions.height10,
-                ),
-                CircleAvatar(
-                  radius: Dimensions.width50,
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  child: Icon(
-                    Icons.person,
-                    size: Dimensions.width15 * 3,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-                SizedBox(
-                  height: Dimensions.height10,
-                ),
+                SizedBox(height: Dimensions.height15),
+                // User Info
                 StreamBuilder<UserModel>(
-                    stream: CloudFirestore()
-                        .streamUserData(FirebaseAuth.instance.currentUser!.uid),
-                    builder: (context, snapshot) {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          snapshot.hasData
-                              ? MediumTextWidget(
-                                  text: "${snapshot.data!.name}",
-                                  color: textColor)
-                              : MediumTextWidget(
-                                  text: "Loading", color: textColor),
-                          MediumTextWidget(
-                            text: "${FirebaseAuth.instance.currentUser!.email}",
-                            color: labelColor,
-                            fontSize: Dimensions.fontSize11,
-                          ),
-                        ],
-                      );
-                    }),
-                SizedBox(
-                  height: Dimensions.height10,
+                  stream: CloudFirestore()
+                      .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+                  builder: (context, snapshot) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        snapshot.hasData
+                            ? MediumTextWidget(
+                                text: "${snapshot.data!.name}",
+                                fontSize: Dimensions.fontSize20,
+                                color: textColor)
+                            : MediumTextWidget(
+                                text: "Loading", color: textColor),
+                        SizedBox(height: Dimensions.height5),
+                        MediumTextWidget(
+                          text: "${FirebaseAuth.instance.currentUser!.email}",
+                          color: labelColor,
+                          fontSize: Dimensions.fontSize14,
+                        ),
+                      ],
+                    );
+                  },
                 ),
+                SizedBox(height: Dimensions.height20),
+                // Subscription & Credits Cards
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoCard(
+                        icon: Icons.card_membership,
+                        title: "Subscription",
+                        value: (context, snapshot) => snapshot.hasData
+                            ? "${snapshot.data!.creditType}"
+                            : "Loading...",
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          // TODO: Implement subscription upgrade
+                        },
+                      ),
+                    ),
+                    SizedBox(width: Dimensions.width10),
+                    Expanded(
+                      child: _buildInfoCard(
+                        icon: Icons.monetization_on,
+                        title: "Credits",
+                        value: (context, snapshot) => snapshot.hasData
+                            ? "${snapshot.data!.credits}"
+                            : "Loading...",
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CreditsPage()));
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Dimensions.height20),
+                // Settings Options
+                _buildSettingsSection(
+                  title: "Account",
+                  options: [
+                    SettingsOption(
+                      title: "Profile",
+                      subtitle: "Edit your personal info",
+                      icon: Icons.person,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ProfilePage()));
+                      },
+                    ),
+                    SettingsOption(
+                      title: "Training Credits",
+                      subtitle: "See your remaining sessions",
+                      icon: Icons.monetization_on,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => CreditsPage()));
+                      },
+                    ),
+                    SettingsOption(
+                      title: "Progress",
+                      subtitle: "Track your performance",
+                      icon: Icons.browse_gallery,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ProgressPicturesPage()));
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: Dimensions.height20),
+                // Appearance Section
+                _buildSettingsSection(
+                  title: "Appearance",
+                  options: [
+                    SettingsOption(
+                      title: "Dark Mode",
+                      subtitle: "Switch between light and dark theme",
+                      icon: themeProvider.isDarkMode
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        themeProvider.setThemeMode(
+                          themeProvider.isDarkMode ? ThemeMode.light : ThemeMode.dark,
+                        );
+                      },
+                      trailing: Switch(
+                        value: themeProvider.isDarkMode,
+                        onChanged: (value) {
+                          HapticFeedback.lightImpact();
+                          themeProvider.setThemeMode(
+                            value ? ThemeMode.dark : ThemeMode.light,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Dimensions.height20),
+                // Logout Button
                 SizedBox(
-                  width: Dimensions.width20 * 10,
-                  height: Dimensions.height10 * 6,
-                  child: Card(
-                    color: Theme.of(context).cardTheme.color,
-                    elevation: 0,
-                    child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: Dimensions.height10),
-                      child: StreamBuilder<UserModel>(
-                          stream: CloudFirestore().streamUserData(
-                              FirebaseAuth.instance.currentUser!.uid),
-                          builder: (context, snapshot) {
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      MediumTextWidget(
-                                        text: "Subscription: ",
-                                        color: labelColor,
-                                        fontSize: Dimensions.fontSize11,
-                                      ),
-                                      MediumTextWidget(
-                                        text: snapshot.hasData
-                                            ? "${snapshot.data!.creditType}"
-                                            : "Loading...",
-                                        color: textColor,
-                                        fontSize: Dimensions.fontSize14,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  width: 0.2,
-                                  height: Dimensions.height10 * 4,
-                                  color: textColor,
-                                ),
-                                Expanded(
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      MediumTextWidget(
-                                        text: "Credits: ",
-                                        color: labelColor,
-                                        fontSize: Dimensions.fontSize11,
-                                      ),
-                                      MediumTextWidget(
-                                        text: snapshot.hasData
-                                            ? "${snapshot.data!.credits}"
-                                            : "Loading...",
-                                        color: textColor,
-                                        fontSize: Dimensions.fontSize14,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          }),
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      padding: EdgeInsets.symmetric(vertical: Dimensions.height15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(Dimensions.width10),
+                      ),
+                    ),
+                    onPressed: () {
+                      HapticFeedback.mediumImpact();
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text("Log Out"),
+                          content: Text("Are you sure you want to log out?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Authentication.signOut(context: context);
+                              },
+                              child: Text(
+                                "Log Out",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.logout, size: Dimensions.iconSize20),
+                        SizedBox(width: Dimensions.width10),
+                        Text(
+                          "Log Out",
+                          style: TextStyle(
+                            fontSize: Dimensions.fontSize16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: Dimensions.height10,
-                ),
-                GestureDetector(
-                    onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => ProfilePage()));
-                    },
-                    child: settingsOption("Profile", Icons.person)),
-                // settingsOption("Notification", Icons.notifications),
-                GestureDetector(
-                    onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => CreditsPage()));
-                    },
-                    child: settingsOption(
-                        "Training Credits", Icons.monetization_on)),
-                GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ProgressPicturesPage()));
-                    },
-                    child: settingsOption("Progress", Icons.browse_gallery)),
-                GestureDetector(
-                    onTap: () {
-                      themeProvider.setThemeMode(
-                        themeProvider.isDarkMode
-                            ? ThemeMode.light
-                            : ThemeMode.dark,
-                      );
-                    },
-                    child: settingsOption(
-                      themeProvider.isDarkMode ? "Light Mode" : "Dark Mode",
-                      themeProvider.isDarkMode
-                          ? Icons.light_mode
-                          : Icons.dark_mode,
-                    )),
-                SizedBox(
-                  height: Dimensions.height10 * 2,
-                ),
-                SizedBox(
-                  width: Dimensions.width20 * 5,
-                  child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(Dimensions.width10),
-                              side: BorderSide(color: Theme.of(context).colorScheme.onPrimary))),
-                      onPressed: () => Authentication.signOut(context: context),
-                      child: Center(
-                        child: MediumTextWidget(
-                          text: "Log Out",
-                          fontSize: Dimensions.fontSize14,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      )),
-                ),
-                SizedBox(height: Dimensions.height20), // Add bottom padding
+                SizedBox(height: Dimensions.height20),
+                // Add extra padding for bottom navigation bar
+                SizedBox(height: Dimensions.height10 * 6),
               ],
             ),
           ),
@@ -219,43 +307,145 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget settingsOption(String title, IconData icon) {
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
-    final iconColor = Theme.of(context).colorScheme.primary;
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required String Function(BuildContext, AsyncSnapshot<UserModel>) value,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(Dimensions.width15),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: Theme.of(context).colorScheme.primary,
+              size: Dimensions.iconSize20,
+            ),
+            SizedBox(height: Dimensions.height10),
+            StreamBuilder<UserModel>(
+              stream: CloudFirestore().streamUserData(FirebaseAuth.instance.currentUser!.uid),
+              builder: (context, snapshot) {
+                return Column(
+                  children: [
+                    MediumTextWidget(
+                      text: title,
+                      fontSize: Dimensions.fontSize12,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurface,
+                    ),
+                    SizedBox(height: Dimensions.height5),
+                    MediumTextWidget(
+                      text: value(context, snapshot),
+                      fontSize: Dimensions.fontSize16,
+                      color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: Dimensions.height10 * 6,
-      child: Card(
-        color: Theme.of(context).cardTheme.color,
-        elevation: 0,
+  Widget _buildSettingsSection({
+    required String title,
+    required List<SettingsOption> options,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: Dimensions.width5),
+          child: MediumTextWidget(
+            text: title,
+            fontSize: Dimensions.fontSize14,
+            color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        SizedBox(height: Dimensions.height10),
+        ...options.map((option) => option),
+      ],
+    );
+  }
+}
+
+class SettingsOption extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  const SettingsOption({
+    Key? key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+    this.trailing,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(bottom: Dimensions.height10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: Dimensions.width10),
+          padding: EdgeInsets.all(Dimensions.width15),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Icon(
-                    icon,
-                    color: iconColor,
-                  ),
-                  SizedBox(
-                    width: Dimensions.width10,
-                  ),
-                  MediumTextWidget(
-                    text: title,
-                    color: textColor,
-                    fontSize: Dimensions.fontSize16,
-                  ),
-                ],
-              ),
               Icon(
-                Icons.keyboard_arrow_right_rounded,
-                color: textColor,
-                size: Dimensions.height35,
-              )
+                icon,
+                color: Theme.of(context).colorScheme.primary,
+                size: Dimensions.iconSize20,
+              ),
+              SizedBox(width: Dimensions.width15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    MediumTextWidget(
+                      text: title,
+                      fontSize: Dimensions.fontSize16,
+                      color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+                    ),
+                    SizedBox(height: Dimensions.height5),
+                    MediumTextWidget(
+                      text: subtitle,
+                      fontSize: Dimensions.fontSize12,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+              if (trailing != null)
+                trailing!
+              else
+                Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+                  size: Dimensions.iconSize20,
+                ),
             ],
           ),
         ),
