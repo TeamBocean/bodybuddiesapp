@@ -22,7 +22,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   DateTime currentDate = DateTime.now();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -152,7 +153,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 },
                                 icon: Icon(
                                   Icons.arrow_back_ios,
-                                  color: Theme.of(context).iconTheme.color ?? Theme.of(context).textTheme.bodyLarge?.color,
+                                  color: Theme.of(context).iconTheme.color ??
+                                      Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color,
                                 )),
                             GestureDetector(
                               onTap: () {
@@ -163,7 +168,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               child: MediumTextWidget(
                                 text: DateFormat.yMMMEd().format(currentDate),
                                 fontSize: Dimensions.fontSize18,
-                                color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                                color: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.color ??
+                                    Colors.black,
                               ),
                             ),
                             IconButton(
@@ -175,7 +184,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                 },
                                 icon: Icon(
                                   Icons.arrow_forward_ios,
-                                  color: Theme.of(context).iconTheme.color ?? Theme.of(context).textTheme.bodyLarge?.color,
+                                  color: Theme.of(context).iconTheme.color ??
+                                      Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color,
                                 )),
                           ],
                         ),
@@ -288,7 +301,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget userView() {
     return FutureBuilder<UserModel>(
-        future: CloudFirestore().getUserData(FirebaseAuth.instance.currentUser!.uid),
+        future: CloudFirestore()
+            .getUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             snapshot.data!.bookings.removeWhere((booking) {
@@ -326,22 +340,32 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               },
                               child: Hero(
                                 tag: 'profile_avatar',
-                                child: FirebaseAuth.instance.currentUser!.photoURL != null
+                                child: FirebaseAuth
+                                            .instance.currentUser!.photoURL !=
+                                        null
                                     ? CircleAvatar(
                                         backgroundColor: Colors.grey.shade400,
                                         radius: Dimensions.width27,
                                         backgroundImage: NetworkImage(
-                                          FirebaseAuth.instance.currentUser!.photoURL as String,
+                                          FirebaseAuth.instance.currentUser!
+                                              .photoURL as String,
                                         ),
                                       )
                                     : CircleAvatar(
-                                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withOpacity(0.1),
                                         radius: Dimensions.width27,
                                         child: MediumTextWidget(
                                             text: snapshot.hasData
-                                                ? snapshot.data!.name.substring(0, 1).toUpperCase()
+                                                ? snapshot.data!.name
+                                                    .substring(0, 1)
+                                                    .toUpperCase()
                                                 : "",
-                                            color: Theme.of(context).colorScheme.primary),
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary),
                                       ),
                               ),
                             ),
@@ -355,7 +379,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               fontSize: Dimensions.fontSize22,
                             )),
                         Container(
-                          margin: EdgeInsets.symmetric(vertical: Dimensions.height10),
+                          margin: EdgeInsets.symmetric(
+                              vertical: Dimensions.height10),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
@@ -374,7 +399,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                   onPressed: () {
                                     HapticFeedback.lightImpact();
                                     setState(() {
-                                      currentDate = currentDate.subtract(const Duration(days: 1));
+                                      currentDate = currentDate
+                                          .subtract(const Duration(days: 1));
                                     });
                                   },
                                   icon: Icon(
@@ -395,16 +421,26 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                   ),
                                   decoration: BoxDecoration(
                                     color: currentDate.day == DateTime.now().day
-                                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withOpacity(0.1)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: MediumTextWidget(
-                                    text: DateFormat.yMMMEd().format(currentDate),
+                                    text:
+                                        DateFormat.yMMMEd().format(currentDate),
                                     fontSize: Dimensions.fontSize16,
                                     color: currentDate.day == DateTime.now().day
                                         ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+                                        : Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge
+                                                ?.color ??
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                   ),
                                 ),
                               ),
@@ -412,7 +448,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                   onPressed: () {
                                     HapticFeedback.lightImpact();
                                     setState(() {
-                                      currentDate = currentDate.add(const Duration(days: 1));
+                                      currentDate = currentDate
+                                          .add(const Duration(days: 1));
                                     });
                                   },
                                   icon: Icon(
@@ -435,7 +472,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                                   child: SingleChildScrollView(
                                     child: Column(
                                       mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
                                       children: snapshot.data!.bookings
                                           .map((booking) => BookingWidget(
                                                 isBooked: true,
@@ -467,7 +505,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget userInformationHeader() {
     return FutureBuilder<UserModel>(
-        future: CloudFirestore().getUserData(FirebaseAuth.instance.currentUser!.uid),
+        future: CloudFirestore()
+            .getUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return Column(
@@ -475,12 +514,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               children: [
                 MediumTextWidget(
                     text: getTodaysDate(),
-                    color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).textTheme.bodyMedium?.color ??
+                        Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.7),
                     fontSize: Dimensions.fontSize14),
                 SizedBox(height: Dimensions.height5),
                 MediumTextWidget(
                   text: "Hi, ${snapshot.data!.name}",
-                  color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+                  color: Theme.of(context).textTheme.bodyLarge?.color ??
+                      Theme.of(context).colorScheme.onSurface,
                 ),
                 SizedBox(height: Dimensions.height10),
                 Container(
@@ -489,7 +533,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     vertical: Dimensions.height5,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(

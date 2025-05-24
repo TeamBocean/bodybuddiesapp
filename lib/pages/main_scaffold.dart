@@ -18,7 +18,6 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _BookingsPageState extends State<MainScaffold> {
-
   List<Widget> pages = [];
   int currentIndex = 0;
   PageController? _controller;

@@ -23,26 +23,26 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
   Widget build(BuildContext context) {
     return _isSigningIn
         ? CircularProgressIndicator(
-      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-    )
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          )
         : FutureBuilder(
-      future: Authentication.initializeFirebase(context: context),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Text('Error initializing Firebase');
-        } else if (snapshot.connectionState == ConnectionState.done) {
-          return SignInButton(
-            Buttons.Apple,
-            onPressed: () => onSignInClicked(),
+            future: Authentication.initializeFirebase(context: context),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Text('Error initializing Firebase');
+              } else if (snapshot.connectionState == ConnectionState.done) {
+                return SignInButton(
+                  Buttons.Apple,
+                  onPressed: () => onSignInClicked(),
+                );
+              }
+              return const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.orange,
+                ),
+              );
+            },
           );
-        }
-        return const CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(
-            Colors.orange,
-          ),
-        );
-      },
-    );
   }
 
   void onSignInClicked() async {
@@ -64,7 +64,7 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
               builder: (context) => MainScaffold(),
             ),
           );
-        }else {
+        } else {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => OnBoardingPage(),

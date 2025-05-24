@@ -292,7 +292,7 @@ class CloudFirestore {
 
   Future<List<dynamic>> getAllPTs() async {
     QuerySnapshot snapshot =
-    await reference.collection("personal_trainers").get();
+        await reference.collection("personal_trainers").get();
     return snapshot.docs.map((pt) => pt.data()).toList();
   }
 }

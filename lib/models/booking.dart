@@ -29,7 +29,7 @@ class Booking {
       "name": bookingName,
       "price": price,
       "time": time,
-      "trainer" : trainer,
+      "trainer": trainer,
       "date": date,
       "id": id
     };

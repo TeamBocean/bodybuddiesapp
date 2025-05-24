@@ -25,8 +25,8 @@ class UserModel {
     List<dynamic> list = data['bookings'];
     List<dynamic> subs = [];
     try {
-      subs  = data['subscriptions'];
-    }catch(e) {
+      subs = data['subscriptions'];
+    } catch (e) {
       subs = [];
       print(e);
     }
