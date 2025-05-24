@@ -64,7 +64,7 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
               builder: (context) => MainScaffold(),
             ),
           );
-        }else {
+        } else {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => OnBoardingPage(),

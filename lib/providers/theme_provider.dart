@@ -31,4 +31,4 @@ class ThemeProvider with ChangeNotifier {
   }
 
   bool get isDarkMode => _themeMode == ThemeMode.dark;
-} 
+}

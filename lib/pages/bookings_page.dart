@@ -21,7 +21,8 @@ class BookingsPage extends StatefulWidget {
   State<BookingsPage> createState() => _BookingsPageState();
 }
 
-class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderStateMixin {
+class _BookingsPageState extends State<BookingsPage>
+    with SingleTickerProviderStateMixin {
   List<Widget> dates = [];
   String selectedValue = "Mark";
   final DateFormat _dateFormat = DateFormat('HH:mm');
@@ -53,7 +54,7 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
     _animationController.forward();
-    
+
     loadBookedDates().whenComplete(() {
       setState(() {
         loadedBookedDates = true;
@@ -227,7 +228,8 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
       height: MediaQuery.of(context).size.height,
       child: SafeArea(
         child: StreamBuilder<UserModel>(
-            stream: CloudFirestore().streamUserData(FirebaseAuth.instance.currentUser!.uid),
+            stream: CloudFirestore()
+                .streamUserData(FirebaseAuth.instance.currentUser!.uid),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return Column(
@@ -240,7 +242,8 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                       child: Stack(
                         children: [
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: Dimensions.width15),
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               physics: const BouncingScrollPhysics(),
@@ -262,7 +265,9 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                                   end: Alignment.centerRight,
                                   colors: [
                                     Theme.of(context).scaffoldBackgroundColor,
-                                    Theme.of(context).scaffoldBackgroundColor.withOpacity(0),
+                                    Theme.of(context)
+                                        .scaffoldBackgroundColor
+                                        .withOpacity(0),
                                   ],
                                 ),
                               ),
@@ -279,7 +284,9 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                                   end: Alignment.centerLeft,
                                   colors: [
                                     Theme.of(context).scaffoldBackgroundColor,
-                                    Theme.of(context).scaffoldBackgroundColor.withOpacity(0),
+                                    Theme.of(context)
+                                        .scaffoldBackgroundColor
+                                        .withOpacity(0),
                                   ],
                                 ),
                               ),
@@ -319,33 +326,42 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: EdgeInsets.only(
-                                bottom: Dimensions.height50 + Dimensions.height20),
+                                bottom:
+                                    Dimensions.height50 + Dimensions.height20),
                             child: SizedBox(
                               height: MediaQuery.of(context).size.height -
-                                  (Dimensions.height50 * 4 + Dimensions.height10 * 8),
+                                  (Dimensions.height50 * 4 +
+                                      Dimensions.height10 * 8),
                               child: SingleChildScrollView(
                                 physics: const BouncingScrollPhysics(),
                                 child: Column(
                                   children: slots.length == 0
                                       ? [noBookings()]
-                                      : slots.map((booking) => AbsorbPointer(
-                                            absorbing: snapshot.data!.bookings
-                                                    .firstWhereOrNull((element) =>
-                                                        formatBookingDate(element).day ==
-                                                            currentDay.add(Duration(
-                                                                    days: currentDayPage -
-                                                                        365))
-                                                                .day &&
-                                                        formatBookingDate(element).month ==
-                                                            currentDay.add(Duration(
-                                                                    days: currentDayPage -
-                                                                        365))
-                                                                .month) !=
-                                                null
-                                            ? true
-                                            : false,
-                                            child: booking,
-                                          )).toList(),
+                                      : slots
+                                          .map((booking) => AbsorbPointer(
+                                                absorbing: snapshot.data!.bookings.firstWhereOrNull((element) =>
+                                                            formatBookingDate(
+                                                                        element)
+                                                                    .day ==
+                                                                currentDay
+                                                                    .add(Duration(
+                                                                        days: currentDayPage -
+                                                                            365))
+                                                                    .day &&
+                                                            formatBookingDate(
+                                                                        element)
+                                                                    .month ==
+                                                                currentDay
+                                                                    .add(Duration(
+                                                                        days: currentDayPage -
+                                                                            365))
+                                                                    .month) !=
+                                                        null
+                                                    ? true
+                                                    : false,
+                                                child: booking,
+                                              ))
+                                          .toList(),
                                 ),
                               ),
                             ),
@@ -381,12 +397,16 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                   return StatefulBuilder(
                     builder: (BuildContext context, StateSetter setState) {
                       return Container(
-                        padding: EdgeInsets.symmetric(horizontal: Dimensions.width10),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: Dimensions.width10),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .outline
+                                .withOpacity(0.2),
                           ),
                         ),
                         child: DropdownButton<String>(
@@ -397,7 +417,9 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                           ),
                           dropdownColor: Theme.of(context).cardTheme.color,
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                            color:
+                                Theme.of(context).textTheme.bodyLarge?.color ??
+                                    Colors.black,
                             fontSize: Dimensions.fontSize16,
                           ),
                           underline: const SizedBox(),
@@ -408,7 +430,8 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                             });
                             initDates(context);
                           },
-                          items: pts.map<DropdownMenuItem<String>>((String value) {
+                          items:
+                              pts.map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text("Coach: $value"),
@@ -435,7 +458,8 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.2),
                   ),
                 ),
                 child: Row(
@@ -448,7 +472,8 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                     ),
                     SizedBox(width: Dimensions.width5),
                     MediumTextWidget(
-                      text: "${months[currentDay.month - 1]} ${currentDay.year}",
+                      text:
+                          "${months[currentDay.month - 1]} ${currentDay.year}",
                       fontSize: Dimensions.fontSize16,
                     ),
                   ],
@@ -500,8 +525,10 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
   }
 
   Widget dateWidget(DateTime dateTime, String weekDay, bool isCurrent) {
-    bool hasBookings = bookings?.list[dateTime.month.toString()]?[dateTime.day.toString()] != null;
-    
+    bool hasBookings = bookings?.list[dateTime.month.toString()]
+            ?[dateTime.day.toString()] !=
+        null;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: Dimensions.width10 / 2.5),
       child: GestureDetector(
@@ -527,8 +554,8 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
           width: Dimensions.width10 * 4,
           height: Dimensions.height10 * 5.5,
           child: Card(
-            color: isCurrent 
-                ? Theme.of(context).colorScheme.primary 
+            color: isCurrent
+                ? Theme.of(context).colorScheme.primary
                 : Theme.of(context).cardTheme.color,
             elevation: isCurrent ? 4 : 1,
             shape: RoundedRectangleBorder(
@@ -539,24 +566,26 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                 MediumTextWidget(
                   text: dateTime.day.toString(),
                   fontSize: Dimensions.fontSize14,
-                  color: isCurrent 
-                      ? Colors.white 
-                      : Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  color: isCurrent
+                      ? Colors.white
+                      : Theme.of(context).textTheme.bodyLarge?.color ??
+                          Colors.black,
                 ),
                 MediumTextWidget(
                   text: weekDay,
                   fontSize: Dimensions.fontSize12,
-                  color: isCurrent 
-                      ? Colors.white 
-                      : Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                  color: isCurrent
+                      ? Colors.white
+                      : Theme.of(context).textTheme.bodyLarge?.color ??
+                          Colors.black,
                 ),
                 if (hasBookings)
                   Container(
                     width: 4,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isCurrent 
-                          ? Colors.white 
+                      color: isCurrent
+                          ? Colors.white
                           : Theme.of(context).colorScheme.primary,
                       shape: BoxShape.circle,
                     ),
@@ -588,13 +617,15 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
             MediumTextWidget(
               text: "Looks like today's fully booked!",
               fontSize: Dimensions.fontSize20,
-              color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+              color:
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
             ),
             SizedBox(height: Dimensions.height10),
             MediumTextWidget(
               text: "But we'll be back tomorrow – see you then!",
               fontSize: Dimensions.fontSize14,
-              color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
+              color:
+                  Theme.of(context).textTheme.bodyMedium?.color ?? Colors.grey,
             ),
             SizedBox(height: Dimensions.height20),
             ElevatedButton.icon(
@@ -602,7 +633,8 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
                 HapticFeedback.lightImpact();
                 // Find next Monday
                 DateTime now = DateTime.now();
-                DateTime nextMonday = now.add(Duration(days: (8 - now.weekday) % 7));
+                DateTime nextMonday =
+                    now.add(Duration(days: (8 - now.weekday) % 7));
                 if (nextMonday.weekday != DateTime.monday) {
                   nextMonday = nextMonday.add(const Duration(days: 7));
                 }

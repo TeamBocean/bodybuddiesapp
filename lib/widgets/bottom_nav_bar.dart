@@ -28,11 +28,11 @@ class _BottomNavBarState extends State<BottomNavBar> {
           backgroundColor: Theme.of(context).colorScheme.surface,
           onTap: onTabTapped,
           currentIndex: widget.currentIndex,
-          selectedLabelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+          selectedLabelStyle:
+              TextStyle(color: Theme.of(context).colorScheme.primary),
           unselectedLabelStyle: TextStyle(
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-            fontSize: Dimensions.fontSize12
-          ),
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+              fontSize: Dimensions.fontSize12),
           selectedItemColor: Theme.of(context).colorScheme.primary,
           type: BottomNavigationBarType.fixed,
           unselectedItemColor: Theme.of(context).textTheme.bodyLarge?.color,
@@ -42,7 +42,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               icon: Image.asset(
                 ASSETS + "home.png",
-                color: widget.currentIndex == 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).textTheme.bodyLarge?.color,
+                color: widget.currentIndex == 0
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).textTheme.bodyLarge?.color,
                 height: Dimensions.height25,
               ),
               label: "Home",
@@ -51,7 +53,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               icon: Image.asset(
                 ASSETS + "bookings.png",
-                color: widget.currentIndex == 1 ? Theme.of(context).colorScheme.primary : Theme.of(context).textTheme.bodyLarge?.color,
+                color: widget.currentIndex == 1
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).textTheme.bodyLarge?.color,
                 height: Dimensions.height25,
               ),
               label: "Bookings",
@@ -60,7 +64,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               icon: Image.asset(
                 ASSETS + "account.png",
-                color: widget.currentIndex == 3 ? Theme.of(context).colorScheme.primary : Theme.of(context).textTheme.bodyLarge?.color,
+                color: widget.currentIndex == 3
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).textTheme.bodyLarge?.color,
                 height: Dimensions.height25,
               ),
               label: "Account",

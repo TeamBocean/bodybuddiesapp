@@ -57,10 +57,15 @@ class _SettingsPageState extends State<SettingsPage> {
                                 .colorScheme
                                 .primary
                                 .withOpacity(0.1),
-                            backgroundImage: FirebaseAuth.instance.currentUser?.photoURL != null
-                                ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
-                                : null,
-                            child: FirebaseAuth.instance.currentUser?.photoURL == null
+                            backgroundImage:
+                                FirebaseAuth.instance.currentUser?.photoURL !=
+                                        null
+                                    ? NetworkImage(FirebaseAuth
+                                        .instance.currentUser!.photoURL!)
+                                    : null,
+                            child: FirebaseAuth
+                                        .instance.currentUser?.photoURL ==
+                                    null
                                 ? StreamBuilder<UserModel>(
                                     stream: CloudFirestore().streamUserData(
                                         FirebaseAuth.instance.currentUser!.uid),
@@ -72,14 +77,17 @@ class _SettingsPageState extends State<SettingsPage> {
                                               .substring(0, 1)
                                               .toUpperCase(),
                                           fontSize: Dimensions.fontSize32,
-                                          color:
-                                              Theme.of(context).colorScheme.primary,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
                                         );
                                       }
                                       return Icon(
                                         Icons.person,
                                         size: Dimensions.width15 * 3,
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                       );
                                     },
                                   )
@@ -225,7 +233,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       onTap: () {
                         HapticFeedback.lightImpact();
                         themeProvider.setThemeMode(
-                          themeProvider.isDarkMode ? ThemeMode.light : ThemeMode.dark,
+                          themeProvider.isDarkMode
+                              ? ThemeMode.light
+                              : ThemeMode.dark,
                         );
                       },
                       trailing: Switch(
@@ -249,7 +259,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       elevation: 2,
-                      padding: EdgeInsets.symmetric(vertical: Dimensions.height15),
+                      padding:
+                          EdgeInsets.symmetric(vertical: Dimensions.height15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(Dimensions.width10),
                       ),
@@ -334,20 +345,23 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             SizedBox(height: Dimensions.height10),
             StreamBuilder<UserModel>(
-              stream: CloudFirestore().streamUserData(FirebaseAuth.instance.currentUser!.uid),
+              stream: CloudFirestore()
+                  .streamUserData(FirebaseAuth.instance.currentUser!.uid),
               builder: (context, snapshot) {
                 return Column(
                   children: [
                     MediumTextWidget(
                       text: title,
                       fontSize: Dimensions.fontSize12,
-                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ??
+                          Theme.of(context).colorScheme.onSurface,
                     ),
                     SizedBox(height: Dimensions.height5),
                     MediumTextWidget(
                       text: value(context, snapshot),
                       fontSize: Dimensions.fontSize16,
-                      color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).textTheme.bodyLarge?.color ??
+                          Theme.of(context).colorScheme.onSurface,
                     ),
                   ],
                 );
@@ -371,7 +385,8 @@ class _SettingsPageState extends State<SettingsPage> {
           child: MediumTextWidget(
             text: title,
             fontSize: Dimensions.fontSize14,
-            color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+            color: Theme.of(context).textTheme.bodyMedium?.color ??
+                Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         SizedBox(height: Dimensions.height10),
@@ -427,13 +442,15 @@ class SettingsOption extends StatelessWidget {
                     MediumTextWidget(
                       text: title,
                       fontSize: Dimensions.fontSize16,
-                      color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).textTheme.bodyLarge?.color ??
+                          Theme.of(context).colorScheme.onSurface,
                     ),
                     SizedBox(height: Dimensions.height5),
                     MediumTextWidget(
                       text: subtitle,
                       fontSize: Dimensions.fontSize12,
-                      color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: Theme.of(context).textTheme.bodyMedium?.color ??
+                          Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ],
                 ),
@@ -443,7 +460,8 @@ class SettingsOption extends StatelessWidget {
               else
                 Icon(
                   Icons.chevron_right,
-                  color: Theme.of(context).textTheme.bodyMedium?.color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: Theme.of(context).textTheme.bodyMedium?.color ??
+                      Theme.of(context).colorScheme.onSurfaceVariant,
                   size: Dimensions.iconSize20,
                 ),
             ],

@@ -52,61 +52,63 @@ class _ProfilePageState extends State<ProfilePage> {
                               showDialog(
                                   context: context,
                                   builder: (_) => AlertDialog(
-                                    backgroundColor: background,
-                                    content: SizedBox(
-                                      height: Dimensions.height10 * 14,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          MediumTextWidget(
-                                              text: "Set your new name!"),
-                                          TextField(
-                                            controller: name,
-                                            keyboardType:
-                                            TextInputType.number,
-                                            style: TextStyle(
-                                                color: Colors.white),
-                                            decoration: InputDecoration(
-                                                hintText:
-                                                "${snapshot.data!.name}",
-                                                hintStyle: TextStyle(
-                                                    color: Colors.white)),
-                                          ),
-                                          SizedBox(
-                                            height: Dimensions.height20,
-                                          ),
-                                          Row(
+                                        backgroundColor: background,
+                                        content: SizedBox(
+                                          height: Dimensions.height10 * 14,
+                                          child: Column(
                                             mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .spaceBetween,
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    CloudFirestore()
-                                                        .updateUserName(name.text.toString());
-                                                    Navigator.pop(context);
-                                                  },
-                                                  style: ElevatedButton
-                                                      .styleFrom(
-                                                      backgroundColor:
-                                                      darkGreen),
-                                                  child: Text("Update")),
-                                              ElevatedButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                  style: ElevatedButton
-                                                      .styleFrom(
-                                                      backgroundColor:
-                                                      darkGrey),
-                                                  child: Text("Cancel")),
+                                              MediumTextWidget(
+                                                  text: "Set your new name!"),
+                                              TextField(
+                                                controller: name,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                                decoration: InputDecoration(
+                                                    hintText:
+                                                        "${snapshot.data!.name}",
+                                                    hintStyle: TextStyle(
+                                                        color: Colors.white)),
+                                              ),
+                                              SizedBox(
+                                                height: Dimensions.height20,
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  ElevatedButton(
+                                                      onPressed: () {
+                                                        CloudFirestore()
+                                                            .updateUserName(name
+                                                                .text
+                                                                .toString());
+                                                        Navigator.pop(context);
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              backgroundColor:
+                                                                  darkGreen),
+                                                      child: Text("Update")),
+                                                  ElevatedButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              backgroundColor:
+                                                                  darkGrey),
+                                                      child: Text("Cancel")),
+                                                ],
+                                              ),
                                             ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  ));
+                                        ),
+                                      ));
                             },
                             child: settingsOption(
                                 "${snapshot.data!.name}", Icons.person),

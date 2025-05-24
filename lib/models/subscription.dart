@@ -4,7 +4,11 @@ class Subscription {
   double price;
   String type;
 
-  Subscription({required this.credits, required this.price, required this.date, required this.type});
+  Subscription(
+      {required this.credits,
+      required this.price,
+      required this.date,
+      required this.type});
 
   Map<String, dynamic> toJson() {
     return {

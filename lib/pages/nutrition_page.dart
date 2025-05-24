@@ -58,9 +58,8 @@ class NutritionPage extends StatelessWidget {
                             Text(
                               nutrientTypesMap[title]!,
                               style: TextStyle(
-                                fontSize: Dimensions.fontSize16,
-                                color: Colors.white
-                              ),
+                                  fontSize: Dimensions.fontSize16,
+                                  color: Colors.white),
                             ),
                           ],
                         ),

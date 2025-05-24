@@ -62,7 +62,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                           nameController.text.toString(),
                           int.parse(weightController.text));
                       if (success) {
-                        EmailService().sendPDFToUser(nameController.text.toString());
+                        EmailService()
+                            .sendPDFToUser(nameController.text.toString());
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
                             builder: (context) => MainScaffold(),
