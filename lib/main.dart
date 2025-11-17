@@ -3,17 +3,25 @@ import 'package:bodybuddiesapp/providers/theme_provider.dart';
 import 'package:bodybuddiesapp/utils/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
-
-const String stripePublishableKey = "pk_live_51MubfEEgQfqRQxRaOcN3vULxR3iYBu8fuypsSi7MD84ZP0En6bwCgPxb7zggGBg6PiIOKZDNrXB0XrTxMpDw6X7q00GJ2evJgI";
 
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+
+    await dotenv.load(fileName: '.env');
+    final publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'];
+    if (publishableKey == null || publishableKey.isEmpty) {
+      throw Exception(
+        'Missing STRIPE_PUBLISHABLE_KEY in .env. '
+        'See README for setup instructions.',
+      );
+    }
     
     // Initialize Stripe
-    Stripe.publishableKey = stripePublishableKey;
+    Stripe.publishableKey = publishableKey;
     await Stripe.instance.applySettings();
     
     // Initialize Firebase

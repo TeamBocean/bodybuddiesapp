@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_stripe/flutter_stripe.dart';
 
@@ -241,6 +242,14 @@ class _CreditsPageState extends State<CreditsPage> {
 
   //  Future<Map<String, dynamic>>
   createPaymentIntent(String amount, String currency) async {
+    final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
+    if (secretKey == null || secretKey.isEmpty) {
+      throw Exception(
+        'Missing STRIPE_SECRET_KEY in .env. '
+        'This key must be provided by the backend.',
+      );
+    }
+
     try {
       Map<String, dynamic> body = {
         'amount': calculateAmount(amount),
@@ -251,8 +260,7 @@ class _CreditsPageState extends State<CreditsPage> {
       var response = await http.post(
         Uri.parse('https://api.stripe.com/v1/payment_intents'),
         headers: {
-          'Authorization':
-              'Bearer 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',
+          'Authorization': 'Bearer $secretKey',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: body,

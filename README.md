@@ -33,11 +33,15 @@ staying connected to their coach through curated content.
    cd /Volumes/mahmoudssd/bodybuddiesapp
    flutter pub get
    ```
-3. **Set up platform configs**
+3. **Configure environment variables**
+   - Copy `env.example` to `.env`
+   - Fill in `STRIPE_PUBLISHABLE_KEY` with your publishable key
+   - Fill in `STRIPE_SECRET_KEY` with a backend-only key (only for secure dev)
+4. **Set up platform configs**
    - Place your `google-services.json` in `android/app/`
    - Place your `GoogleService-Info.plist` in `ios/Runner/`
    - For iOS, run `cd ios && pod install && cd ..` after adding the plist
-4. **Run the app**
+5. **Run the app**
    ```bash
    flutter run
    ```
