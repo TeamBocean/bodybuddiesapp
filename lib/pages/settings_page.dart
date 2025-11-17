@@ -48,7 +48,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.lightImpact();
-                        // TODO: Implement profile picture change
                       },
                       child: Stack(
                         children: [
