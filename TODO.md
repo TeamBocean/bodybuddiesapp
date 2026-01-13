@@ -1,8 +1,0 @@
-- [] Improve messaging across the app
-- [] Test E2E features
-- [x] If user has 0 credits prompt to add more
-- [x] New icons
-- [] Improve credits page - maybe add messaging
-- [x] Add summary widget - shows upcoming training sessions
-- [x] Improve whats new page design and logic
-- [x] Add version number at the bottom of the settings page

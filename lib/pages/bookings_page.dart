@@ -1,5 +1,4 @@
 import 'package:bodybuddiesapp/models/booking.dart';
-import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/constants.dart';
 import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
@@ -29,8 +28,6 @@ class _BookingsPageState extends State<BookingsPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  String _day = DateTime.now().day.toString();
-  String _month = DateTime.now().month.toString();
   DateTime currentDay = DateTime.now();
   final _currentDate = DateTime.now();
   DateTime startTimeOne = DateTime(
@@ -42,6 +39,9 @@ class _BookingsPageState extends State<BookingsPage>
   PageController pageController = PageController(initialPage: 365);
   Bookings? bookings;
   bool loadedBookedDates = false;
+  
+  // Track which year's bookings are loaded
+  int? _loadedYear;
 
   @override
   void initState() {
@@ -71,10 +71,28 @@ class _BookingsPageState extends State<BookingsPage>
     super.dispose();
   }
 
-  Future<bool> loadBookedDates() async {
-    bookings = await CloudFirestore().getBookedDates("");
+  Future<bool> loadBookedDates({int? year}) async {
+    final targetYear = year ?? currentDay.year;
+    
+    // Only reload if year changed
+    if (_loadedYear == targetYear && bookings != null) {
+      return true;
+    }
+    
+    bookings = await CloudFirestore().getBookedDates("", year: targetYear);
+    _loadedYear = targetYear;
 
     return true;
+  }
+
+  /// Check if year changed and reload bookings if needed
+  Future<void> _checkYearAndReload() async {
+    if (_loadedYear != currentDay.year) {
+      await loadBookedDates(year: currentDay.year);
+      if (mounted) {
+        initDates(context);
+      }
+    }
   }
 
   void initDates(BuildContext context) {
@@ -82,31 +100,35 @@ class _BookingsPageState extends State<BookingsPage>
     for (int i = 0; i < 360; i++) {
       final date = _currentDate.add(Duration(days: i));
       setState(() {
-        dates.add(dateWidget(date, daysOfWeek[date.weekday - 1].substring(0, 3),
-            date.day.toString() == _day && date.month.toString() == _month));
+        dates.add(dateWidget(
+          date,
+          daysOfWeek[date.weekday - 1].substring(0, 3),
+          date.day == currentDay.day &&
+              date.month == currentDay.month &&
+              date.year == currentDay.year,
+        ));
       });
     }
 
     setState(() {
       slots.clear();
-      currentDay = DateTime.now().add(Duration(days: currentDayPage - 365));
       DateTime startTime = _getSessionsStartTime();
       DateTime endTime = _getSessionsEndTime();
       if (isCurrentDayNotWeekend()) {
-        DateFormat df = new DateFormat('HH:mm');
+        DateFormat df = DateFormat('HH:mm');
 
         while (startTime.isBefore(endTime)) {
           DateTime timeIncrement = startTime.add(step);
+          // Create booking with full date including year
+          final bookingDate = "${currentDay.day}/${currentDay.month}/${currentDay.year}";
+          
           if (isAlreadyBooked(
                   Booking(
                     bookingName: "",
                     trainer: selectedValue,
                     price: 1,
-                    date: currentDay.day.toString() +
-                        "/" +
-                        currentDay.month.toString(),
-                    time: df
-                        .format(timeIncrement.subtract(Duration(minutes: 15))),
+                    date: bookingDate,
+                    time: df.format(timeIncrement.subtract(const Duration(minutes: 15))),
                   ),
                   bookings != null ? bookings!.list : {}) ||
               isAlreadyBooked(
@@ -114,15 +136,13 @@ class _BookingsPageState extends State<BookingsPage>
                     bookingName: "",
                     price: 1,
                     trainer: selectedValue,
-                    date: currentDay.day.toString() +
-                        "/" +
-                        currentDay.month.toString(),
-                    time: df
-                        .format(timeIncrement.subtract(Duration(minutes: 30))),
+                    date: bookingDate,
+                    time: df.format(timeIncrement.subtract(const Duration(minutes: 30))),
                   ),
                   bookings != null ? bookings!.list : {})) {
+            // Slot is booked
           } else {
-            var uuid = Uuid();
+            var uuid = const Uuid();
             setState(() {
               slots.add(BookingWidget(
                 isBooked: false,
@@ -134,9 +154,7 @@ class _BookingsPageState extends State<BookingsPage>
                   bookingName: "",
                   trainer: selectedValue,
                   price: 1,
-                  date: currentDay.day.toString() +
-                      "/" +
-                      currentDay.month.toString(),
+                  date: bookingDate, // Include year
                   time: df.format(timeIncrement),
                 ),
                 month: currentDay.month,
@@ -191,7 +209,6 @@ class _BookingsPageState extends State<BookingsPage>
   bool _isAlreadyBooked(DateTime time) {
     if (bookings == null) return false;
 
-    String date = "${time.day}/${time.month}";
     String timeString = _dateFormat.format(time);
 
     List<dynamic>? bookedTimes =
@@ -224,7 +241,7 @@ class _BookingsPageState extends State<BookingsPage>
   @override
   Widget build(BuildContext context) {
     initDates(context);
-    return Container(
+    return SizedBox(
       height: MediaQuery.of(context).size.height,
       child: SafeArea(
         child: StreamBuilder<UserModel>(
@@ -237,7 +254,7 @@ class _BookingsPageState extends State<BookingsPage>
                   children: [
                     _buildHeader(),
                     SizedBox(height: Dimensions.height10),
-                    Container(
+                    SizedBox(
                       height: Dimensions.height10 * 6,
                       child: Stack(
                         children: [
@@ -256,9 +273,10 @@ class _BookingsPageState extends State<BookingsPage>
                           // Gradient fade effect for horizontal scroll
                           Positioned(
                             left: 0,
+                            top: 0,
+                            bottom: 0,
                             child: Container(
                               width: Dimensions.width20,
-                              height: double.infinity,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.centerLeft,
@@ -275,9 +293,10 @@ class _BookingsPageState extends State<BookingsPage>
                           ),
                           Positioned(
                             right: 0,
+                            top: 0,
+                            bottom: 0,
                             child: Container(
                               width: Dimensions.width20,
-                              height: double.infinity,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.centerRight,
@@ -309,19 +328,14 @@ class _BookingsPageState extends State<BookingsPage>
                     Expanded(
                       child: PageView.builder(
                         controller: pageController,
-                        onPageChanged: (index) {
+                        onPageChanged: (index) async {
                           HapticFeedback.lightImpact();
                           setState(() {
                             currentDayPage = index;
-                            _day = DateTime.now()
-                                .add(Duration(days: currentDayPage - 365))
-                                .day
-                                .toString();
-                            _month = DateTime.now()
-                                .add(Duration(days: currentDayPage - 365))
-                                .month
-                                .toString();
+                            currentDay = DateTime.now()
+                                .add(Duration(days: currentDayPage - 365));
                           });
+                          await _checkYearAndReload();
                         },
                         itemBuilder: (context, index) {
                           return Padding(
@@ -333,15 +347,11 @@ class _BookingsPageState extends State<BookingsPage>
                               child: SingleChildScrollView(
                                 physics: const BouncingScrollPhysics(),
                                 child: Column(
-                                  children: slots.length == 0
+                                  children: slots.isEmpty
                                       ? [noBookings()]
                                       : slots.map((booking) {
                                           bool isBooked = snapshot.data?.bookings.firstWhereOrNull((element) =>
-                                              formatBookingDate(element).day ==
-                                                  currentDay.add(Duration(days: currentDayPage - 365)).day &&
-                                              formatBookingDate(element).month ==
-                                                  currentDay.add(Duration(days: currentDayPage - 365)).month) !=
-                                              null ?? false;
+                                              element.isOnDate(currentDay)) != null;
                                           
                                           return AnimatedSwitcher(
                                             duration: const Duration(milliseconds: 300),
@@ -479,40 +489,31 @@ class _BookingsPageState extends State<BookingsPage>
   Future<void> _showCalendarDialog() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _currentDate,
+      initialDate: currentDay,
       firstDate: _currentDate,
-      lastDate: DateTime(_currentDate.year, 12, 30),
+      lastDate: DateTime(_currentDate.year + 1, 12, 30),
     );
 
     if (pickedDate != null) {
-      _onDateTap(pickedDate);
+      await _onDateTap(pickedDate);
     }
   }
 
-  void _onDateTap(DateTime date) {
+  Future<void> _onDateTap(DateTime date) async {
     setState(() {
       int pageIndex = date.difference(_currentDate).inDays;
       if (pageIndex < 0) pageIndex += 365;
       pageController.jumpToPage(pageIndex + 365);
       currentDay = date;
-      initDates(context);
     });
+    await _checkYearAndReload();
+    initDates(context);
   }
 
   double getOpacity(List<Booking> list) {
     Booking? booking = list.firstWhereOrNull((element) =>
-        formatBookingDate(element).day ==
-        currentDay.add(Duration(days: currentDayPage - 365)).day);
+        element.isOnDate(currentDay));
     return booking != null ? 0.5 : 1;
-  }
-
-  DateTime formatBookingDate(Booking booking) {
-    List<String> dateParts = booking.date.split('/');
-    return DateTime(
-      dateParts.length == 3 ? int.parse(dateParts[2]) : DateTime.now().year,
-      int.parse(dateParts[1]),
-      int.parse(dateParts[0]),
-    );
   }
 
   Widget dateWidget(DateTime dateTime, String weekDay, bool isCurrent) {
@@ -523,23 +524,21 @@ class _BookingsPageState extends State<BookingsPage>
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: Dimensions.width10 / 2.5),
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           HapticFeedback.lightImpact();
           setState(() {
-            dateTime.day != DateTime.now().day ||
-                    dateTime.month != DateTime.now().month
-                ? setState(() {
-                    pageController.jumpToPage(
-                        dateTime.difference(DateTime.now()).inDays < 0
-                            ? dateTime.difference(DateTime.now()).inDays + 365
-                            : dateTime.difference(DateTime.now()).inDays + 366);
-                  })
-                : pageController.jumpToPage(365);
-            _day = dateTime.day.toString();
-            _month = dateTime.month.toString();
+            if (dateTime.day != DateTime.now().day ||
+                dateTime.month != DateTime.now().month ||
+                dateTime.year != DateTime.now().year) {
+              int diff = dateTime.difference(DateTime.now()).inDays;
+              pageController.jumpToPage(diff < 0 ? diff + 365 : diff + 366);
+            } else {
+              pageController.jumpToPage(365);
+            }
             currentDay = dateTime;
-            initDates(context);
           });
+          await _checkYearAndReload();
+          initDates(context);
         },
         child: SizedBox(
           width: Dimensions.width10 * 4,
@@ -620,7 +619,7 @@ class _BookingsPageState extends State<BookingsPage>
             ),
             SizedBox(height: Dimensions.height20),
             ElevatedButton.icon(
-              onPressed: () {
+              onPressed: () async {
                 HapticFeedback.lightImpact();
                 // Find next Monday
                 DateTime now = DateTime.now();
@@ -629,10 +628,10 @@ class _BookingsPageState extends State<BookingsPage>
                 if (nextMonday.weekday != DateTime.monday) {
                   nextMonday = nextMonday.add(const Duration(days: 7));
                 }
-                _onDateTap(nextMonday);
+                await _onDateTap(nextMonday);
               },
-              icon: Icon(Icons.add),
-              label: Text("Quick Book"),
+              icon: const Icon(Icons.add),
+              label: const Text("Quick Book"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
@@ -652,10 +651,9 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   bool isAlreadyBooked(Booking booking, Map bookings) {
-    List<String> dateParts = booking.date.split('/');
-    String month = dateParts[1];
-    String day = dateParts[0];
-    String year = dateParts.length == 3 ? dateParts[2] : DateTime.now().year.toString();
+    // Use centralized date parsing from Booking model
+    String month = booking.month.toString();
+    String day = booking.day.toString();
     
     List<dynamic>? bookedTimes = bookings.containsKey(month)
         ? bookings[month][day]

@@ -22,6 +22,7 @@ class CreditsPage extends StatefulWidget {
 class _CreditsPageState extends State<CreditsPage> {
   bool isBuddy = false;
   Map<String, dynamic>? paymentIntent;
+  bool _isProcessingPayment = false;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +46,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width / 3,
                       child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: _isProcessingPayment ? null : () {
                             setState(() {
                               isBuddy = false;
                             });
@@ -63,7 +64,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width / 3,
                       child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: _isProcessingPayment ? null : () {
                             setState(() {
                               isBuddy = true;
                             });
@@ -117,7 +118,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   MediumTextWidget(
-                    text: "${credits} Credits",
+                    text: "$credits Credits",
                     fontSize: Dimensions.fontSize18,
                   ),
                   SizedBox(
@@ -126,7 +127,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 ],
               ),
               MediumTextWidget(
-                text: "${session} Sessions",
+                text: "$session Sessions",
                 fontSize: Dimensions.fontSize14,
               ),
               Column(
@@ -144,23 +145,26 @@ class _CreditsPageState extends State<CreditsPage> {
                         return SizedBox(
                           width: MediaQuery.of(context).size.width,
                           child: ElevatedButton(
-                              onPressed: () {
-                                if (snapshot.data != null &&
-                                    !snapshot.data!.active) {
-                                  makePayment(price, int.parse(credits));
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(
-                                              "You already have an active subscription")));
-                                }
-                              },
+                              onPressed: (_isProcessingPayment || snapshot.data == null)
+                                  ? null
+                                  : () {
+                                      makePayment(price, int.parse(credits));
+                                    },
                               style: ElevatedButton.styleFrom(
                                   backgroundColor: background),
-                              child: MediumTextWidget(
-                                text: "Purchase",
-                                fontSize: Dimensions.fontSize14,
-                              )),
+                              child: _isProcessingPayment
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: darkGreen,
+                                      ),
+                                    )
+                                  : MediumTextWidget(
+                                      text: "Purchase",
+                                      fontSize: Dimensions.fontSize14,
+                                    )),
                         );
                       }),
                 ],
@@ -173,75 +177,172 @@ class _CreditsPageState extends State<CreditsPage> {
   }
 
   Future<void> makePayment(double price, int credits) async {
+    if (_isProcessingPayment) return; // Prevent double-tap
+    
+    setState(() {
+      _isProcessingPayment = true;
+    });
+
     try {
-      paymentIntent =
-          await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
-      //Payment Sheet
-      await Stripe.instance
-          .initPaymentSheet(
-              paymentSheetParameters: SetupPaymentSheetParameters(
-                  paymentIntentClientSecret: paymentIntent!['client_secret'],
-                  // applePay: const PaymentSheetApplePay(merchantCountryCode: '+92',),
-                  // googlePay: const PaymentSheetGooglePay(testEnv: true, currencyCode: "US", merchantCountryCode: "+92"),
-                  style: ThemeMode.dark,
-                  merchantDisplayName: 'Mark'))
-          .then((value) {});
+      // Create payment intent
+      final result = await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
+      
+      if (result == null) {
+        throw Exception('Failed to create payment intent');
+      }
+      
+      // Check for Stripe API errors
+      if (result['error'] != null) {
+        throw Exception(result['error']['message'] ?? 'Payment failed');
+      }
+      
+      paymentIntent = result;
+      
+      // Initialize Payment Sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: paymentIntent!['client_secret'],
+          style: ThemeMode.dark,
+          merchantDisplayName: 'BodyBuddies',
+        ),
+      );
 
-      displayPaymentSheet(credits, price);
-    } catch (e, s) {
-      print('exception:$e$s');
-    }
-  }
-
-  displayPaymentSheet(int credits, double price) async {
-    try {
-      await Stripe.instance.presentPaymentSheet().then((value) {
-        CloudFirestore().addCredits(credits,
-            FirebaseAuth.instance.currentUser!.uid, isBuddy ? "2:1" : "1:1");
-        CloudFirestore().addUserSubscription(
-            FirebaseAuth.instance.currentUser!.uid,
-            credits,
-            isBuddy ? "2:1" : "1:1",
-            price);
-        EmailService().sendSubscriptionConfirmationToUser();
-        showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                          ),
-                          Text("Payment Successfull"),
-                        ],
-                      ),
-                    ],
-                  ),
-                ));
-        // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("paid successfully")));
-
-        paymentIntent = null;
-      }).onError((error, stackTrace) {
-        print('Error is:--->$error $stackTrace');
-      });
-    } on StripeException catch (e) {
-      print('Error is:---> $e');
-      showDialog(
-          context: context,
-          builder: (_) => const AlertDialog(
-                content: Text("Cancelled "),
-              ));
+      // Display Payment Sheet and handle result
+      await displayPaymentSheet(credits, price);
+      
     } catch (e) {
-      print('$e');
+      print('Payment error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingPayment = false;
+        });
+      }
     }
   }
 
-  //  Future<Map<String, dynamic>>
-  createPaymentIntent(String amount, String currency) async {
+  Future<void> displayPaymentSheet(int credits, double price) async {
+    try {
+      // Present the payment sheet - this throws if cancelled
+      await Stripe.instance.presentPaymentSheet();
+      
+      // If we get here, payment was successful!
+      // Now add credits to the user's account
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      
+      // Add credits and verify it succeeded
+      final creditsAdded = await CloudFirestore().addCredits(
+        credits,
+        userId,
+        isBuddy ? "2:1" : "1:1",
+      );
+      
+      if (!creditsAdded) {
+        // CRITICAL: Payment succeeded but credits failed to add
+        // Log this for manual resolution
+        print('CRITICAL: Payment succeeded but credits failed to add for user $userId');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Payment received but there was an issue adding credits. Please contact support."),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 10),
+            ),
+          );
+        }
+        return;
+      }
+      
+      CloudFirestore().addUserSubscription(
+        userId,
+        credits,
+        isBuddy ? "2:1" : "1:1",
+        price,
+      );
+      
+      EmailService().sendSubscriptionConfirmationToUser();
+      
+      // Clear the payment intent
+      paymentIntent = null;
+      
+      // Show success dialog
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            backgroundColor: darkGrey,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 48,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "Payment Successful!",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "$credits credits have been added to your account.",
+                  style: const TextStyle(color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  "OK",
+                  style: TextStyle(color: darkGreen),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      
+    } on StripeException catch (e) {
+      // User cancelled the payment sheet
+      print('Payment cancelled: ${e.error.localizedMessage}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Payment cancelled"),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Payment error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Payment failed: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      rethrow; // Re-throw to be caught by the outer try-catch
+    }
+  }
+
+  Future<Map<String, dynamic>?> createPaymentIntent(String amount, String currency) async {
     final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
     if (secretKey == null || secretKey.isEmpty) {
       throw Exception(
@@ -265,17 +366,24 @@ class _CreditsPageState extends State<CreditsPage> {
         },
         body: body,
       );
-      // ignore: avoid_print
-      print('Payment Intent Body->>> ${response.body.toString()}');
+      
+      print('Payment Intent Response: ${response.statusCode}');
+      
+      if (response.statusCode != 200) {
+        final errorBody = jsonDecode(response.body);
+        print('Stripe API Error: ${errorBody}');
+        return errorBody; // Return error to be handled
+      }
+      
       return jsonDecode(response.body);
     } catch (err) {
-      // ignore: avoid_print
-      print('err charging user: ${err.toString()}');
+      print('Error creating payment intent: ${err.toString()}');
+      return null;
     }
   }
 
-  calculateAmount(String amount) {
-    final calculatedAmout = (int.parse(amount)) * 100;
-    return calculatedAmout.toString();
+  String calculateAmount(String amount) {
+    final calculatedAmount = (int.parse(amount)) * 100;
+    return calculatedAmount.toString();
   }
 }

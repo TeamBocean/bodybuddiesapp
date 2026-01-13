@@ -35,7 +35,38 @@ class _ProfilePageState extends State<ProfilePage> {
           stream: CloudFirestore()
               .streamUserData(FirebaseAuth.instance.currentUser!.uid),
           builder: (context, snapshot) {
-            if (snapshot.hasData) {
+            // Handle error state
+            if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: 48),
+                    SizedBox(height: Dimensions.height20),
+                    MediumTextWidget(
+                      text: "Error loading profile data",
+                      color: Colors.red,
+                    ),
+                    SizedBox(height: Dimensions.height20),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {}); // Refresh the stream
+                      },
+                      child: Text("Retry"),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Handle loading state
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            // Handle data state
+            if (snapshot.hasData && snapshot.data != null) {
+              final userData = snapshot.data!;
               return Container(
                 height: MediaQuery.of(context).size.height,
                 child: Padding(
@@ -55,8 +86,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                 : null,
                             child: FirebaseAuth.instance.currentUser!.photoURL == null
                                 ? Text(
-                                    snapshot.data!.name.isNotEmpty
-                                        ? snapshot.data!.name[0].toUpperCase()
+                                    userData.name.isNotEmpty
+                                        ? userData.name[0].toUpperCase()
                                         : "?",
                                     style: TextStyle(
                                       fontSize: Dimensions.fontSize22,
@@ -71,10 +102,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           // Account Information Section
                           _buildSectionHeader("Account Information"),
                           settingsOption(
-                            "${snapshot.data!.name}",
+                            userData.name,
                             Icons.person,
                             onTap: () =>
-                                _showEditNameDialog(snapshot.data!.name),
+                                _showEditNameDialog(userData.name),
                             showEdit: true,
                           ),
                           settingsOption(
@@ -83,10 +114,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             showEdit: false,
                           ),
                           settingsOption(
-                            _formatWeight(snapshot.data!.weight),
+                            _formatWeight(userData.weight),
                             Icons.monitor_weight,
                             onTap: () =>
-                                _showEditWeightDialog(snapshot.data!.weight),
+                                _showEditWeightDialog(userData.weight),
                             showEdit: true,
                           ),
 
@@ -128,9 +159,22 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               );
-            } else {
-              return Center(child: CircularProgressIndicator());
             }
+
+            // Fallback: no data available
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_off, color: Colors.grey, size: 48),
+                  SizedBox(height: Dimensions.height20),
+                  MediumTextWidget(
+                    text: "No profile data available",
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
+            );
           }),
     );
   }
