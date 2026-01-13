@@ -9,13 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../utils/constants.dart';
 import '../utils/dimensions.dart';
 import '../widgets/medium_text_widget.dart';
 import '../widgets/no_bookings_widget.dart';
 import 'credits_page.dart';
+import 'admin_page/admin_tools_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -29,6 +29,12 @@ class _HomePageState extends State<HomePage>
   DateTime currentDate = DateTime.now();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  
+  // Role-based access control
+  late bool _isEmployee;
+  late bool _isDeveloper;
+  late bool _isMainAdmin;
+  String? _trainerFilter;
 
   @override
   void initState() {
@@ -41,14 +47,22 @@ class _HomePageState extends State<HomePage>
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
     _animationController.forward();
+    
+    // Initialize role-based access
+    final cloudFirestore = CloudFirestore();
+    _isEmployee = cloudFirestore.isEmployee();
+    _isDeveloper = cloudFirestore.isDeveloper();
+    _isMainAdmin = cloudFirestore.isMainAdmin();
+    _trainerFilter = cloudFirestore.getEmployeeTrainerName();
+    
     _checkAppVersion();
   }
 
   Future<void> _checkAppVersion() async {
     final prefs = await SharedPreferences.getInstance();
     final lastVersion = prefs.getString('last_app_version');
-    final packageInfo = await PackageInfo.fromPlatform();
-    final currentVersion = packageInfo.version;
+    // Hardcoded version since package_info_plus is removed
+    const currentVersion = "1.3.8";
 
     if (lastVersion != currentVersion) {
       if (mounted) {
@@ -103,15 +117,15 @@ class _HomePageState extends State<HomePage>
                           _buildWhatsNewItem(
                             context: builderContext,
                             icon: Icons.calendar_today,
-                            title: "Improved UI",
-                            description: "Brand new UI for smoother experience.",
+                            title: "Improved Booking System",
+                            description: "Fixed year handling for all bookings.",
                           ),
                           SizedBox(height: Dimensions.height15),
                           _buildWhatsNewItem(
                             context: builderContext,
                             icon: Icons.notifications,
                             title: "Bug Fixes & Improvements",
-                            description: "Under the hood fixes.",
+                            description: "Credit refunds and cancellation fixes.",
                           ),
                           SizedBox(height: Dimensions.height15),
                           _buildWhatsNewItem(
@@ -212,54 +226,56 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String>(
+    // Use role-based access control
+    if (_isEmployee) {
+      return FutureBuilder<String>(
         future: getUserName(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, userData) {
           if (userData.hasData) {
-            return userView();
+            return adminView(userData.data!);
           } else {
-            return Container();
+            return const Center(child: CircularProgressIndicator());
           }
-        });
+        },
+      );
+    } else {
+      return userView();
+    }
   }
 
   Widget adminView(String name) {
     return StreamBuilder<List<Booking>>(
-        stream: CloudFirestore()
-            .streamAllBookings(currentDate.month, currentDate.day),
+        stream: CloudFirestore().streamAllBookings(
+          currentDate.month, 
+          currentDate.day,
+          year: currentDate.year, // Pass year parameter
+        ),
         builder: (context, snapshot) {
+          List<Booking> bookings = [];
+          
           if (snapshot.hasData) {
-            if (snapshot.data!.isNotEmpty) {
-              // Sort bookings by completion status (completed bookings at the bottom)
-              snapshot.data!.removeWhere((booking) {
-                print(booking.date);
-                // Split the booking date into day and month
-                List<String> dateParts = booking.date.split('/');
-                int bookingDay = int.parse(dateParts[0]);
-                int bookingMonth = int.parse(dateParts[1]);
-                int bookingYear = dateParts.length == 3
-                    ? int.parse(dateParts[2])
-                    : DateTime.now().year;
-
-                // Keep only if both day and month match exactly
-                return !(bookingDay == currentDate.day &&
-                    bookingMonth == currentDate.month &&
-                    bookingYear == currentDate.year);
-              });
+            bookings = List.from(snapshot.data!);
+            
+            // Filter bookings to only those matching the current date
+            bookings.removeWhere((booking) {
+              // Use centralized date handling from Booking model
+              return !booking.isOnDate(currentDate);
+            });
+            
+            // Apply trainer filter (unless main admin or developer)
+            if (_trainerFilter != null) {
+              bookings.removeWhere((booking) => 
+                booking.trainer.toLowerCase() != _trainerFilter!.toLowerCase()
+              );
             }
           }
+          
+          // Normalize display name
+          String displayName = name;
           if (name == "BODY BUDDIES HEALTH & FITNESS") {
-            name = "Mark";
+            displayName = "Mark";
           }
-          if (!kDebugMode) {
-            try {
-              snapshot.data!.removeWhere((booking) => booking.trainer != name);
-            } catch (e) {
-              if (kDebugMode) {
-                print(e);
-              }
-            }
-          }
+          
           return SizedBox(
             height: MediaQuery.of(context).size.height,
             child: SafeArea(
@@ -273,32 +289,76 @@ class _HomePageState extends State<HomePage>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             userInformationHeader(),
-                            FirebaseAuth.instance.currentUser!.photoURL != null
-                                ? CircleAvatar(
-                                    backgroundColor: Colors.grey.shade400,
-                                    radius: Dimensions.width27,
-                                    backgroundImage: NetworkImage(
-                                      FirebaseAuth.instance.currentUser!
-                                          .photoURL as String,
+                            Row(
+                              children: [
+                                // Admin Tools button
+                                if (_isMainAdmin || _isDeveloper)
+                                  IconButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const AdminToolsPage(),
+                                        ),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.settings,
+                                      color: Theme.of(context).iconTheme.color,
                                     ),
-                                  )
-                                : CircleAvatar(
-                                    backgroundColor: Colors.grey.shade400,
-                                    radius: Dimensions.width27,
-                                    child: MediumTextWidget(
-                                        text: "M", color: Colors.black),
-                                  )
+                                  ),
+                                FirebaseAuth.instance.currentUser!.photoURL != null
+                                    ? CircleAvatar(
+                                        backgroundColor: Colors.grey.shade400,
+                                        radius: Dimensions.width27,
+                                        backgroundImage: NetworkImage(
+                                          FirebaseAuth.instance.currentUser!
+                                              .photoURL as String,
+                                        ),
+                                      )
+                                    : CircleAvatar(
+                                        backgroundColor: Colors.grey.shade400,
+                                        radius: Dimensions.width27,
+                                        child: MediumTextWidget(
+                                            text: displayName.isNotEmpty 
+                                                ? displayName[0].toUpperCase() 
+                                                : "M", 
+                                            color: Colors.black),
+                                      ),
+                              ],
+                            ),
                           ],
                         ),
                         SizedBox(
                           height: Dimensions.height20 / 2,
                         ),
-                        Align(
-                            alignment: Alignment.topLeft,
-                            child: MediumTextWidget(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            MediumTextWidget(
                               text: "Upcoming Sessions",
                               fontSize: Dimensions.fontSize22,
-                            )),
+                            ),
+                            if (_trainerFilter != null)
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: Dimensions.width10,
+                                  vertical: Dimensions.height5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: darkGreen.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  _trainerFilter!,
+                                  style: TextStyle(
+                                    color: darkGreen,
+                                    fontSize: Dimensions.fontSize12,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -354,7 +414,7 @@ class _HomePageState extends State<HomePage>
                       ],
                     ),
                     snapshot.hasData
-                        ? snapshot.data!.isNotEmpty
+                        ? bookings.isNotEmpty
                             ? Padding(
                                 padding: EdgeInsets.only(
                                     top: Dimensions.height35 * 4.5,
@@ -363,75 +423,10 @@ class _HomePageState extends State<HomePage>
                                   child: Column(
                                     mainAxisSize: MainAxisSize.max,
                                     mainAxisAlignment: MainAxisAlignment.start,
-                                    children: snapshot.data!
+                                    children: bookings
                                         .map((booking) => GestureDetector(
                                               onDoubleTap: () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    TextEditingController
-                                                        nameController =
-                                                        TextEditingController();
-                                                    return AlertDialog(
-                                                      title:
-                                                          Text('Update Name'),
-                                                      content: TextField(
-                                                        controller:
-                                                            nameController,
-                                                        decoration:
-                                                            const InputDecoration(
-                                                                hintText:
-                                                                    "Enter new name"),
-                                                      ),
-                                                      actions: <Widget>[
-                                                        ElevatedButton(
-                                                          child: Text('Update'),
-                                                          onPressed: () {
-                                                            String newName =
-                                                                nameController
-                                                                    .text;
-                                                            // Assuming there's a method in CloudFirestore class to update booking name
-                                                            CloudFirestore()
-                                                                .updateBookingName(
-                                                              booking.date
-                                                                  .split(
-                                                                      "/")[1],
-                                                              booking.date
-                                                                  .split(
-                                                                      "/")[0],
-                                                              booking.id,
-                                                              newName,
-                                                            )
-                                                                .then(
-                                                                    (success) {
-                                                              if (success) {
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                                ScaffoldMessenger.of(
-                                                                        context)
-                                                                    .showSnackBar(
-                                                                  const SnackBar(
-                                                                      content: Text(
-                                                                          'Name updated successfully')),
-                                                                );
-                                                              } else {
-                                                                ScaffoldMessenger.of(
-                                                                        context)
-                                                                    .showSnackBar(
-                                                                  const SnackBar(
-                                                                      content: Text(
-                                                                          'Failed to update name')),
-                                                                );
-                                                              }
-                                                            });
-                                                          },
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
-                                                );
+                                                _showUpdateNameDialog(booking);
                                               },
                                               child: BookingWidget(
                                                 isBooked: true,
@@ -449,7 +444,7 @@ class _HomePageState extends State<HomePage>
                                 message: "No Sessions Today",
                                 showSubHeading: false,
                               )
-                        : MediumTextWidget(text: "Loading...")
+                        : const Center(child: CircularProgressIndicator())
                   ],
                 ),
               ),
@@ -457,26 +452,64 @@ class _HomePageState extends State<HomePage>
           );
         });
   }
+  
+  void _showUpdateNameDialog(Booking booking) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        TextEditingController nameController = TextEditingController();
+        return AlertDialog(
+          title: const Text('Update Name'),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(hintText: "Enter new name"),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: const Text('Update'),
+              onPressed: () {
+                String newName = nameController.text;
+                CloudFirestore()
+                    .updateBookingName(
+                      booking.month.toString(),
+                      booking.day.toString(),
+                      booking.id,
+                      newName,
+                      year: booking.year, // Pass the booking's actual year
+                    )
+                    .then((success) {
+                  if (success) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Name updated successfully')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to update name')),
+                    );
+                  }
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget userView() {
     return FutureBuilder<UserModel>(
         future: CloudFirestore()
             .getUserData(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
+          List<Booking> bookings = [];
+          
           if (snapshot.hasData) {
-            snapshot.data!.bookings.removeWhere((booking) {
-              List<String> dateParts = booking.date.split('/');
-              int bookingDay = int.parse(dateParts[0]);
-              int bookingMonth = int.parse(dateParts[1]);
-              int bookingYear = dateParts.length == 3
-                  ? int.parse(dateParts[2])
-                  : DateTime.now().year;
-
-              return !(bookingDay == currentDate.day &&
-                  bookingMonth == currentDate.month &&
-                  bookingYear == currentDate.year);
-            });
+            bookings = List.from(snapshot.data!.bookings);
+            // Use centralized date handling from Booking model
+            bookings.removeWhere((booking) => !booking.isOnDate(currentDate));
           }
+          
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
             child: Stack(
@@ -619,7 +652,7 @@ class _HomePageState extends State<HomePage>
                   ],
                 ),
                 snapshot.hasData
-                    ? snapshot.data!.bookings.isNotEmpty
+                    ? bookings.isNotEmpty
                         ? FadeTransition(
                             opacity: _fadeAnimation,
                             child: Padding(
@@ -630,7 +663,7 @@ class _HomePageState extends State<HomePage>
                                 child: Column(
                                   mainAxisSize: MainAxisSize.max,
                                   mainAxisAlignment: MainAxisAlignment.start,
-                                  children: snapshot.data!.bookings
+                                  children: bookings
                                       .map((booking) => BookingWidget(
                                             isBooked: true,
                                             slots: const [],

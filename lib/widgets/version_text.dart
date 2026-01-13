@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 class VersionText extends StatefulWidget {
   const VersionText({super.key});
@@ -9,24 +8,11 @@ class VersionText extends StatefulWidget {
 }
 
 class _VersionTextState extends State<VersionText> {
-  PackageInfo? packageInfo;
   final TextEditingController _passwordController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    loadPackageInfo();
-  }
-
-  Future<void> loadPackageInfo() async {
-    try {
-      var result = await PackageInfo.fromPlatform();
-      setState(() {
-        packageInfo = result;
-      });
-    } catch (e) {
-      print("Error loading package info: $e");
-    }
   }
 
   @override
@@ -34,7 +20,7 @@ class _VersionTextState extends State<VersionText> {
     var theme = Theme.of(context);
     return Center(
       child: Text(
-        "BodyBuddies v${packageInfo?.version ?? "N/A"} [${packageInfo?.buildNumber ?? "N/A"}]",
+        "BodyBuddies v1.3.8",
         style: TextStyle(
             color: theme.brightness == Brightness.dark
                 ? Colors.grey[300]

@@ -11,8 +11,8 @@ void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    await dotenv.load(fileName: '.env');
-    final publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'];
+    await dotenv.load();
+    final publishableKey = "pk_live_51MubfEEgQfqRQxRaOcN3vULxR3iYBu8fuypsSi7MD84ZP0En6bwCgPxb7zggGBg6PiIOKZDNrXB0XrTxMpDw6X7q00GJ2evJgI";
     if (publishableKey == null || publishableKey.isEmpty) {
       throw Exception(
         'Missing STRIPE_PUBLISHABLE_KEY in .env. '

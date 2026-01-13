@@ -1,4 +1,3 @@
-import 'package:bodybuddiesapp/models/booking.dart';
 import 'package:bodybuddiesapp/models/user.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
@@ -7,7 +6,6 @@ import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class MySessionsPage extends StatefulWidget {
   const MySessionsPage({Key? key}) : super(key: key);
@@ -18,34 +16,6 @@ class MySessionsPage extends StatefulWidget {
 
 class _MySessionsPageState extends State<MySessionsPage> {
   bool _showCompletedSessions = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Add a test dummy booking
-    _addTestBooking();
-  }
-
-  void _addTestBooking() async {
-    // Create a test booking that's already completed (yesterday)
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    final testBooking = Booking(
-      id: 'test-${DateTime.now().millisecondsSinceEpoch}',
-      bookingName: 'Test User',
-      trainer: 'Mark',
-      price: 1,
-      date: '${yesterday.day}/${yesterday.month}/${yesterday.year}',
-      time: '10:00',
-    );
-
-    // // Add the test booking to Firestore
-    // CloudFirestore().addUserBooking(
-    //   testBooking,
-    //   FirebaseAuth.instance.currentUser!.uid,
-    //   yesterday.month,
-    //   'Test User',
-    // );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,47 +37,39 @@ class _MySessionsPageState extends State<MySessionsPage> {
           final currentMonth = now.month;
           final currentYear = now.year;
 
-          // Filter bookings for current month
+          // Filter bookings for current month using centralized methods
           final thisMonthBookings = user.bookings.where((booking) {
-            final parts = booking.date.split('/');
-            final bookingMonth = int.parse(parts[1]);
-            final bookingYear =
-                parts.length == 3 ? int.parse(parts[2]) : currentYear;
-            return bookingMonth == currentMonth && bookingYear == currentYear;
+            return booking.month == currentMonth && booking.year == currentYear;
           }).toList();
 
-          // Filter upcoming bookings
+          // Filter upcoming bookings using centralized isUpcoming property
           final upcomingBookings = user.bookings.where((booking) {
-            final bookingDateTime = _getBookingDateTime(booking);
-            return bookingDateTime.isAfter(now);
+            return booking.isUpcoming;
           }).toList();
 
-          // Filter completed bookings
+          // Filter completed bookings using centralized isPast property
           final completedBookings = user.bookings.where((booking) {
-            final bookingDateTime = _getBookingDateTime(booking);
-            return bookingDateTime.isBefore(now);
+            return booking.isPast;
           }).toList();
 
           // Filter and sort all bookings
           final allBookings = user.bookings.where((booking) {
-            final bookingDateTime = _getBookingDateTime(booking);
-            return _showCompletedSessions || bookingDateTime.isAfter(now);
+            return _showCompletedSessions || booking.isUpcoming;
           }).toList()
             ..sort((a, b) {
-              final aDateTime = _getBookingDateTime(a);
-              final bDateTime = _getBookingDateTime(b);
+              final aDateTime = a.getDateTime();
+              final bDateTime = b.getDateTime();
               
               // If both are upcoming or both are completed
-              if ((aDateTime.isAfter(now) && bDateTime.isAfter(now)) ||
-                  (!aDateTime.isAfter(now) && !bDateTime.isAfter(now))) {
+              if ((a.isUpcoming && b.isUpcoming) || (a.isPast && b.isPast)) {
                 // For upcoming: earliest first, for completed: most recent first
-                return aDateTime.isAfter(now)
+                return a.isUpcoming
                     ? aDateTime.compareTo(bDateTime)
                     : bDateTime.compareTo(aDateTime);
               }
               
               // If one is upcoming and one is completed, upcoming comes first
-              return aDateTime.isAfter(now) ? -1 : 1;
+              return a.isUpcoming ? -1 : 1;
             });
 
           return SingleChildScrollView(
@@ -207,19 +169,42 @@ class _MySessionsPageState extends State<MySessionsPage> {
                     ],
                   ),
                   SizedBox(height: Dimensions.height10),
-                  ...allBookings
-                      .map((booking) => Padding(
-                            padding:
-                                EdgeInsets.only(bottom: Dimensions.height10),
-                            child: BookingWidget(
-                              isBooked: true,
-                              slots: const [],
-                              booking: booking,
-                              isAdmin: false,
-                              month: 0,
+                  
+                  if (allBookings.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: Dimensions.height20),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.event_busy,
+                              size: 64,
+                              color: Colors.grey.withOpacity(0.5),
                             ),
-                          ))
-                      .toList(),
+                            SizedBox(height: Dimensions.height10),
+                            MediumTextWidget(
+                              text: "No sessions to display",
+                              fontSize: Dimensions.fontSize16,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ...allBookings
+                        .map((booking) => Padding(
+                              padding:
+                                  EdgeInsets.only(bottom: Dimensions.height10),
+                              child: BookingWidget(
+                                isBooked: true,
+                                slots: const [],
+                                booking: booking,
+                                isAdmin: false,
+                                month: 0,
+                              ),
+                            ))
+                        .toList(),
                   SizedBox(height: Dimensions.height10 * 6),
                 ],
               ),
@@ -266,19 +251,5 @@ class _MySessionsPageState extends State<MySessionsPage> {
         ),
       ],
     );
-  }
-
-  DateTime _getBookingDateTime(Booking booking) {
-    List<String> dateParts = booking.date.split('/');
-    int bookingDay = int.parse(dateParts[0]);
-    int bookingMonth = int.parse(dateParts[1]);
-    int bookingYear =
-        dateParts.length == 3 ? int.parse(dateParts[2]) : DateTime.now().year;
-
-    List<String> timeParts = booking.time.split(':');
-    int hour = int.parse(timeParts[0]);
-    int minute = int.parse(timeParts[1]);
-
-    return DateTime(bookingYear, bookingMonth, bookingDay, hour, minute);
   }
 }
