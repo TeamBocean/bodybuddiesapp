@@ -122,7 +122,19 @@ class _BookingsPageState extends State<BookingsPage>
           // Create booking with full date including year
           final bookingDate = "${currentDay.day}/${currentDay.month}/${currentDay.year}";
           
+          // Check if this slot conflicts with any 45-minute session
+          // A 45-minute session blocks: current time, +15min, +30min
+          // So we need to check if there's a booking at: current, -15min, -30min, +15min, +30min
           if (isAlreadyBooked(
+                  Booking(
+                    bookingName: "",
+                    trainer: selectedValue,
+                    price: 1,
+                    date: bookingDate,
+                    time: df.format(timeIncrement),
+                  ),
+                  bookings != null ? bookings!.list : {}) ||
+              isAlreadyBooked(
                   Booking(
                     bookingName: "",
                     trainer: selectedValue,
@@ -139,8 +151,26 @@ class _BookingsPageState extends State<BookingsPage>
                     date: bookingDate,
                     time: df.format(timeIncrement.subtract(const Duration(minutes: 30))),
                   ),
+                  bookings != null ? bookings!.list : {}) ||
+              isAlreadyBooked(
+                  Booking(
+                    bookingName: "",
+                    price: 1,
+                    trainer: selectedValue,
+                    date: bookingDate,
+                    time: df.format(timeIncrement.add(const Duration(minutes: 15))),
+                  ),
+                  bookings != null ? bookings!.list : {}) ||
+              isAlreadyBooked(
+                  Booking(
+                    bookingName: "",
+                    price: 1,
+                    trainer: selectedValue,
+                    date: bookingDate,
+                    time: df.format(timeIncrement.add(const Duration(minutes: 30))),
+                  ),
                   bookings != null ? bookings!.list : {})) {
-            // Slot is booked
+            // Slot is booked or conflicts with another session
           } else {
             var uuid = const Uuid();
             setState(() {

@@ -69,7 +69,7 @@ class _BookingWidgetState extends State<BookingWidget> {
       absorbing: isDisabled,
       child: Padding(
         padding: EdgeInsets.symmetric(
-            horizontal: 0, vertical: Dimensions.height10 / 2),
+            horizontal: Dimensions.width10, vertical: Dimensions.height10 / 2),
         child: Opacity(
           opacity: isDisabled ? 0.5 : 1,
           child: SizedBox(
@@ -102,7 +102,7 @@ class _BookingWidgetState extends State<BookingWidget> {
   Widget _buildSkeletonCard(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: 0, vertical: Dimensions.height10 / 2),
+          horizontal: Dimensions.width10, vertical: Dimensions.height10 / 2),
       child: SizedBox(
         width: MediaQuery.of(context).size.width,
         height: 165,
