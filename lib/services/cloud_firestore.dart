@@ -17,23 +17,60 @@ class CloudFirestore {
     return doc.exists;
   }
 
-  bool setUserInfo(String name, int weight) {
+  /// Create user document in Firestore with retry logic
+  /// Returns true if successful, false otherwise
+  Future<bool> setUserInfo(String name, int weight, {int retries = 3}) async {
     final FirebaseAuth auth = FirebaseAuth.instance;
-    try {
-      reference.collection("users").doc(auth.currentUser!.uid).set({
-        "credits": 0,
-        "bookings": [],
-        "active": false,
-        "credit_type": "",
-        "name": name,
-        "weight": weight
-      });
-
-      return true;
-    } catch (e) {
-      print(e);
+    
+    if (auth.currentUser == null) {
+      print('ERROR: No authenticated user found');
       return false;
     }
+    
+    final userId = auth.currentUser!.uid;
+    final userData = {
+      "credits": 0,
+      "bookings": [],
+      "subscriptions": [],
+      "active": false,
+      "credit_type": "",
+      "name": name,
+      "weight": weight
+    };
+    
+    for (int attempt = 0; attempt < retries; attempt++) {
+      try {
+        print('Creating user document for $userId (attempt ${attempt + 1}/$retries)');
+        
+        // Use set with merge to avoid overwriting if document exists
+        await reference.collection("users").doc(userId).set(
+          userData,
+          SetOptions(merge: true),
+        );
+        
+        // Verify the document was created
+        final doc = await reference.collection("users").doc(userId).get();
+        if (doc.exists) {
+          print('✅ User document created successfully for $userId');
+          return true;
+        } else {
+          print('⚠️  Document creation verification failed (attempt ${attempt + 1})');
+        }
+      } catch (e) {
+        print('❌ Error creating user document (attempt ${attempt + 1}/$retries): $e');
+        
+        // If this is the last attempt, return false
+        if (attempt == retries - 1) {
+          print('CRITICAL: Failed to create user document after $retries attempts');
+          return false;
+        }
+        
+        // Wait before retrying (exponential backoff)
+        await Future.delayed(Duration(seconds: attempt + 1));
+      }
+    }
+    
+    return false;
   }
 
   bool deleteUser() {

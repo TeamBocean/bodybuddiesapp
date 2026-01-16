@@ -50,28 +50,53 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
       _isSigningIn = true;
     });
 
-    User? user = await Authentication.signInWithApple(context: context);
+    try {
+      User? user = await Authentication.signInWithApple(context: context);
 
-    setState(() {
-      _isSigningIn = false;
-    });
+      if (!mounted) return;
 
-    if (user != null) {
-      await CloudFirestore().isUserExists().then((userExists) {
+      if (user != null) {
+        print('Apple sign-in successful for: ${user.email}');
+        
+        // Check if user document exists
+        final userExists = await CloudFirestore().isUserExists();
+        
+        if (!mounted) return;
+        
         if (userExists) {
+          print('User document exists, navigating to main app');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => MainScaffold(),
             ),
           );
         } else {
+          print('User document does not exist, navigating to onboarding');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => OnBoardingPage(),
             ),
           );
         }
-      });
+      } else {
+        print('Apple sign-in returned null user');
+      }
+    } catch (e) {
+      print('Error during Apple sign-in: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign-in failed. Please try again.'),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningIn = false;
+        });
+      }
     }
   }
 }
