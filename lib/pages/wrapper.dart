@@ -1,6 +1,8 @@
 import 'package:bodybuddiesapp/pages/main_scaffold.dart';
+import 'package:bodybuddiesapp/pages/on_boarding_page.dart';
 import 'package:bodybuddiesapp/pages/settings_page.dart';
 import 'package:bodybuddiesapp/pages/sign_in_page.dart';
+import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/bottom_nav_bar.dart';
 import 'package:bodybuddiesapp/widgets/logo.dart';
@@ -32,7 +34,22 @@ class _WrapperState extends State<Wrapper> {
           if (user == null) {
             return const SignInPage();
           }
-          return const MainScaffold();
+          // Check if user document exists before allowing access to main app
+          return FutureBuilder<bool>(
+            future: CloudFirestore().isUserExists(),
+            builder: (context, docSnapshot) {
+              if (docSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (docSnapshot.data == true) {
+                return const MainScaffold();
+              }
+              // User is authenticated but has no Firestore document - send to onboarding
+              return const OnBoardingPage();
+            },
+          );
         }
         return const Scaffold(
           body: Center(
