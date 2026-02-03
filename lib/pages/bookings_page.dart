@@ -38,10 +38,6 @@ class _BookingsPageState extends State<BookingsPage>
   int currentDayPage = 365;
   PageController pageController = PageController(initialPage: 365);
   Bookings? bookings;
-  bool loadedBookedDates = false;
-  
-  // Track which year's bookings are loaded
-  int? _loadedYear;
 
   @override
   void initState() {
@@ -54,15 +50,7 @@ class _BookingsPageState extends State<BookingsPage>
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
     _animationController.forward();
-
-    loadBookedDates().whenComplete(() {
-      setState(() {
-        loadedBookedDates = true;
-      });
-      if (loadedBookedDates) {
-        initDates(context);
-      }
-    });
+    // Note: Booking data is now loaded via StreamBuilder in build(), not here
   }
 
   @override
@@ -71,140 +59,6 @@ class _BookingsPageState extends State<BookingsPage>
     super.dispose();
   }
 
-  Future<bool> loadBookedDates({int? year}) async {
-    final targetYear = year ?? currentDay.year;
-    
-    // Only reload if year changed
-    if (_loadedYear == targetYear && bookings != null) {
-      return true;
-    }
-    
-    bookings = await CloudFirestore().getBookedDates("", year: targetYear);
-    _loadedYear = targetYear;
-
-    return true;
-  }
-
-  /// Check if year changed and reload bookings if needed
-  Future<void> _checkYearAndReload() async {
-    if (_loadedYear != currentDay.year) {
-      await loadBookedDates(year: currentDay.year);
-      if (mounted) {
-        initDates(context);
-      }
-    }
-  }
-
-  void initDates(BuildContext context) {
-    dates.clear();
-    for (int i = 0; i < 360; i++) {
-      final date = _currentDate.add(Duration(days: i));
-      setState(() {
-        dates.add(dateWidget(
-          date,
-          daysOfWeek[date.weekday - 1].substring(0, 3),
-          date.day == currentDay.day &&
-              date.month == currentDay.month &&
-              date.year == currentDay.year,
-        ));
-      });
-    }
-
-    setState(() {
-      slots.clear();
-      DateTime startTime = _getSessionsStartTime();
-      DateTime endTime = _getSessionsEndTime();
-      if (isCurrentDayNotWeekend()) {
-        DateFormat df = DateFormat('HH:mm');
-
-        while (startTime.isBefore(endTime)) {
-          DateTime timeIncrement = startTime.add(step);
-          // Create booking with full date including year
-          final bookingDate = "${currentDay.day}/${currentDay.month}/${currentDay.year}";
-          
-          // Check if this slot conflicts with any 45-minute session
-          // A 45-minute session blocks: current time, +15min, +30min
-          // So we need to check if there's a booking at: current, -15min, -30min, +15min, +30min
-          if (isAlreadyBooked(
-                  Booking(
-                    bookingName: "",
-                    trainer: selectedValue,
-                    price: 1,
-                    date: bookingDate,
-                    time: df.format(timeIncrement),
-                  ),
-                  bookings != null ? bookings!.list : {}) ||
-              isAlreadyBooked(
-                  Booking(
-                    bookingName: "",
-                    trainer: selectedValue,
-                    price: 1,
-                    date: bookingDate,
-                    time: df.format(timeIncrement.subtract(const Duration(minutes: 15))),
-                  ),
-                  bookings != null ? bookings!.list : {}) ||
-              isAlreadyBooked(
-                  Booking(
-                    bookingName: "",
-                    price: 1,
-                    trainer: selectedValue,
-                    date: bookingDate,
-                    time: df.format(timeIncrement.subtract(const Duration(minutes: 30))),
-                  ),
-                  bookings != null ? bookings!.list : {}) ||
-              isAlreadyBooked(
-                  Booking(
-                    bookingName: "",
-                    price: 1,
-                    trainer: selectedValue,
-                    date: bookingDate,
-                    time: df.format(timeIncrement.add(const Duration(minutes: 15))),
-                  ),
-                  bookings != null ? bookings!.list : {}) ||
-              isAlreadyBooked(
-                  Booking(
-                    bookingName: "",
-                    price: 1,
-                    trainer: selectedValue,
-                    date: bookingDate,
-                    time: df.format(timeIncrement.add(const Duration(minutes: 30))),
-                  ),
-                  bookings != null ? bookings!.list : {})) {
-            // Slot is booked or conflicts with another session
-          } else {
-            var uuid = const Uuid();
-            setState(() {
-              slots.add(BookingWidget(
-                isBooked: false,
-                trainer: selectedValue,
-                isAdmin: false,
-                slots: slots,
-                booking: Booking(
-                  id: uuid.v1(),
-                  bookingName: "",
-                  trainer: selectedValue,
-                  price: 1,
-                  date: bookingDate, // Include year
-                  time: df.format(timeIncrement),
-                ),
-                month: currentDay.month,
-              ));
-            });
-          }
-
-          startTime = timeIncrement;
-        }
-      } else if (selectedValue == "Mandalena") {
-        while (startTime.isBefore(endTime)) {
-          DateTime timeSlot = startTime.add(const Duration(minutes: 15));
-          if (_isSlotAvailable(timeSlot)) {
-            slots.add(_buildBookingWidget(timeSlot));
-          }
-          startTime = timeSlot;
-        }
-      }
-    });
-  }
 
   Widget _buildBookingWidget(DateTime timeSlot) {
     var uuid = const Uuid();
@@ -227,6 +81,7 @@ class _BookingsPageState extends State<BookingsPage>
 
   bool _isSlotAvailable(DateTime timeSlot) {
     List<DateTime> timesToCheck = [
+      timeSlot, // CRITICAL: Check the slot itself first!
       timeSlot.add(const Duration(minutes: 15)),
       timeSlot.add(const Duration(minutes: 30)),
       timeSlot.subtract(const Duration(minutes: 15)),
@@ -270,15 +125,33 @@ class _BookingsPageState extends State<BookingsPage>
 
   @override
   Widget build(BuildContext context) {
-    initDates(context);
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      child: SafeArea(
-        child: StreamBuilder<UserModel>(
-            stream: CloudFirestore()
-                .streamUserData(FirebaseAuth.instance.currentUser!.uid),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
+    // Use StreamBuilder for real-time booking updates to prevent double-booking
+    return StreamBuilder<Bookings>(
+      stream: CloudFirestore().streamBookedDates(
+        FirebaseAuth.instance.currentUser!.uid,
+        year: currentDay.year,
+      ),
+      builder: (context, bookingsSnapshot) {
+        // Update the local bookings reference when stream updates
+        if (bookingsSnapshot.hasData) {
+          bookings = bookingsSnapshot.data;
+        }
+        
+        // Rebuild available slots based on current booking data
+        _buildAvailableSlots();
+        _buildDateWidgets();
+        
+        return SizedBox(
+          height: MediaQuery.of(context).size.height,
+          child: SafeArea(
+            child: StreamBuilder<UserModel>(
+              stream: CloudFirestore()
+                  .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+              builder: (context, userSnapshot) {
+                if (!bookingsSnapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -365,7 +238,7 @@ class _BookingsPageState extends State<BookingsPage>
                             currentDay = DateTime.now()
                                 .add(Duration(days: currentDayPage - 365));
                           });
-                          await _checkYearAndReload();
+                          // Year change is handled automatically by StreamBuilder
                         },
                         itemBuilder: (context, index) {
                           return Padding(
@@ -380,7 +253,7 @@ class _BookingsPageState extends State<BookingsPage>
                                   children: slots.isEmpty
                                       ? [noBookings()]
                                       : slots.map((booking) {
-                                          bool isBooked = snapshot.data?.bookings.firstWhereOrNull((element) =>
+                                          bool isBooked = userSnapshot.data?.bookings.firstWhereOrNull((element) =>
                                               element.isOnDate(currentDay)) != null;
                                           
                                           return AnimatedSwitcher(
@@ -401,14 +274,100 @@ class _BookingsPageState extends State<BookingsPage>
                     )
                   ],
                 );
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            }),
-      ),
+              },
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  /// Build available slots based on current booking data
+  void _buildAvailableSlots() {
+    slots.clear();
+    DateTime startTime = _getSessionsStartTime();
+    DateTime endTime = _getSessionsEndTime();
+    
+    if (isCurrentDayNotWeekend()) {
+      DateFormat df = DateFormat('HH:mm');
+      
+      while (startTime.isBefore(endTime)) {
+        DateTime timeIncrement = startTime.add(step);
+        final bookingDate = "${currentDay.day}/${currentDay.month}/${currentDay.year}";
+        
+        // Check if this slot conflicts with any 45-minute session
+        if (!_isTimeSlotConflicting(df.format(timeIncrement))) {
+          var uuid = const Uuid();
+          slots.add(BookingWidget(
+            isBooked: false,
+            trainer: selectedValue,
+            isAdmin: false,
+            slots: slots,
+            booking: Booking(
+              id: uuid.v1(),
+              bookingName: "",
+              trainer: selectedValue,
+              price: 1,
+              date: bookingDate,
+              time: df.format(timeIncrement),
+            ),
+            month: currentDay.month,
+          ));
+        }
+        
+        startTime = timeIncrement;
+      }
+    } else if (selectedValue == "Mandalena") {
+      while (startTime.isBefore(endTime)) {
+        DateTime timeSlot = startTime.add(const Duration(minutes: 15));
+        if (_isSlotAvailable(timeSlot)) {
+          slots.add(_buildBookingWidget(timeSlot));
+        }
+        startTime = timeSlot;
+      }
+    }
+  }
+  
+  /// Check if a time slot conflicts with existing bookings (45-min window)
+  bool _isTimeSlotConflicting(String time) {
+    if (bookings == null) return false;
+    
+    final bookingMinutes = _parseTimeToMinutes(time);
+    final dayStr = currentDay.day.toString();
+    final monthStr = currentDay.month.toString();
+    
+    List<dynamic>? bookedTimes = bookings!.list[monthStr]?[dayStr];
+    if (bookedTimes == null) return false;
+    
+    for (final existingTime in bookedTimes) {
+      final existingMinutes = _parseTimeToMinutes(existingTime as String);
+      final diff = (bookingMinutes - existingMinutes).abs();
+      // Sessions are 45 minutes, so block if within 45 minutes
+      if (diff < 45) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  int _parseTimeToMinutes(String time) {
+    final parts = time.split(':');
+    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+  
+  /// Build date widgets for the horizontal date selector
+  void _buildDateWidgets() {
+    dates.clear();
+    for (int i = 0; i < 360; i++) {
+      final date = _currentDate.add(Duration(days: i));
+      dates.add(dateWidget(
+        date,
+        daysOfWeek[date.weekday - 1].substring(0, 3),
+        date.day == currentDay.day &&
+            date.month == currentDay.month &&
+            date.year == currentDay.year,
+      ));
+    }
   }
 
   Widget _buildHeader() {
@@ -458,7 +417,7 @@ class _BookingsPageState extends State<BookingsPage>
                             setState(() {
                               selectedValue = newValue!;
                             });
-                            initDates(context);
+                            // Slots rebuild automatically via StreamBuilder
                           },
                           items:
                               pts.map<DropdownMenuItem<String>>((String value) {
@@ -536,8 +495,7 @@ class _BookingsPageState extends State<BookingsPage>
       pageController.jumpToPage(pageIndex + 365);
       currentDay = date;
     });
-    await _checkYearAndReload();
-    initDates(context);
+    // Slots rebuild automatically via StreamBuilder when currentDay changes
   }
 
   double getOpacity(List<Booking> list) {
@@ -567,8 +525,7 @@ class _BookingsPageState extends State<BookingsPage>
             }
             currentDay = dateTime;
           });
-          await _checkYearAndReload();
-          initDates(context);
+          // Slots rebuild automatically via StreamBuilder when currentDay changes
         },
         child: SizedBox(
           width: Dimensions.width10 * 4,
