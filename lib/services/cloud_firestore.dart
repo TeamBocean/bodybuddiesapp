@@ -310,11 +310,12 @@ class CloudFirestore {
   /// Returns true if credits were added successfully
   Future<bool> addCredits(int credits, String userID, String creditType) async {
     try {
-      await reference.collection("users").doc(userID).update({
+      // Use set with merge to create doc if it doesn't exist (safety net)
+      await reference.collection("users").doc(userID).set({
         "credits": FieldValue.increment(credits),
         "active": true,
         "credit_type": creditType
-      });
+      }, SetOptions(merge: true));
       print('Credits added successfully: $credits credits to user $userID');
       return true;
     } catch (e) {
@@ -403,6 +404,87 @@ class CloudFirestore {
     QuerySnapshot snapshot =
         await reference.collection("personal_trainers").get();
     return snapshot.docs.map((pt) => pt.data()).toList();
+  }
+
+  /// Atomically check and reserve a slot to prevent double-booking.
+  /// Returns true if booking was created, false if slot already taken.
+  Future<bool> bookSlotAtomic({
+    required Booking booking,
+    required String userID,
+    required int month,
+    required String username,
+  }) async {
+    try {
+      return await reference.runTransaction<bool>((transaction) async {
+        // Reference to the availability document for this year
+        final year = booking.year.toString();
+        final monthStr = booking.month.toString();
+        final dayStr = booking.day.toString();
+        
+        final availabilityRef = reference.collection("bookings").doc(year);
+        final availabilityDoc = await transaction.get(availabilityRef);
+        
+        if (!availabilityDoc.exists) {
+          // Create year document if it doesn't exist
+          transaction.set(availabilityRef, {
+            monthStr: {dayStr: [booking.time]}
+          });
+        } else {
+          // Check if slot is already booked
+          final data = availabilityDoc.data() as Map<String, dynamic>;
+          final monthData = data[monthStr] as Map<String, dynamic>?;
+          final dayData = monthData?[dayStr] as List<dynamic>?;
+          
+          if (dayData != null) {
+            // Check for conflicts (45-minute sessions block multiple slots)
+            final bookingMinutes = _parseTimeToMinutes(booking.time);
+            for (final existingTime in dayData) {
+              final existingMinutes = _parseTimeToMinutes(existingTime as String);
+              final diff = (bookingMinutes - existingMinutes).abs();
+              // Sessions are 45 minutes, slots are 15 minutes apart
+              if (diff < 45) {
+                return false; // Slot conflict
+              }
+            }
+          }
+          
+          // Reserve the slot
+          transaction.update(availabilityRef, {
+            "$monthStr.$dayStr": FieldValue.arrayUnion([booking.time])
+          });
+        }
+        
+        // Create the booking in bookings-list
+        final publicBookingRef = reference
+            .collection("bookings-list")
+            .doc(year)
+            .collection(monthStr)
+            .doc(dayStr)
+            .collection("bookings")
+            .doc(booking.id);
+        
+        Map<String, dynamic> bookingData = booking.toJson();
+        bookingData['name'] = username;
+        transaction.set(publicBookingRef, bookingData);
+        
+        // Add to user's bookings
+        final userRef = reference.collection("users").doc(userID);
+        transaction.update(userRef, {
+          "bookings": FieldValue.arrayUnion([booking.toJson()])
+        });
+        
+        return true;
+      });
+    } catch (e) {
+      print('Booking transaction failed: $e');
+      return false;
+    }
+  }
+
+  /// Parse time string (HH:mm) to minutes since midnight
+  int _parseTimeToMinutes(String time) {
+    final parts = time.split(':');
+    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
   }
   
   // ============================================

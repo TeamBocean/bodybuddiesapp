@@ -6,6 +6,7 @@ import '../models/booking.dart';
 import '../models/user.dart';
 import '../pages/credits_page.dart';
 import '../services/cloud_firestore.dart';
+import '../services/email.dart';
 import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 import 'medium_text_widget.dart';
@@ -56,9 +57,9 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
       final userId = FirebaseAuth.instance.currentUser!.uid;
       
       // Use atomic credit deduction to prevent race conditions
-      final success = await CloudFirestore().decreaseCreditsAtomic(1, userId);
+      final creditSuccess = await CloudFirestore().decreaseCreditsAtomic(1, userId);
       
-      if (!success) {
+      if (!creditSuccess) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("You are out of credits")),
@@ -87,12 +88,34 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         date: "${widget.day}/${widget.month}/${selectedDate.year}",
       );
 
-      CloudFirestore().addUserBooking(
-        userBooking,
-        userId,
-        widget.month,
-        user.name,
+      // Use atomic booking to prevent double-booking
+      final bookingSuccess = await CloudFirestore().bookSlotAtomic(
+        booking: userBooking,
+        userID: userId,
+        month: widget.month,
+        username: user.name,
       );
+
+      if (!bookingSuccess) {
+        // Slot was taken by someone else - refund the credit
+        CloudFirestore().incrementCredit(1, userId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("This slot was just booked. Please choose another time."),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          setState(() {
+            _isProcessing = false;
+          });
+        }
+        return;
+      }
+
+      // Send confirmation emails after successful booking
+      EmailService().sendBookingConfirmationToMark(userBooking);
+      EmailService().sendBookingConfirmationToUser(userBooking);
 
       if (mounted) {
         Navigator.pop(context, 'dialog');

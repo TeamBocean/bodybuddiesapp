@@ -23,6 +23,7 @@ class _CreditsPageState extends State<CreditsPage> {
   bool isBuddy = false;
   Map<String, dynamic>? paymentIntent;
   bool _isProcessingPayment = false;
+  int _pendingCredits = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -81,15 +82,14 @@ class _CreditsPageState extends State<CreditsPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    paymentOptionWidget(isBuddy ? 500 : 400, "8", "8"),
-                    paymentOptionWidget(isBuddy ? 650 : 550, "12", "12"),
+                    paymentOptionWidget(isBuddy ? 560 : 440, "8", "8"),
+                    paymentOptionWidget(isBuddy ? 720 : 600, "12", "12"),
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    paymentOptionWidget(isBuddy ? 1200 : 1000, "24", "24"),
-                    paymentOptionWidget(isBuddy ? 1800 : 1500, "36", "36"),
+                    paymentOptionWidget(isBuddy ? 1800 : 1620, "36", "36"),
                   ],
                 ),
               ],
@@ -181,6 +181,7 @@ class _CreditsPageState extends State<CreditsPage> {
     
     setState(() {
       _isProcessingPayment = true;
+      _pendingCredits = credits;
     });
 
     try {
@@ -352,10 +353,15 @@ class _CreditsPageState extends State<CreditsPage> {
     }
 
     try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
       Map<String, dynamic> body = {
         'amount': calculateAmount(amount),
         'currency': currency,
-        'payment_method_types[]': 'card'
+        'payment_method_types[]': 'card',
+        // Metadata for webhook processing - enables server-side credit addition
+        'metadata[userId]': userId,
+        'metadata[credits]': _pendingCredits.toString(),
+        'metadata[creditType]': isBuddy ? "2:1" : "1:1",
       };
 
       var response = await http.post(
