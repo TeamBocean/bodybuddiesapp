@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage>
                     SizedBox(height: Dimensions.height15),
                     Text(
                       "What's new",
-                      style: GoogleFonts.playfairDisplay(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 22,
                         color: bbText,
                         fontWeight: FontWeight.w500,
@@ -325,7 +325,7 @@ class _HomePageState extends State<HomePage>
                                     displayName.isNotEmpty
                                         ? displayName[0].toUpperCase()
                                         : "M",
-                                    style: GoogleFonts.playfairDisplay(
+                                    style: GoogleFonts.plusJakartaSans(
                                       color: bbText,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -457,7 +457,7 @@ class _HomePageState extends State<HomePage>
           ),
           title: Text(
             'Update Name',
-            style: GoogleFonts.playfairDisplay(
+            style: GoogleFonts.plusJakartaSans(
               color: bbText,
               fontWeight: FontWeight.w500,
             ),
@@ -556,7 +556,7 @@ class _HomePageState extends State<HomePage>
                                             .substring(0, 1)
                                             .toUpperCase()
                                         : "",
-                                    style: GoogleFonts.playfairDisplay(
+                                    style: GoogleFonts.plusJakartaSans(
                                       color: bbText,
                                       fontWeight: FontWeight.w500,
                                       fontSize: 18,
@@ -883,7 +883,7 @@ class _HomePageState extends State<HomePage>
               // Greeting — a polite nod, not a greeting card
               Text(
                 "${_getGreetingWord()} $firstName.",
-                style: GoogleFonts.playfairDisplay(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   color: bbText,
                   fontWeight: FontWeight.w300,
@@ -1004,7 +1004,7 @@ class _HomePageState extends State<HomePage>
           children: [
             Text(
               credits.toString(),
-              style: GoogleFonts.playfairDisplay(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 20,
                 color: bbText,
                 fontWeight: FontWeight.w600,
@@ -1040,7 +1040,7 @@ class _HomePageState extends State<HomePage>
         children: [
           Text(
             value,
-            style: GoogleFonts.playfairDisplay(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 20,
               color: bbText,
               fontWeight: FontWeight.w600,

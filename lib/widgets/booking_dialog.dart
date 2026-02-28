@@ -149,7 +149,7 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
             // Title
             Text(
               "Confirm your\nsession.",
-              style: GoogleFonts.playfairDisplay(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 26,
                 color: bbText,
                 fontWeight: FontWeight.w500,

@@ -28,23 +28,23 @@ class AppTheme {
       // ─── Typography ─────────────────────────────────────────────────────
       textTheme: TextTheme(
         // Display – Playfair Display (editorial serif headlines)
-        displayLarge: GoogleFonts.playfairDisplay(
+        displayLarge: GoogleFonts.plusJakartaSans(
           fontSize: 56, color: bbText, height: 1.05, fontWeight: FontWeight.w400,
         ),
-        displayMedium: GoogleFonts.playfairDisplay(
+        displayMedium: GoogleFonts.plusJakartaSans(
           fontSize: 44, color: bbText, height: 1.08, fontWeight: FontWeight.w400,
         ),
-        displaySmall: GoogleFonts.playfairDisplay(
+        displaySmall: GoogleFonts.plusJakartaSans(
           fontSize: 36, color: bbText, height: 1.1, fontWeight: FontWeight.w400,
         ),
         // Headlines – Playfair Display
-        headlineLarge: GoogleFonts.playfairDisplay(
+        headlineLarge: GoogleFonts.plusJakartaSans(
           fontSize: 32, color: bbText, height: 1.1, fontWeight: FontWeight.w500,
         ),
-        headlineMedium: GoogleFonts.playfairDisplay(
+        headlineMedium: GoogleFonts.plusJakartaSans(
           fontSize: 26, color: bbText, height: 1.15, fontWeight: FontWeight.w500,
         ),
-        headlineSmall: GoogleFonts.playfairDisplay(
+        headlineSmall: GoogleFonts.plusJakartaSans(
           fontSize: 20, color: bbText, height: 1.2, fontWeight: FontWeight.w500,
         ),
         // Titles – Plus Jakarta Sans (geometric, wide-spaced)
@@ -96,7 +96,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: bbText),
-        titleTextStyle: GoogleFonts.playfairDisplay(
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           color: bbText,
           fontSize: 20,
           fontWeight: FontWeight.w500,
@@ -178,7 +178,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        titleTextStyle: GoogleFonts.playfairDisplay(
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 22, color: bbText, fontWeight: FontWeight.w500,
         ),
         contentTextStyle: GoogleFonts.plusJakartaSans(

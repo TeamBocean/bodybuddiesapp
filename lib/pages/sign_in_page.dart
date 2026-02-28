@@ -67,7 +67,7 @@ class _SignInPageState extends State<SignInPage>
                 // ─── Editorial Headline ──────────────────────────────────
                 Text(
                   "Your studio\nawaits.",
-                  style: GoogleFonts.playfairDisplay(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 42,
                     color: bbText,
                     height: 1.1,

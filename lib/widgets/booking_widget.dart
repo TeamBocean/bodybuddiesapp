@@ -406,7 +406,7 @@ class _BookingWidgetState extends State<BookingWidget>
               Text(
                 "Cancel this\nsession?",
                 textAlign: TextAlign.center,
-                style: GoogleFonts.playfairDisplay(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 22,
                   color: bbText,
                   fontWeight: FontWeight.w500,

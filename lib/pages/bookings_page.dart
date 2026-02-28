@@ -509,7 +509,7 @@ class _BookingsPageState extends State<BookingsPage>
             // Day number — weight change for current day
             Text(
               dateTime.day.toString(),
-              style: GoogleFonts.playfairDisplay(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: isCurrent ? 22 : 18,
                 color: isCurrent ? bbText : bbTextSecondary,
                 fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w300,

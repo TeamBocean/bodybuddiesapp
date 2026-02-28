@@ -33,7 +33,7 @@ class _CreditsPageState extends State<CreditsPage> {
       appBar: AppBar(
         title: Text(
           'The Collection',
-          style: GoogleFonts.playfairDisplay(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 22,
             fontWeight: FontWeight.w500,
             color: bbText,
@@ -358,7 +358,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     children: [
                       Text(
                         label,
-                        style: GoogleFonts.playfairDisplay(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 24,
                           fontWeight: FontWeight.w500,
                           color: bbText,
@@ -381,7 +381,7 @@ class _CreditsPageState extends State<CreditsPage> {
                   children: [
                     Text(
                       "€${price.toStringAsFixed(0)}",
-                      style: GoogleFonts.playfairDisplay(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 28,
                         fontWeight: FontWeight.w600,
                         color: bbAccent,
@@ -457,7 +457,7 @@ class _CreditsPageState extends State<CreditsPage> {
               // Sheet title
               Text(
                 "The Session Pack",
-                style: GoogleFonts.playfairDisplay(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   color: bbTextMuted,
                   letterSpacing: 2,
@@ -468,7 +468,7 @@ class _CreditsPageState extends State<CreditsPage> {
               // Pack name
               Text(
                 label,
-                style: GoogleFonts.playfairDisplay(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 32,
                   color: bbText,
                   fontWeight: FontWeight.w500,
@@ -534,7 +534,7 @@ class _CreditsPageState extends State<CreditsPage> {
               // Price
               Text(
                 "€${price.toStringAsFixed(0)}",
-                style: GoogleFonts.playfairDisplay(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 40,
                   color: bbAccent,
                   fontWeight: FontWeight.w600,
@@ -728,7 +728,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 Text(
                   "Welcome to your\nnext chapter.",
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.playfairDisplay(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 22,
                     color: bbText,
                     fontWeight: FontWeight.w500,
