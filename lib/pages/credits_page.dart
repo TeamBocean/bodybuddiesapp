@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/user.dart';
 import '../../services/cloud_firestore.dart';
 import '../../services/email.dart';
 import '../../utils/colors.dart';
 import '../../utils/dimensions.dart';
-import '../../widgets/medium_text_widget.dart';
+import '../widgets/stamp_seal_painter.dart';
 
 class CreditsPage extends StatefulWidget {
   const CreditsPage({Key? key}) : super(key: key);
@@ -28,71 +29,256 @@ class _CreditsPageState extends State<CreditsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bbBackground,
       appBar: AppBar(
-        title: const Text('Training Credits'),
-        backgroundColor: background,
+        title: Text(
+          'The Collection',
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 22,
+            fontWeight: FontWeight.w500,
+            color: bbText,
+          ),
+        ),
+        backgroundColor: bbBackground,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: bbText),
       ),
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        color: background,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: Dimensions.height20),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width / 3,
-                      child: ElevatedButton(
-                          onPressed: _isProcessingPayment ? null : () {
-                            setState(() {
-                              isBuddy = false;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: isBuddy ? darkGrey : darkGreen),
-                          child: MediumTextWidget(
-                            text: "Personal",
-                            fontSize: Dimensions.fontSize14,
-                          )),
+      body: StreamBuilder<UserModel?>(
+        stream: CloudFirestore()
+            .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+        builder: (context, userSnapshot) {
+          final currentCredits = userSnapshot.data?.credits ?? 0;
+
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Dimensions.width20,
+                vertical: Dimensions.height20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ─── Invitation Card (Punch Card) ──────────────────────
+                  _buildInvitationCard(currentCredits),
+                  SizedBox(height: Dimensions.height20 + Dimensions.height10),
+
+                  // ─── Subtitle ──────────────────────────────────────────
+                  Text(
+                    "INVEST IN YOURSELF.",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: bbTextSecondary,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 3.0,
                     ),
-                    SizedBox(
-                      width: Dimensions.width20,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Choose your plan.",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      color: bbTextSecondary,
+                      height: 1.5,
                     ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width / 3,
-                      child: ElevatedButton(
-                          onPressed: _isProcessingPayment ? null : () {
-                            setState(() {
-                              isBuddy = true;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: !isBuddy ? darkGrey : darkGreen),
-                          child: MediumTextWidget(
-                            text: "Buddy",
-                            fontSize: Dimensions.fontSize14,
-                          )),
-                    ),
-                  ],
+                  ),
+                  SizedBox(height: Dimensions.height20),
+
+                  // ─── Session Type Toggle ────────────────────────────────
+                  _buildSessionToggle(),
+                  SizedBox(height: Dimensions.height20 + Dimensions.height10),
+
+                  // ─── Session Packs ────────────────────────────────────
+                  _buildSessionPack(
+                    credits: 8,
+                    label: "Eight Sessions",
+                    price: isBuddy ? 560 : 440,
+                    description: "A thoughtful start to your journey.",
+                  ),
+                  SizedBox(height: Dimensions.height15),
+                  _buildSessionPack(
+                    credits: 12,
+                    label: "Twelve Sessions",
+                    price: isBuddy ? 720 : 600,
+                    description: "The most popular choice.",
+                    isHighlighted: true,
+                  ),
+                  SizedBox(height: Dimensions.height15),
+                  _buildSessionPack(
+                    credits: 36,
+                    label: "Thirty-Six Sessions",
+                    price: isBuddy ? 1800 : 1620,
+                    description: "For the deeply committed.",
+                  ),
+                  SizedBox(height: Dimensions.height35),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INVITATION CARD — Punch card with stamp circles
+  // ═══════════════════════════════════════════════════════════════════════════
+  Widget _buildInvitationCard(int credits) {
+    final maxDisplay = 12;
+    final displayCredits = credits.clamp(0, maxDisplay);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: bbSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: bbBorder, width: 0.5),
+        boxShadow: [
+          BoxShadow(
+            color: bbBorder.withOpacity(0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "YOUR INVITATION",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  color: bbTextSecondary,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 3.0,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    paymentOptionWidget(isBuddy ? 560 : 440, "8", "8"),
-                    paymentOptionWidget(isBuddy ? 720 : 600, "12", "12"),
-                  ],
+              ),
+              Text(
+                "$credits remaining",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: bbTextMuted,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    paymentOptionWidget(isBuddy ? 1800 : 1620, "36", "36"),
-                  ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Stamp circles grid — 3 rows × 4 cols
+          Center(
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              alignment: WrapAlignment.center,
+              children: List.generate(maxDisplay, (i) {
+                final isFilled = i < displayCredits;
+                return SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: StampSeal(
+                    size: 40,
+                    color: isFilled ? bbAccent : bbBorder,
+                    progress: isFilled ? 1.0 : 0.25,
+                    isFilled: isFilled,
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          if (credits > maxDisplay) ...[
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                "+ ${credits - maxDisplay} more",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  color: bbTextMuted,
                 ),
-              ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 20),
+
+          // Thin divider
+          Container(height: 0.5, color: bbBorder),
+          const SizedBox(height: 16),
+
+          // Footer message
+          Center(
+            child: Text(
+              "Each stamp represents a session.\nBook to fill your card.",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: bbTextMuted,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SESSION TOGGLE
+  // ═══════════════════════════════════════════════════════════════════════════
+  Widget _buildSessionToggle() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: bbCard,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _buildToggleOption("Personal", !isBuddy)),
+          Expanded(child: _buildToggleOption("Buddy", isBuddy)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleOption(String label, bool isActive) {
+    return GestureDetector(
+      onTap: _isProcessingPayment
+          ? null
+          : () {
+              setState(() {
+                isBuddy = label == "Buddy";
+              });
+            },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isActive ? bbSurface : Colors.transparent,
+          borderRadius: BorderRadius.circular(11),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: bbBorder.withOpacity(0.5),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              color: isActive ? bbText : bbTextMuted,
             ),
           ),
         ),
@@ -100,124 +286,357 @@ class _CreditsPageState extends State<CreditsPage> {
     );
   }
 
-  Widget paymentOptionWidget(double price, String credits, String session) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: Dimensions.height12),
-      child: Container(
-        width: MediaQuery.of(context).size.width / 2.1,
-        height: Dimensions.height12 * 22,
-        color: darkGrey,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: Dimensions.width12, vertical: Dimensions.height12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MediumTextWidget(
-                    text: "$credits Credits",
-                    fontSize: Dimensions.fontSize18,
-                  ),
-                  SizedBox(
-                    height: Dimensions.height10,
-                  ),
-                ],
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SESSION PACK — Tapping opens the bottom sheet
+  // ═══════════════════════════════════════════════════════════════════════════
+  Widget _buildSessionPack({
+    required int credits,
+    required String label,
+    required double price,
+    required String description,
+    bool isHighlighted = false,
+  }) {
+    return GestureDetector(
+      onTap: _isProcessingPayment
+          ? null
+          : () => _showSessionPackSheet(
+                credits: credits,
+                label: label,
+                price: price,
+                description: description,
+                isHighlighted: isHighlighted,
               ),
-              MediumTextWidget(
-                text: "$session Sessions",
-                fontSize: Dimensions.fontSize14,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MediumTextWidget(
-                    text: "€${price.toStringAsFixed(0)}",
-                    fontSize: Dimensions.fontSize28,
-                    color: darkGreen,
-                  ),
-                  StreamBuilder<UserModel?>(
-                      stream: CloudFirestore().streamUserData(
-                          FirebaseAuth.instance.currentUser!.uid),
-                      builder: (context, snapshot) {
-                        return SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          child: ElevatedButton(
-                              onPressed: (_isProcessingPayment || snapshot.data == null)
-                                  ? null
-                                  : () {
-                                      makePayment(price, int.parse(credits));
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: background),
-                              child: _isProcessingPayment
-                                  ? SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: darkGreen,
-                                      ),
-                                    )
-                                  : MediumTextWidget(
-                                      text: "Purchase",
-                                      fontSize: Dimensions.fontSize14,
-                                    )),
-                        );
-                      }),
-                ],
-              )
-            ],
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isHighlighted ? bbAccent.withOpacity(0.06) : bbSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isHighlighted ? bbAccent.withOpacity(0.3) : bbBorder,
+            width: isHighlighted ? 1.5 : 0.5,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: bbBorder.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isHighlighted)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: bbAccent,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  "MOST POPULAR",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w500,
+                          color: bbText,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        description,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: bbTextSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      "€${price.toStringAsFixed(0)}",
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: bbAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "€${(price / credits).toStringAsFixed(0)} per session",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: bbTextMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Tap to view indicator
+            Center(
+              child: Text(
+                "Tap to view →",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: bbTextMuted,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BOTTOM SHEET — "The Session Pack" detail
+  // ═══════════════════════════════════════════════════════════════════════════
+  void _showSessionPackSheet({
+    required int credits,
+    required String label,
+    required double price,
+    required String description,
+    required bool isHighlighted,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: bbSurface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: bbBorder,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Sheet title
+              Text(
+                "The Session Pack",
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 14,
+                  color: bbTextMuted,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Pack name
+              Text(
+                label,
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 32,
+                  color: bbText,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: bbTextSecondary,
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Preview: what you'll receive
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: bbCard,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    // Stamp circle preview
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: List.generate(credits.clamp(0, 12), (i) {
+                        return StampSeal(
+                          size: 28,
+                          color: bbAccent,
+                          progress: 1.0,
+                          isFilled: true,
+                        );
+                      }),
+                    ),
+                    if (credits > 12) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        "+ ${credits - 12} more stamps",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: bbTextMuted,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    Text(
+                      "$credits sessions · ${isBuddy ? '2:1' : '1:1'}",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: bbTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Price
+              Text(
+                "€${price.toStringAsFixed(0)}",
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 40,
+                  color: bbAccent,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "€${(price / credits).toStringAsFixed(0)} per session",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: bbTextMuted,
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Purchase button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isProcessingPayment
+                      ? null
+                      : () {
+                          Navigator.pop(sheetContext);
+                          makePayment(price, credits);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: bbAccent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: _isProcessingPayment
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          "Add to Collection",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PAYMENT LOGIC (unchanged)
+  // ═══════════════════════════════════════════════════════════════════════════
+
   Future<void> makePayment(double price, int credits) async {
-    if (_isProcessingPayment) return; // Prevent double-tap
-    
+    if (_isProcessingPayment) return;
+
     setState(() {
       _isProcessingPayment = true;
       _pendingCredits = credits;
     });
 
     try {
-      // Create payment intent
-      final result = await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
-      
+      final result =
+          await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
+
       if (result == null) {
         throw Exception('Failed to create payment intent');
       }
-      
-      // Check for Stripe API errors
+
       if (result['error'] != null) {
         throw Exception(result['error']['message'] ?? 'Payment failed');
       }
-      
+
       paymentIntent = result;
-      
-      // Initialize Payment Sheet
+
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: paymentIntent!['client_secret'],
-          style: ThemeMode.dark,
+          style: ThemeMode.light,
           merchantDisplayName: 'BodyBuddies',
         ),
       );
 
-      // Display Payment Sheet and handle result
       await displayPaymentSheet(credits, price);
-      
     } catch (e) {
       print('Payment error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Payment failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text('Payment failed: ${e.toString()}',
+                style: GoogleFonts.plusJakartaSans()),
+            backgroundColor: bbRed,
           ),
         );
       }
@@ -232,100 +651,126 @@ class _CreditsPageState extends State<CreditsPage> {
 
   Future<void> displayPaymentSheet(int credits, double price) async {
     try {
-      // Present the payment sheet - this throws if cancelled
       await Stripe.instance.presentPaymentSheet();
-      
-      // If we get here, payment was successful!
-      // Now add credits to the user's account
+
       final userId = FirebaseAuth.instance.currentUser!.uid;
-      
-      // Add credits and verify it succeeded
+
       final creditsAdded = await CloudFirestore().addCredits(
         credits,
         userId,
         isBuddy ? "2:1" : "1:1",
       );
-      
+
       if (!creditsAdded) {
-        // CRITICAL: Payment succeeded but credits failed to add
-        // Log this for manual resolution
-        print('CRITICAL: Payment succeeded but credits failed to add for user $userId');
+        print(
+            'CRITICAL: Payment succeeded but credits failed to add for user $userId');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Payment received but there was an issue adding credits. Please contact support."),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 10),
+            SnackBar(
+              content: Text(
+                "Payment received but there was an issue adding credits. Please contact support.",
+                style: GoogleFonts.plusJakartaSans(),
+              ),
+              backgroundColor: bbAccentAlt,
+              duration: const Duration(seconds: 10),
             ),
           );
         }
         return;
       }
-      
+
       CloudFirestore().addUserSubscription(
         userId,
         credits,
         isBuddy ? "2:1" : "1:1",
         price,
       );
-      
+
       EmailService().sendSubscriptionConfirmationToUser();
-      
-      // Clear the payment intent
+
       paymentIntent = null;
-      
-      // Show success dialog
+
+      // ── Invitation Card Success Dialog ──────────────────────────────
       if (mounted) {
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: darkGrey,
+            backgroundColor: bbSurface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 48,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "Payment Successful!",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 8),
+                // Stamp seal checkmark
+                SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      StampSeal(
+                        size: 64,
+                        color: bbAccent,
+                        progress: 1.0,
+                        isFilled: true,
+                      ),
+                      Icon(
+                        Icons.check_rounded,
+                        color: bbAccent,
+                        size: 28,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 20),
                 Text(
-                  "$credits credits have been added to your account.",
-                  style: const TextStyle(color: Colors.white70),
+                  "Welcome to your\nnext chapter.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 22,
+                    color: bbText,
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "$credits sessions have been\nadded to your invitation.",
+                  style: GoogleFonts.plusJakartaSans(
+                    color: bbTextSecondary,
+                    fontSize: 14,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  "OK",
-                  style: TextStyle(color: darkGreen),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    "Continue",
+                    style: GoogleFonts.plusJakartaSans(
+                      color: bbAccent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         );
       }
-      
     } on StripeException catch (e) {
-      // User cancelled the payment sheet
       print('Payment cancelled: ${e.error.localizedMessage}');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Payment cancelled"),
-            backgroundColor: Colors.orange,
+          SnackBar(
+            content: Text("Payment cancelled",
+                style: GoogleFonts.plusJakartaSans()),
+            backgroundColor: bbCard,
           ),
         );
       }
@@ -334,16 +779,18 @@ class _CreditsPageState extends State<CreditsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Payment failed: ${e.toString()}"),
-            backgroundColor: Colors.red,
+            content: Text("Payment failed: ${e.toString()}",
+                style: GoogleFonts.plusJakartaSans()),
+            backgroundColor: bbRed,
           ),
         );
       }
-      rethrow; // Re-throw to be caught by the outer try-catch
+      rethrow;
     }
   }
 
-  Future<Map<String, dynamic>?> createPaymentIntent(String amount, String currency) async {
+  Future<Map<String, dynamic>?> createPaymentIntent(
+      String amount, String currency) async {
     final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
     if (secretKey == null || secretKey.isEmpty) {
       throw Exception(
@@ -358,7 +805,6 @@ class _CreditsPageState extends State<CreditsPage> {
         'amount': calculateAmount(amount),
         'currency': currency,
         'payment_method_types[]': 'card',
-        // Metadata for webhook processing - enables server-side credit addition
         'metadata[userId]': userId,
         'metadata[credits]': _pendingCredits.toString(),
         'metadata[creditType]': isBuddy ? "2:1" : "1:1",
@@ -372,15 +818,15 @@ class _CreditsPageState extends State<CreditsPage> {
         },
         body: body,
       );
-      
+
       print('Payment Intent Response: ${response.statusCode}');
-      
+
       if (response.statusCode != 200) {
         final errorBody = jsonDecode(response.body);
         print('Stripe API Error: ${errorBody}');
-        return errorBody; // Return error to be handled
+        return errorBody;
       }
-      
+
       return jsonDecode(response.body);
     } catch (err) {
       print('Error creating payment intent: ${err.toString()}');

@@ -1,13 +1,14 @@
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../utils/colors.dart';
 
 class MediumTextWidget extends StatefulWidget {
   String text;
   double fontSize;
   Color color;
 
-  MediumTextWidget({required this.text, fontSize, this.color = Colors.white})
+  MediumTextWidget({required this.text, fontSize, this.color = bbText})
       : this.fontSize = fontSize ?? Dimensions.fontSize20;
 
   @override
@@ -20,10 +21,11 @@ class _MediumTextWidgetState extends State<MediumTextWidget> {
     return Text(
       widget.text,
       overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.poppins(
+      style: GoogleFonts.plusJakartaSans(
         fontSize: widget.fontSize,
         color: widget.color,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.2,
       ),
     );
   }

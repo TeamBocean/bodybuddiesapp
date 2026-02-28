@@ -1,13 +1,12 @@
-import 'package:bodybuddiesapp/pages/bookings_page.dart';
 import 'package:bodybuddiesapp/pages/main_scaffold.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_signin_button/button_list.dart';
-import 'package:flutter_signin_button/button_view.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../pages/on_boarding_page.dart';
 import '../services/authentication.dart';
+import '../utils/colors.dart';
 
 class GoogleSignInBTN extends StatefulWidget {
   const GoogleSignInBTN({Key? key}) : super(key: key);
@@ -22,27 +21,56 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
   @override
   Widget build(BuildContext context) {
     return _isSigningIn
-        ? CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ? const CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(bbAccent),
           )
         : FutureBuilder(
             future: Authentication.initializeFirebase(context: context),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return Text('Error initializing Firebase');
+                return Text('Error initializing Firebase',
+                    style: GoogleFonts.plusJakartaSans(color: bbRed));
               } else if (snapshot.connectionState == ConnectionState.done) {
-                return SignInButton(
-                  Buttons.GoogleDark,
-                  onPressed: () => onSignInClicked(),
-                );
+                return _buildEditorialButton();
               }
               return const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.orange,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(bbAccent),
               );
             },
           );
+  }
+
+  Widget _buildEditorialButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: OutlinedButton.icon(
+        onPressed: () => onSignInClicked(),
+        icon: Image.network(
+          'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+          width: 20,
+          height: 20,
+          errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata,
+              color: bbText, size: 22),
+        ),
+        label: Text(
+          "Continue with Google",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: bbText,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: bbSurface,
+          side: const BorderSide(color: bbBorder, width: 1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 0,
+        ),
+      ),
+    );
   }
 
   void onSignInClicked() async {
@@ -58,36 +86,32 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
       if (user != null) {
         print('Google sign-in successful for: ${user.email}');
         
-        // Check if user document exists
         final userExists = await CloudFirestore().isUserExists();
         
         if (!mounted) return;
         
         if (userExists) {
-          print('User document exists, navigating to main app');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => MainScaffold(),
             ),
           );
         } else {
-          print('User document does not exist, navigating to onboarding');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => OnBoardingPage(),
             ),
           );
         }
-      } else {
-        print('Google sign-in returned null user');
       }
     } catch (e) {
       print('Error during Google sign-in: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Sign-in failed. Please try again.'),
-            backgroundColor: Colors.red.shade700,
+            content: Text('Sign-in failed. Please try again.',
+                style: GoogleFonts.plusJakartaSans()),
+            backgroundColor: bbCard,
           ),
         );
       }

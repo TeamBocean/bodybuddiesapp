@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/booking.dart';
@@ -8,11 +9,8 @@ import '../pages/credits_page.dart';
 import '../services/cloud_firestore.dart';
 import '../services/email.dart';
 import '../utils/colors.dart';
-import '../utils/dimensions.dart';
-import 'medium_text_widget.dart';
 
 /// Shows the booking confirmation dialog.
-/// Converted to use a StatefulWidget internally to prevent double-booking.
 void bookingDialog(
     BuildContext context, Booking booking, int month, int day, String trainer) {
   showDialog(
@@ -47,7 +45,7 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
   bool _isProcessing = false;
 
   Future<void> _handleBooking(UserModel user) async {
-    if (_isProcessing) return; // Prevent double-tap
+    if (_isProcessing) return;
 
     setState(() {
       _isProcessing = true;
@@ -56,7 +54,6 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
       
-      // Use atomic credit deduction to prevent race conditions
       final creditSuccess = await CloudFirestore().decreaseCreditsAtomic(1, userId);
       
       if (!creditSuccess) {
@@ -71,7 +68,6 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         return;
       }
 
-      // Create booking with year included
       var uuid = const Uuid();
       final selectedDate = DateTime(
         DateTime.now().year,
@@ -88,7 +84,6 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         date: "${widget.day}/${widget.month}/${selectedDate.year}",
       );
 
-      // Use atomic booking to prevent double-booking
       final bookingSuccess = await CloudFirestore().bookSlotAtomic(
         booking: userBooking,
         userID: userId,
@@ -97,13 +92,13 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
       );
 
       if (!bookingSuccess) {
-        // Slot was taken by someone else - refund the credit
         CloudFirestore().incrementCredit(1, userId);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("This slot was just booked. Please choose another time."),
-              backgroundColor: Colors.orange,
+            SnackBar(
+              content: Text("This slot was just booked. Please choose another time.",
+                  style: GoogleFonts.plusJakartaSans()),
+              backgroundColor: bbAccentAlt,
             ),
           );
           setState(() {
@@ -113,16 +108,16 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         return;
       }
 
-      // Send confirmation emails after successful booking
       EmailService().sendBookingConfirmationToMark(userBooking);
       EmailService().sendBookingConfirmationToUser(userBooking);
 
       if (mounted) {
         Navigator.pop(context, 'dialog');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Booking confirmed!"),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: Text("Session confirmed.",
+                style: GoogleFonts.plusJakartaSans()),
+            backgroundColor: bbAccent,
           ),
         );
       }
@@ -140,208 +135,166 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: darkGrey,
-      contentPadding: EdgeInsets.zero,
-      content: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: Dimensions.width15, vertical: Dimensions.width15),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height / 2,
-          width: MediaQuery.of(context).size.width,
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.topLeft,
-                child: MediumTextWidget(
-                  text: "Book this session",
-                ),
+    return Dialog(
+      backgroundColor: bbSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title
+            Text(
+              "Confirm your\nsession.",
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 26,
+                color: bbText,
+                fontWeight: FontWeight.w500,
+                height: 1.15,
               ),
-              Align(
-                alignment: Alignment.center,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    MediumTextWidget(
-                      text: "Reservation Details",
-                      fontSize: Dimensions.fontSize14,
-                    ),
-                    const Divider(
-                      color: Colors.white,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        MediumTextWidget(
-                          text: "Date",
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                        MediumTextWidget(
-                          text: "${widget.day}/${widget.month}/${DateTime.now().year}",
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                      ],
-                    ),
-                    const Divider(
-                      color: Colors.white,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        MediumTextWidget(
-                          text: "Time",
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                        MediumTextWidget(
-                          text: widget.booking.time,
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                      ],
-                    ),
-                    const Divider(
-                      color: Colors.white,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        MediumTextWidget(
-                          text: "Duration",
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                        MediumTextWidget(
-                          text: "45 Mins",
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                      ],
-                    ),
-                    const Divider(
-                      color: Colors.white,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        MediumTextWidget(
-                          text: "Number of People",
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                        MediumTextWidget(
-                          text: "-  1  +",
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                      ],
-                    ),
-                    const Divider(
-                      color: Colors.white,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        MediumTextWidget(
-                          text: "Trainer",
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                        MediumTextWidget(
-                          text: widget.trainer,
-                          fontSize: Dimensions.fontSize14,
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: Dimensions.height30,
-                    ),
-                    StreamBuilder<UserModel>(
-                        stream: CloudFirestore().streamUserData(
-                            FirebaseAuth.instance.currentUser!.uid),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            final hasCredits = snapshot.data!.credits > 0;
-                            return Center(
-                              child: SizedBox(
-                                width: Dimensions.width10 * 20,
-                                height: Dimensions.height50,
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: _isProcessing
-                                            ? darkGrey
-                                            : darkGreen,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(
-                                                    Dimensions.width15))),
-                                    onPressed: _isProcessing || !hasCredits
-                                        ? null
-                                        : () => _handleBooking(snapshot.data!),
-                                    child: _isProcessing
-                                        ? SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.white,
-                                            ),
-                                          )
-                                        : MediumTextWidget(
-                                            text: hasCredits
-                                                ? "Use 1 Credit"
-                                                : "No Credits",
-                                            fontSize: Dimensions.fontSize12,
-                                            color: hasCredits
-                                                ? Colors.black
-                                                : Colors.white54,
-                                          )),
-                              ),
-                            );
-                          } else {
-                            return const Center(
-                              child: Text("Loading.."),
-                            );
-                          }
-                        }),
-                    SizedBox(
-                      height: Dimensions.height10,
-                    ),
-                    Center(
-                        child: MediumTextWidget(
-                      text: "OR",
-                      fontSize: Dimensions.fontSize16,
-                    )),
-                    SizedBox(
-                      height: Dimensions.height10,
-                    ),
-                    Center(
-                      child: SizedBox(
-                        width: Dimensions.width10 * 20,
-                        height: Dimensions.height50,
+            ),
+            const SizedBox(height: 24),
+
+            // Details
+            _buildDetailRow("Date",
+                "${widget.day}/${widget.month}/${DateTime.now().year}"),
+            _buildDivider(),
+            _buildDetailRow("Time", widget.booking.time),
+            _buildDivider(),
+            _buildDetailRow("Duration", "45 minutes"),
+            _buildDivider(),
+            _buildDetailRow("Trainer", widget.trainer),
+            const SizedBox(height: 28),
+
+            // Action buttons
+            StreamBuilder<UserModel>(
+              stream: CloudFirestore()
+                  .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final hasCredits = snapshot.data!.credits > 0;
+                  return Column(
+                    children: [
+                      // Primary CTA
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
                         child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: darkGreen,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        Dimensions.width15))),
-                            onPressed: _isProcessing
-                                ? null
-                                : () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const CreditsPage()));
-                                  },
-                            child: MediumTextWidget(
-                              text: "Buy Credits",
-                              fontSize: Dimensions.fontSize12,
-                              color: Colors.black,
-                            )),
+                          onPressed: _isProcessing || !hasCredits
+                              ? null
+                              : () => _handleBooking(snapshot.data!),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: bbAccent,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: bbCard,
+                            disabledForegroundColor: bbTextMuted,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _isProcessing
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  hasCredits
+                                      ? "Use 1 Credit"
+                                      : "No Credits Available",
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
                       ),
+                      const SizedBox(height: 12),
+                      // Secondary CTA
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton(
+                          onPressed: _isProcessing
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const CreditsPage(),
+                                    ),
+                                  );
+                                },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                                color: bbBorder, width: 1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            "Browse Plans",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: bbText,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: bbAccent,
+                      strokeWidth: 1.5,
                     ),
-                  ],
-                ),
-              )
-            ],
-          ),
+                  );
+                }
+              },
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              color: bbTextSecondary,
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              color: bbText,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Divider(color: bbBorder, height: 1, thickness: 0.5);
   }
 }

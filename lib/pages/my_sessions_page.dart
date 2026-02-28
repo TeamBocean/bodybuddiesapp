@@ -3,9 +3,9 @@ import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
 import 'package:bodybuddiesapp/widgets/booking_widget.dart';
-import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MySessionsPage extends StatefulWidget {
   const MySessionsPage({Key? key}) : super(key: key);
@@ -21,8 +21,24 @@ class _MySessionsPageState extends State<MySessionsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Sessions'),
-        backgroundColor: background,
+        backgroundColor: bbBlack,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: RichText(
+          text: TextSpan(
+            style: GoogleFonts.anton(
+                fontSize: 22,
+                color: const Color(0xFF3A3A3A),
+                letterSpacing: 2),
+            children: const [
+              TextSpan(text: "MY "),
+              TextSpan(
+                text: "SESSIONS.",
+                style: TextStyle(color: bbAccent),
+              ),
+            ],
+          ),
+        ),
       ),
       body: StreamBuilder<UserModel?>(
         stream: CloudFirestore()
@@ -78,55 +94,49 @@ class _MySessionsPageState extends State<MySessionsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Stats Section
-                  Container(
-                    padding: EdgeInsets.all(Dimensions.width15),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        _buildStatRow(
-                          context,
-                          "Upcoming Sessions",
+                  // ── Editorial Stats Row ──────────────────────────────
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
                           upcomingBookings.length.toString(),
-                          Icons.calendar_today,
+                          "UPCOMING",
                         ),
-                        SizedBox(height: Dimensions.height15),
-                        _buildStatRow(
-                          context,
-                          "Sessions This Month",
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildStatCard(
                           thisMonthBookings.length.toString(),
-                          Icons.fitness_center,
+                          "THIS MONTH",
                         ),
-                        SizedBox(height: Dimensions.height15),
-                        _buildStatRow(
-                          context,
-                          "Completed Sessions",
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildStatCard(
                           completedBookings.length.toString(),
-                          Icons.check_circle_outline,
+                          "DONE",
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: Dimensions.height20),
 
-                  // All Bookings Section Header
+                  // ── Editorial Section Header ─────────────────────────
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      MediumTextWidget(
-                        text: "All Sessions",
-                        fontSize: Dimensions.fontSize22,
+                      Text(
+                        "ALL SESSIONS",
+                        style: GoogleFonts.anton(
+                          fontSize: 18,
+                          color: bbWhite,
+                          letterSpacing: 1.5,
+                        ),
                       ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                          child: Container(height: 0.5, color: bbBorder)),
+                      const SizedBox(width: 10),
                       GestureDetector(
                         onTap: () {
                           setState(() {
@@ -134,35 +144,20 @@ class _MySessionsPageState extends State<MySessionsPage> {
                           });
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Dimensions.width10,
-                            vertical: Dimensions.height5,
-                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
+                            color: bbCard,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: bbBorder, width: 0.5),
                           ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                _showCompletedSessions
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: Dimensions.iconSize20,
-                              ),
-                              SizedBox(width: Dimensions.width5),
-                              MediumTextWidget(
-                                text: _showCompletedSessions
-                                    ? "Hide Completed"
-                                    : "Show Completed",
-                                fontSize: Dimensions.fontSize14,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ],
+                          child: Text(
+                            _showCompletedSessions ? "HIDE DONE" : "SHOW DONE",
+                            style: GoogleFonts.robotoMono(
+                              fontSize: 9,
+                              color: bbGrey,
+                              letterSpacing: 1,
+                            ),
                           ),
                         ),
                       ),
@@ -176,16 +171,24 @@ class _MySessionsPageState extends State<MySessionsPage> {
                         padding: EdgeInsets.only(top: Dimensions.height20),
                         child: Column(
                           children: [
-                            Icon(
-                              Icons.event_busy,
-                              size: 64,
-                              color: Colors.grey.withOpacity(0.5),
+                            Text(
+                              "NO\nSESSIONS.",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.anton(
+                                fontSize: 36,
+                                color: bbBorder,
+                                height: 0.95,
+                                letterSpacing: 2,
+                              ),
                             ),
                             SizedBox(height: Dimensions.height10),
-                            MediumTextWidget(
-                              text: "No sessions to display",
-                              fontSize: Dimensions.fontSize16,
-                              color: Colors.grey,
+                            Text(
+                              "Book your first session.",
+                              style: GoogleFonts.robotoMono(
+                                fontSize: 11,
+                                color: bbGrey,
+                                letterSpacing: 1,
+                              ),
                             ),
                           ],
                         ),
@@ -215,41 +218,37 @@ class _MySessionsPageState extends State<MySessionsPage> {
     );
   }
 
-  Widget _buildStatRow(
-      BuildContext context, String title, String value, IconData icon) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              color: Theme.of(context).colorScheme.primary,
-              size: Dimensions.iconSize20,
+  // ─── Editorial Stat Card ────────────────────────────────────────────────
+  Widget _buildStatCard(String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      decoration: BoxDecoration(
+        color: bbCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: bbBorder, width: 0.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: GoogleFonts.anton(
+              fontSize: 30,
+              color: bbAccent,
+              height: 1.0,
             ),
-            SizedBox(width: Dimensions.width10),
-            MediumTextWidget(
-              text: title,
-              fontSize: Dimensions.fontSize16,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.robotoMono(
+              fontSize: 9,
+              color: bbGrey,
+              letterSpacing: 1.5,
             ),
-          ],
-        ),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: Dimensions.width15,
-            vertical: Dimensions.height5,
           ),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: MediumTextWidget(
-            text: value,
-            fontSize: Dimensions.fontSize16,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

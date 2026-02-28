@@ -4,16 +4,16 @@ import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/booking_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/constants.dart';
 import '../utils/dimensions.dart';
-import '../widgets/medium_text_widget.dart';
 import '../widgets/no_bookings_widget.dart';
+import '../widgets/stamp_seal_painter.dart';
 import 'credits_page.dart';
 import 'admin_page/admin_tools_page.dart';
 
@@ -28,7 +28,6 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   DateTime currentDate = DateTime.now();
   late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
 
   // Role-based access control
   late bool _isEmployee;
@@ -43,12 +42,8 @@ class _HomePageState extends State<HomePage>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
     _animationController.forward();
 
-    // Initialize role-based access
     final cloudFirestore = CloudFirestore();
     _isEmployee = cloudFirestore.isEmployee();
     _isDeveloper = cloudFirestore.isDeveloper();
@@ -61,7 +56,6 @@ class _HomePageState extends State<HomePage>
   Future<void> _checkAppVersion() async {
     final prefs = await SharedPreferences.getInstance();
     final lastVersion = prefs.getString('last_app_version');
-    // Hardcoded version since package_info_plus is removed
     const currentVersion = "1.3.8";
 
     if (lastVersion != currentVersion) {
@@ -78,42 +72,41 @@ class _HomePageState extends State<HomePage>
       builder: (BuildContext dialogContext) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Builder(
             builder: (BuildContext builderContext) {
               return Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(builderContext).colorScheme.background,
-                  borderRadius: BorderRadius.circular(20),
+                  color: bbSurface,
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                padding: EdgeInsets.all(Dimensions.width10),
+                padding: EdgeInsets.all(Dimensions.width10 + 14),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       padding: EdgeInsets.all(Dimensions.width15),
-                      decoration: BoxDecoration(
-                        color: Theme.of(builderContext).colorScheme.background,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
                       child: Image.asset(
                         ASSETS + "logo.png",
-                        height: 100,
+                        height: 64,
                       ),
                     ),
-                    SizedBox(height: Dimensions.height20),
-                    MediumTextWidget(
-                      text: "What's New in BodyBuddies!",
-                      fontSize: Dimensions.fontSize14,
-                      color: Theme.of(builderContext).colorScheme.primary,
+                    SizedBox(height: Dimensions.height15),
+                    Text(
+                      "What's new",
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 22,
+                        color: bbText,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     SizedBox(height: Dimensions.height20),
                     Container(
                       padding: EdgeInsets.all(Dimensions.width15),
                       decoration: BoxDecoration(
-                        color: Theme.of(builderContext).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(15),
+                        color: bbCard,
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
                         children: [
@@ -127,7 +120,7 @@ class _HomePageState extends State<HomePage>
                           SizedBox(height: Dimensions.height15),
                           _buildWhatsNewItem(
                             context: builderContext,
-                            icon: Icons.notifications,
+                            icon: Icons.notifications_none,
                             title: "Bug Fixes & Improvements",
                             description:
                                 "Credit refunds and cancellation fixes.",
@@ -135,7 +128,7 @@ class _HomePageState extends State<HomePage>
                           SizedBox(height: Dimensions.height15),
                           _buildWhatsNewItem(
                             context: builderContext,
-                            icon: Icons.speed,
+                            icon: Icons.view_agenda_outlined,
                             title: "New Sessions Page",
                             description: "New page to see your bookings.",
                           ),
@@ -143,26 +136,29 @@ class _HomePageState extends State<HomePage>
                       ),
                     ),
                     SizedBox(height: Dimensions.height20),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(dialogContext).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(builderContext).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Dimensions.width10 * 3,
-                          vertical: Dimensions.height10,
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: bbAccent,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: Dimensions.height10 + 4,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        child: Text(
+                          "Got it",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      child: MediumTextWidget(
-                        text: "Got it!",
-                        color: Colors.white,
-                        fontSize: Dimensions.fontSize16,
                       ),
                     ),
                   ],
@@ -187,12 +183,12 @@ class _HomePageState extends State<HomePage>
         Container(
           padding: EdgeInsets.all(Dimensions.width10),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            color: bbAccent.withOpacity(0.08),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
-            color: Theme.of(context).colorScheme.primary,
+            color: bbAccent,
             size: Dimensions.iconSize16,
           ),
         ),
@@ -201,17 +197,21 @@ class _HomePageState extends State<HomePage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MediumTextWidget(
-                text: title,
-                fontSize: Dimensions.fontSize14,
-                color: Theme.of(context).textTheme.bodyLarge?.color ??
-                    Colors.white,
+              Text(
+                title,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: bbText,
+                ),
               ),
               SizedBox(height: Dimensions.height5),
-              MediumTextWidget(
-                text: description,
-                fontSize: Dimensions.fontSize12,
-                color: Colors.grey,
+              Text(
+                description,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: bbTextSecondary,
+                ),
               ),
             ],
           ),
@@ -233,7 +233,6 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    // Use role-based access control
     if (_isEmployee) {
       return FutureBuilder<String>(
         future: getUserName(FirebaseAuth.instance.currentUser!.uid),
@@ -241,7 +240,9 @@ class _HomePageState extends State<HomePage>
           if (userData.hasData) {
             return adminView(userData.data!);
           } else {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: bbAccent),
+            );
           }
         },
       );
@@ -250,6 +251,9 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ADMIN VIEW
+  // ═══════════════════════════════════════════════════════════════════════════
   Widget adminView(String name) {
     return StreamBuilder<List<Booking>>(
         stream: CloudFirestore().streamAllBookings(
@@ -262,13 +266,9 @@ class _HomePageState extends State<HomePage>
 
           if (snapshot.hasData) {
             bookings = List.from(snapshot.data!);
-
-            // Filter bookings to only those matching the current date
             bookings.removeWhere((booking) {
               return !booking.isOnDate(currentDate);
             });
-
-            // Apply trainer filter (unless main admin or developer)
             if (_trainerFilter != null) {
               bookings.removeWhere((booking) =>
                   booking.trainer.toLowerCase() !=
@@ -276,7 +276,6 @@ class _HomePageState extends State<HomePage>
             }
           }
 
-          // Normalize display name
           String displayName = name;
           if (name == "BODY BUDDIES HEALTH & FITNESS") {
             displayName = "Mark";
@@ -287,14 +286,13 @@ class _HomePageState extends State<HomePage>
               padding: EdgeInsets.symmetric(horizontal: Dimensions.width10),
               child: Column(
                 children: [
-                  // Header row with user info and avatar
+                  // Header row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      userInformationHeader(),
+                      Expanded(child: userInformationHeader()),
                       Row(
                         children: [
-                          // Admin Tools button
                           if (_isMainAdmin || _isDeveloper)
                             IconButton(
                               onPressed: () {
@@ -307,13 +305,13 @@ class _HomePageState extends State<HomePage>
                                 );
                               },
                               icon: Icon(
-                                Icons.settings,
-                                color: Theme.of(context).iconTheme.color,
+                                Icons.settings_outlined,
+                                color: bbTextSecondary,
                               ),
                             ),
                           FirebaseAuth.instance.currentUser!.photoURL != null
                               ? CircleAvatar(
-                                  backgroundColor: Colors.grey.shade400,
+                                  backgroundColor: bbCard,
                                   radius: Dimensions.width27,
                                   backgroundImage: NetworkImage(
                                     FirebaseAuth.instance.currentUser!.photoURL
@@ -321,13 +319,17 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 )
                               : CircleAvatar(
-                                  backgroundColor: Colors.grey.shade400,
+                                  backgroundColor: bbCard,
                                   radius: Dimensions.width27,
-                                  child: MediumTextWidget(
-                                      text: displayName.isNotEmpty
-                                          ? displayName[0].toUpperCase()
-                                          : "M",
-                                      color: Colors.black),
+                                  child: Text(
+                                    displayName.isNotEmpty
+                                        ? displayName[0].toUpperCase()
+                                        : "M",
+                                    style: GoogleFonts.playfairDisplay(
+                                      color: bbText,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
                         ],
                       ),
@@ -335,14 +337,28 @@ class _HomePageState extends State<HomePage>
                   ),
                   SizedBox(height: Dimensions.height10),
 
-                  // Section title with trainer filter
+                  // Section title
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      MediumTextWidget(
-                        text: "Upcoming Sessions",
-                        fontSize: Dimensions.fontSize22,
+                      Text(
+                        "SESSIONS",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: bbTextSecondary,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 3.0,
+                        ),
                       ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: Container(height: 0.5, color: bbBorder)),
+                    ],
+                  ),
+                  SizedBox(height: Dimensions.height5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
                       if (_trainerFilter != null)
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -350,14 +366,15 @@ class _HomePageState extends State<HomePage>
                             vertical: Dimensions.height5,
                           ),
                           decoration: BoxDecoration(
-                            color: darkGreen.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
+                            color: bbAccent.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             _trainerFilter!,
-                            style: TextStyle(
-                              color: darkGreen,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: bbAccent,
                               fontSize: Dimensions.fontSize12,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -365,177 +382,22 @@ class _HomePageState extends State<HomePage>
                   ),
                   SizedBox(height: Dimensions.height10),
 
-                  // Date navigation bar - improved design matching userView
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Dimensions.width5,
-                      vertical: Dimensions.height5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outline
-                            .withOpacity(0.1),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Previous day button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              setState(() {
-                                currentDate = currentDate
-                                    .subtract(const Duration(days: 1));
-                              });
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.all(Dimensions.width10),
-                              child: Icon(
-                                Icons.chevron_left_rounded,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: Dimensions.iconSize20,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Date display with tap to reset
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              HapticFeedback.mediumImpact();
-                              setState(() {
-                                currentDate = DateTime.now();
-                              });
-                            },
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.1),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                key: ValueKey<DateTime>(currentDate),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Dimensions.width15,
-                                  vertical: Dimensions.height10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _isToday(currentDate)
-                                      ? Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withOpacity(0.15)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (_isToday(currentDate))
-                                      Container(
-                                        margin: EdgeInsets.only(
-                                            right: Dimensions.width5),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: Dimensions.width5,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          "TODAY",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    MediumTextWidget(
-                                      text: DateFormat.yMMMEd()
-                                          .format(currentDate),
-                                      fontSize: Dimensions.fontSize16,
-                                      color: _isToday(currentDate)
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                          : Theme.of(context)
-                                                  .textTheme
-                                                  .bodyLarge
-                                                  ?.color ??
-                                              Colors.white,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Next day button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              setState(() {
-                                currentDate =
-                                    currentDate.add(const Duration(days: 1));
-                              });
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.all(Dimensions.width10),
-                              child: Icon(
-                                Icons.chevron_right_rounded,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: Dimensions.iconSize20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Date nav bar
+                  _buildDateNavBar(),
                   SizedBox(height: Dimensions.height15),
 
-                  // Bookings list - uses Expanded instead of absolute positioning
+                  // Bookings list
                   Expanded(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 250),
                       transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: child,
-                        );
+                        return FadeTransition(opacity: animation, child: child);
                       },
                       child: !snapshot.hasData
                           ? Center(
                               key: const ValueKey('loading'),
                               child: CircularProgressIndicator(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: bbAccent,
                               ),
                             )
                           : bookings.isNotEmpty
@@ -570,7 +432,7 @@ class _HomePageState extends State<HomePage>
                                   key: ValueKey<String>(
                                       'empty_${currentDate.toString()}'),
                                   child: NoBookingsWidget(
-                                    message: "No Sessions Today",
+                                    message: "No sessions today.",
                                     showSubHeading: false,
                                   ),
                                 ),
@@ -589,14 +451,28 @@ class _HomePageState extends State<HomePage>
       builder: (BuildContext context) {
         TextEditingController nameController = TextEditingController();
         return AlertDialog(
-          title: const Text('Update Name'),
+          backgroundColor: bbSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Update Name',
+            style: GoogleFonts.playfairDisplay(
+              color: bbText,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           content: TextField(
             controller: nameController,
-            decoration: const InputDecoration(hintText: "Enter new name"),
+            decoration: InputDecoration(
+              hintText: "Enter new name",
+              hintStyle: GoogleFonts.plusJakartaSans(color: bbTextMuted),
+            ),
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: const Text('Update'),
+              child: Text('Update',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
               onPressed: () {
                 String newName = nameController.text;
                 CloudFirestore()
@@ -605,7 +481,7 @@ class _HomePageState extends State<HomePage>
                   booking.day.toString(),
                   booking.id,
                   newName,
-                  year: booking.year, // Pass the booking's actual year
+                  year: booking.year,
                 )
                     .then((success) {
                   if (success) {
@@ -628,6 +504,9 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // USER VIEW
+  // ═══════════════════════════════════════════════════════════════════════════
   Widget userView() {
     return StreamBuilder<UserModel>(
         stream: CloudFirestore()
@@ -637,7 +516,6 @@ class _HomePageState extends State<HomePage>
 
           if (snapshot.hasData) {
             bookings = List.from(snapshot.data!.bookings);
-            // Use centralized date handling from Booking model
             bookings.removeWhere((booking) => !booking.isOnDate(currentDate));
           }
 
@@ -646,44 +524,44 @@ class _HomePageState extends State<HomePage>
               padding: EdgeInsets.symmetric(horizontal: Dimensions.width15),
               child: Column(
                 children: [
-                  // Header section
+                  // Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: userInformationHeader(),
-                      ),
+                      Expanded(child: userInformationHeader()),
                       GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();
                         },
                         child: Hero(
                           tag: 'profile_avatar',
-                          child: FirebaseAuth.instance.currentUser!.photoURL !=
+                          child: FirebaseAuth
+                                      .instance.currentUser!.photoURL !=
                                   null
                               ? CircleAvatar(
-                                  backgroundColor: Colors.grey.shade400,
+                                  backgroundColor: bbCard,
                                   radius: Dimensions.width27,
                                   backgroundImage: NetworkImage(
-                                    FirebaseAuth.instance.currentUser!.photoURL
+                                    FirebaseAuth
+                                        .instance.currentUser!.photoURL
                                         as String,
                                   ),
                                 )
                               : CircleAvatar(
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withOpacity(0.1),
+                                  backgroundColor: bbCard,
                                   radius: Dimensions.width27,
-                                  child: MediumTextWidget(
-                                      text: snapshot.hasData
-                                          ? snapshot.data!.name
-                                              .substring(0, 1)
-                                              .toUpperCase()
-                                          : "",
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
+                                  child: Text(
+                                    snapshot.hasData
+                                        ? snapshot.data!.name
+                                            .substring(0, 1)
+                                            .toUpperCase()
+                                        : "",
+                                    style: GoogleFonts.playfairDisplay(
+                                      color: bbText,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 18,
+                                    ),
+                                  ),
                                 ),
                         ),
                       ),
@@ -692,202 +570,42 @@ class _HomePageState extends State<HomePage>
                   SizedBox(height: Dimensions.height15),
 
                   // Section title
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: MediumTextWidget(
-                      text: "Upcoming Sessions",
-                      fontSize: Dimensions.fontSize22,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        "UPCOMING",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: bbTextSecondary,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 3.0,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(height: 0.5, color: bbBorder),
+                      ),
+                    ],
                   ),
                   SizedBox(height: Dimensions.height10),
 
-                  // Date navigation bar - improved design
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Dimensions.width5,
-                      vertical: Dimensions.height5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outline
-                            .withOpacity(0.1),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Previous day button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              setState(() {
-                                currentDate = currentDate
-                                    .subtract(const Duration(days: 1));
-                              });
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.all(Dimensions.width10),
-                              child: Icon(
-                                Icons.chevron_left_rounded,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: Dimensions.iconSize20,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Date display with tap to pick
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () async {
-                              HapticFeedback.lightImpact();
-                              DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: currentDate,
-                                firstDate:
-                                    DateTime(DateTime.now().year - 1, 1, 1),
-                                lastDate:
-                                    DateTime(DateTime.now().year + 1, 12, 31),
-                              );
-                              if (pickedDate != null) {
-                                setState(() {
-                                  currentDate = pickedDate;
-                                });
-                              }
-                            },
-                            onDoubleTap: () {
-                              HapticFeedback.mediumImpact();
-                              setState(() {
-                                currentDate = DateTime.now();
-                              });
-                            },
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.1),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                key: ValueKey<DateTime>(currentDate),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: Dimensions.width15,
-                                  vertical: Dimensions.height10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _isToday(currentDate)
-                                      ? Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withOpacity(0.15)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (_isToday(currentDate))
-                                      Container(
-                                        margin: EdgeInsets.only(
-                                            right: Dimensions.width5),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: Dimensions.width5,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          "TODAY",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    MediumTextWidget(
-                                      text: DateFormat.yMMMEd()
-                                          .format(currentDate),
-                                      fontSize: Dimensions.fontSize16,
-                                      color: _isToday(currentDate)
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                          : Theme.of(context)
-                                                  .textTheme
-                                                  .bodyLarge
-                                                  ?.color ??
-                                              Colors.white,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Next day button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              setState(() {
-                                currentDate =
-                                    currentDate.add(const Duration(days: 1));
-                              });
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.all(Dimensions.width10),
-                              child: Icon(
-                                Icons.chevron_right_rounded,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: Dimensions.iconSize20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Date nav
+                  _buildDateNavBar(),
                   SizedBox(height: Dimensions.height15),
 
-                  // Bookings list - now uses Expanded instead of absolute positioning
+                  // Bookings list
                   Expanded(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 250),
                       transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: child,
-                        );
+                        return FadeTransition(opacity: animation, child: child);
                       },
                       child: !snapshot.hasData
                           ? Center(
                               key: const ValueKey('loading'),
                               child: CircularProgressIndicator(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: bbAccent,
                               ),
                             )
                           : bookings.isNotEmpty
@@ -920,13 +638,15 @@ class _HomePageState extends State<HomePage>
                                             MainAxisAlignment.center,
                                         children: [
                                           SizedBox(
-                                              height: Dimensions.height35 * 2),
+                                              height:
+                                                  Dimensions.height35 * 2),
                                           NoBookingsWidget(
                                             message:
-                                                "Oops, you're out of credits. Let's top you up so you can keep training!",
+                                                "Your collection is empty.",
                                             showSubHeading: false,
                                           ),
-                                          SizedBox(height: Dimensions.height20),
+                                          SizedBox(
+                                              height: Dimensions.height20),
                                           ElevatedButton.icon(
                                             onPressed: () {
                                               Navigator.push(
@@ -937,24 +657,30 @@ class _HomePageState extends State<HomePage>
                                                 ),
                                               );
                                             },
-                                            icon: const Icon(Icons.add_card),
-                                            label: MediumTextWidget(
-                                              text: "Get Credits",
-                                              color: Colors.white,
-                                              fontSize: Dimensions.fontSize16,
+                                            icon: const Icon(
+                                                Icons.add_rounded),
+                                            label: Text(
+                                              "Browse Plans",
+                                              style: GoogleFonts
+                                                  .plusJakartaSans(
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
+                                            style:
+                                                ElevatedButton.styleFrom(
+                                              backgroundColor: bbAccent,
                                               foregroundColor: Colors.white,
                                               padding: EdgeInsets.symmetric(
-                                                horizontal: Dimensions.width20,
-                                                vertical: Dimensions.height10,
+                                                horizontal:
+                                                    Dimensions.width20,
+                                                vertical:
+                                                    Dimensions.height10,
                                               ),
-                                              shape: RoundedRectangleBorder(
+                                              shape:
+                                                  RoundedRectangleBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(12),
+                                                    BorderRadius.circular(
+                                                        12),
                                               ),
                                             ),
                                           ),
@@ -966,8 +692,14 @@ class _HomePageState extends State<HomePage>
                                           'empty_${currentDate.toString()}'),
                                       child: NoBookingsWidget(
                                         message:
-                                            "Looks like you've got a free day!\nLet's fix that with a session.",
+                                            "A day for rest.\nYou are clear for today.",
                                         showSubHeading: true,
+                                        onViewTomorrow: () {
+                                          setState(() {
+                                            currentDate = DateTime.now()
+                                                .add(const Duration(days: 1));
+                                          });
+                                        },
                                       ),
                                     ),
                     ),
@@ -979,6 +711,141 @@ class _HomePageState extends State<HomePage>
         });
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SHARED WIDGETS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── Date Navigation Bar ───────────────────────────────────────────────────
+  Widget _buildDateNavBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      decoration: BoxDecoration(
+        color: bbSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: bbBorder, width: 0.5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Previous day
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                setState(() {
+                  currentDate =
+                      currentDate.subtract(const Duration(days: 1));
+                });
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(12),
+                child: Icon(Icons.chevron_left_rounded,
+                    color: bbAccent, size: 20),
+              ),
+            ),
+          ),
+          // Date display
+          Expanded(
+            child: GestureDetector(
+              onTap: () async {
+                HapticFeedback.lightImpact();
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: currentDate,
+                  firstDate: DateTime(DateTime.now().year - 1, 1, 1),
+                  lastDate: DateTime(DateTime.now().year + 1, 12, 31),
+                );
+                if (pickedDate != null) {
+                  setState(() {
+                    currentDate = pickedDate;
+                  });
+                }
+              },
+              onDoubleTap: () {
+                HapticFeedback.mediumImpact();
+                setState(() {
+                  currentDate = DateTime.now();
+                });
+              },
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.1),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Container(
+                  key: ValueKey<DateTime>(currentDate),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_isToday(currentDate)) ...[
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: bbAccent,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            "Today",
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                      Text(
+                        DateFormat.yMMMEd().format(currentDate),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: _isToday(currentDate) ? bbText : bbTextSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Next day
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                setState(() {
+                  currentDate = currentDate.add(const Duration(days: 1));
+                });
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(12),
+                child: Icon(Icons.chevron_right_rounded,
+                    color: bbAccent, size: 20),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   bool _isToday(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year &&
@@ -986,65 +853,212 @@ class _HomePageState extends State<HomePage>
         date.day == now.day;
   }
 
+  // ─── Editorial Greeting Header ─────────────────────────────────────────────
   Widget userInformationHeader() {
     return FutureBuilder<UserModel>(
-        future: CloudFirestore()
-            .getUserData(FirebaseAuth.instance.currentUser!.uid),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MediumTextWidget(
-                    text: getTodaysDate(),
-                    color: Theme.of(context).textTheme.bodyMedium?.color ??
-                        Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.7),
-                    fontSize: Dimensions.fontSize14),
-                SizedBox(height: Dimensions.height5),
-                MediumTextWidget(
-                  text: "Hi, ${snapshot.data!.name}",
-                  color: Theme.of(context).textTheme.bodyLarge?.color ??
-                      Theme.of(context).colorScheme.onSurface,
+      future: CloudFirestore()
+          .getUserData(FirebaseAuth.instance.currentUser!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final firstName = snapshot.data!.name.split(' ').first;
+          final credits = snapshot.data!.credits;
+          final upcomingCount =
+              snapshot.data!.bookings.where((b) => b.isUpcoming).length;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Date label
+              Text(
+                "${months[DateTime.now().month - 1].toUpperCase()}  •  "
+                "${daysOfWeek[DateTime.now().weekday - 1].toUpperCase()}",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  color: bbTextMuted,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w500,
                 ),
-                SizedBox(height: Dimensions.height10),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Dimensions.width10,
-                    vertical: Dimensions.height5,
+              ),
+              const SizedBox(height: 8),
+              // Greeting — a polite nod, not a greeting card
+              Text(
+                "${_getGreetingWord()} $firstName.",
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 18,
+                  color: bbText,
+                  fontWeight: FontWeight.w300,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Credits + Upcoming — floating text, no boxes
+              Row(
+                children: [
+                  // Credits
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CreditsPage()),
+                      );
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          credits.toString(),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 24,
+                            color: bbText,
+                            fontWeight: FontWeight.w300,
+                            height: 1.0,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          "CREDITS",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 9,
+                            color: bbTextMuted,
+                            letterSpacing: 1.5,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  const SizedBox(width: 24),
+                  // Upcoming
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Icon(
-                        Icons.star,
-                        size: Dimensions.iconSize16,
-                        color: Theme.of(context).colorScheme.primary,
+                      Text(
+                        upcomingCount.toString(),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 24,
+                          color: bbText,
+                          fontWeight: FontWeight.w300,
+                          height: 1.0,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                      SizedBox(width: Dimensions.width5),
-                      MediumTextWidget(
-                        text: "${snapshot.data!.credits} Credits",
-                        fontSize: Dimensions.fontSize14,
-                        color: Theme.of(context).colorScheme.primary,
+                      const SizedBox(width: 6),
+                      Text(
+                        "UPCOMING",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9,
+                          color: bbTextMuted,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        });
+                ],
+              ),
+            ],
+          );
+        } else {
+          return SizedBox(
+            height: 110,
+            child: Center(
+              child: CircularProgressIndicator(
+                color: bbAccent,
+                strokeWidth: 1.5,
+              ),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  String _getGreetingWord() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return "Good morning,";
+    if (hour < 17) return "Good afternoon,";
+    return "Good evening,";
+  }
+
+  // ─── Credits Chip ──────────────────────────────────────────────────────────
+  Widget _buildPunchCard(int credits) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreditsPage()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: bbSurface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: bbBorder, width: 0.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              credits.toString(),
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 20,
+                color: bbText,
+                fontWeight: FontWeight.w600,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              "CREDITS",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 9,
+                color: bbTextMuted,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: bbSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: bbBorder, width: 0.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 20,
+              color: bbText,
+              fontWeight: FontWeight.w600,
+              height: 1.0,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 9,
+              color: bbTextMuted,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String getTodaysDate() {
@@ -1058,17 +1072,12 @@ class _HomePageState extends State<HomePage>
 
     int year;
     if (dateAsList.length == 3) {
-      // If year is included in the date
       year = int.parse(dateAsList[2]);
     } else {
-      // If year is not included, determine based on the current month
       int currentYear = DateTime.now().year;
-
-      // Use current year for future dates, previous year for past dates
       year = currentYear;
     }
 
-    // Ensure the date string is formatted correctly
     String formattedDate = "$year-$month-$day $time:00";
     DateTime dateTime = DateTime.parse(formattedDate);
     return dateTime;
