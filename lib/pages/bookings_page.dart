@@ -41,6 +41,7 @@ class _BookingsPageState extends State<BookingsPage>
   int currentDayPage = 365;
   PageController pageController = PageController(initialPage: 365);
   Bookings? bookings;
+  List<Booking>? _dayBookings;
 
   // Horizon ribbon scroll controller
   late ScrollController _horizonScrollController;
@@ -147,72 +148,87 @@ class _BookingsPageState extends State<BookingsPage>
           bookings = bookingsSnapshot.data;
         }
 
-        _buildAvailableSlots();
-        _buildDateWidgets();
-
-        return SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: SafeArea(
-            child: StreamBuilder<UserModel>(
-              stream: CloudFirestore()
-                  .streamUserData(FirebaseAuth.instance.currentUser!.uid),
-              builder: (context, userSnapshot) {
-                if (!bookingsSnapshot.hasData) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: bbAccent),
-                  );
-                }
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Editorial Header ──────────────────────────────────
-                    _buildHeader(),
-                    const SizedBox(height: 16),
-
-                    // ── Horizon Timeline Ribbon ───────────────────────────
-                    _buildHorizonRibbon(),
-                    const SizedBox(height: 12),
-
-                    // ── Slot List ─────────────────────────────────────────
-                    Expanded(
-                      child: PageView.builder(
-                        controller: pageController,
-                        onPageChanged: (index) async {
-                          HapticFeedback.lightImpact();
-                          setState(() {
-                            currentDayPage = index;
-                            currentDay = DateTime.now()
-                                .add(Duration(days: currentDayPage - 365));
-                          });
-                        },
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: EdgeInsets.only(
-                                bottom: Dimensions.height50 +
-                                    Dimensions.height20),
-                            child: SizedBox(
-                              height: MediaQuery.of(context).size.height -
-                                  (Dimensions.height50 * 4 +
-                                      Dimensions.height10 * 8),
-                              child: SingleChildScrollView(
-                                physics: const BouncingScrollPhysics(),
-                                child: Column(
-                                  children: slots.isEmpty
-                                      ? [_buildEmptyState()]
-                                      : _buildSlotList(userSnapshot),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+        // Secondary stream: cross-reference the bookings-list (admin's source of truth)
+        // This prevents double-bookings when the availability map is out of sync
+        return StreamBuilder<List<Booking>>(
+          stream: CloudFirestore().streamAllBookings(
+            currentDay.month,
+            currentDay.day,
+            year: currentDay.year,
           ),
+          builder: (context, dayBookingsSnapshot) {
+            if (dayBookingsSnapshot.hasData) {
+              _dayBookings = dayBookingsSnapshot.data;
+            }
+
+            _buildAvailableSlots();
+            _buildDateWidgets();
+
+            return SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: SafeArea(
+                child: StreamBuilder<UserModel>(
+                  stream: CloudFirestore()
+                      .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+                  builder: (context, userSnapshot) {
+                    if (!bookingsSnapshot.hasData && !dayBookingsSnapshot.hasData) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: bbAccent),
+                      );
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── Editorial Header ──────────────────────────────────
+                        _buildHeader(),
+                        const SizedBox(height: 16),
+
+                        // ── Horizon Timeline Ribbon ───────────────────────────
+                        _buildHorizonRibbon(),
+                        const SizedBox(height: 12),
+
+                        // ── Slot List ─────────────────────────────────────────
+                        Expanded(
+                          child: PageView.builder(
+                            controller: pageController,
+                            onPageChanged: (index) async {
+                              HapticFeedback.lightImpact();
+                              setState(() {
+                                currentDayPage = index;
+                                currentDay = DateTime.now()
+                                    .add(Duration(days: currentDayPage - 365));
+                              });
+                            },
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                    bottom: Dimensions.height50 +
+                                        Dimensions.height20),
+                                child: SizedBox(
+                                  height: MediaQuery.of(context).size.height -
+                                      (Dimensions.height50 * 4 +
+                                          Dimensions.height10 * 8),
+                                  child: SingleChildScrollView(
+                                    physics: const BouncingScrollPhysics(),
+                                    child: Column(
+                                      children: slots.isEmpty
+                                          ? [_buildEmptyState()]
+                                          : _buildSlotList(userSnapshot),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -287,21 +303,38 @@ class _BookingsPageState extends State<BookingsPage>
     }
   }
 
+  /// Check if a time slot conflicts with existing bookings.
+  /// Uses DUAL-SOURCE verification:
+  ///   1. The availability map (bookings/{year}) — fast path
+  ///   2. The bookings list (bookings-list) — ground truth (same as admin)
+  /// This prevents double-bookings when the two stores are out of sync.
   bool _isTimeSlotConflicting(String time) {
-    if (bookings == null) return false;
-
     final bookingMinutes = _parseTimeToMinutes(time);
-    final dayStr = currentDay.day.toString();
-    final monthStr = currentDay.month.toString();
 
-    List<dynamic>? bookedTimes = bookings!.list[monthStr]?[dayStr];
-    if (bookedTimes == null) return false;
-
-    for (final existingTime in bookedTimes) {
-      final existingMinutes = _parseTimeToMinutes(existingTime as String);
-      final diff = (bookingMinutes - existingMinutes).abs();
-      if (diff < 45) return true;
+    // Source 1: Check the availability map
+    if (bookings != null) {
+      final dayStr = currentDay.day.toString();
+      final monthStr = currentDay.month.toString();
+      List<dynamic>? bookedTimes = bookings!.list[monthStr]?[dayStr];
+      if (bookedTimes != null) {
+        for (final existingTime in bookedTimes) {
+          final existingMinutes = _parseTimeToMinutes(existingTime as String);
+          final diff = (bookingMinutes - existingMinutes).abs();
+          if (diff < 45) return true;
+        }
+      }
     }
+
+    // Source 2: Check the bookings list (ground truth)
+    if (_dayBookings != null) {
+      for (final booking in _dayBookings!) {
+        if (booking.time.isEmpty) continue;
+        final existingMinutes = _parseTimeToMinutes(booking.time);
+        final diff = (bookingMinutes - existingMinutes).abs();
+        if (diff < 45) return true;
+      }
+    }
+
     return false;
   }
 

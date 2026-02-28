@@ -487,6 +487,49 @@ class CloudFirestore {
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
   }
   
+  /// Self-healing: sync the availability map with the bookings list.
+  /// Reads all bookings from bookings-list for a given day and ensures
+  /// the bookings/{year} availability map contains all booked times.
+  /// This fixes data inconsistencies that can cause double-bookings.
+  Future<void> syncAvailabilityMap({
+    required int year,
+    required int month,
+    required int day,
+  }) async {
+    try {
+      // Read all bookings from bookings-list (ground truth)
+      final querySnapshot = await reference
+          .collection("bookings-list")
+          .doc(year.toString())
+          .collection(month.toString())
+          .doc(day.toString())
+          .collection("bookings")
+          .get();
+
+      if (querySnapshot.docs.isEmpty) return;
+
+      // Extract all booked times
+      final List<String> bookedTimes = querySnapshot.docs
+          .map((doc) => doc.data()['time'] as String?)
+          .where((time) => time != null && time.isNotEmpty)
+          .cast<String>()
+          .toList();
+
+      if (bookedTimes.isEmpty) return;
+
+      // Ensure the availability map includes all these times
+      final availabilityRef = reference.collection("bookings").doc(year.toString());
+      await availabilityRef.set(
+        {"$month.$day": FieldValue.arrayUnion(bookedTimes)},
+        SetOptions(merge: true),
+      );
+
+      print('✅ [syncAvailabilityMap] Synced $month/$day/$year: $bookedTimes');
+    } catch (e) {
+      print('⚠️ [syncAvailabilityMap] Error syncing $month/$day/$year: $e');
+    }
+  }
+
   // ============================================
   // EMPLOYEE/ADMIN HELPERS
   // ============================================
