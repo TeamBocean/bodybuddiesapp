@@ -1,6 +1,3 @@
-import 'package:bodybuddiesapp/pages/main_scaffold.dart';
-import 'package:bodybuddiesapp/pages/on_boarding_page.dart';
-import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,20 +21,7 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
         ? const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(bbAccent),
           )
-        : FutureBuilder(
-            future: Authentication.initializeFirebase(context: context),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Text('Error initializing Firebase',
-                    style: GoogleFonts.plusJakartaSans(color: bbRed));
-              } else if (snapshot.connectionState == ConnectionState.done) {
-                return _buildEditorialButton();
-              }
-              return const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(bbAccent),
-              );
-            },
-          );
+        : _buildEditorialButton();
   }
 
   Widget _buildEditorialButton() {
@@ -79,24 +63,6 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
 
       if (user != null) {
         print('Apple sign-in successful for: ${user.email}');
-        
-        final userExists = await CloudFirestore().isUserExists();
-        
-        if (!mounted) return;
-        
-        if (userExists) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => MainScaffold(),
-            ),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => OnBoardingPage(),
-            ),
-          );
-        }
       }
     } catch (e) {
       print('Error during Apple sign-in: $e');

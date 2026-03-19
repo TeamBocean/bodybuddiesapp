@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../services/cloud_firestore.dart';
 import '../services/email.dart';
 import '../widgets/medium_text_widget.dart';
-import 'main_scaffold.dart';
 
 class OnBoardingPage extends StatefulWidget {
   const OnBoardingPage({Key? key}) : super(key: key);
@@ -164,13 +163,6 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
       if (success) {
         // Send welcome email (don't wait for it)
         EmailService().sendPDFToUser(name);
-
-        // Navigate to main app
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => MainScaffold(),
-          ),
-        );
       } else {
         // Show error with retry option
         _showRetryDialog();
@@ -267,4 +259,3 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
     );
   }
 }
-

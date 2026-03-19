@@ -1,62 +1,62 @@
 import 'package:bodybuddiesapp/pages/main_scaffold.dart';
 import 'package:bodybuddiesapp/pages/on_boarding_page.dart';
-import 'package:bodybuddiesapp/pages/settings_page.dart';
 import 'package:bodybuddiesapp/pages/sign_in_page.dart';
-import 'package:bodybuddiesapp/services/cloud_firestore.dart';
-import 'package:bodybuddiesapp/utils/colors.dart';
-import 'package:bodybuddiesapp/widgets/bottom_nav_bar.dart';
-import 'package:bodybuddiesapp/widgets/logo.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:bodybuddiesapp/providers/theme_provider.dart';
-import 'package:bodybuddiesapp/utils/app_theme.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
-import 'bookings_page.dart';
-
-class Wrapper extends StatefulWidget {
+class Wrapper extends StatelessWidget {
   const Wrapper({Key? key}) : super(key: key);
 
   @override
-  State<Wrapper> createState() => _WrapperState();
-}
-
-class _WrapperState extends State<Wrapper> {
-  @override
   Widget build(BuildContext context) {
     Dimensions.init(context);
+
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.active) {
-          User? user = snapshot.data;
-          if (user == null) {
-            return const SignInPage();
-          }
-          // Check if user document exists before allowing access to main app
-          return FutureBuilder<bool>(
-            future: CloudFirestore().isUserExists(),
-            builder: (context, docSnapshot) {
-              if (docSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
-              if (docSnapshot.data == true) {
-                return const MainScaffold();
-              }
-              // User is authenticated but has no Firestore document - send to onboarding
-              return const OnBoardingPage();
-            },
-          );
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState != ConnectionState.active) {
+          return const _AuthLoadingScreen();
         }
-        return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
+
+        final user = authSnapshot.data;
+        if (user == null) {
+          return const SignInPage();
+        }
+
+        return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection("users")
+              .doc(user.uid)
+              .snapshots(),
+          builder: (context, userDocSnapshot) {
+            if (!userDocSnapshot.hasData &&
+                userDocSnapshot.connectionState == ConnectionState.waiting) {
+              return const _AuthLoadingScreen();
+            }
+
+            if (userDocSnapshot.data?.exists == true) {
+              return const MainScaffold();
+            }
+
+            return const OnBoardingPage();
+          },
         );
       },
+    );
+  }
+}
+
+class _AuthLoadingScreen extends StatelessWidget {
+  const _AuthLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }

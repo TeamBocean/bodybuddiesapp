@@ -1,10 +1,7 @@
-import 'package:bodybuddiesapp/pages/main_scaffold.dart';
-import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../pages/on_boarding_page.dart';
 import '../services/authentication.dart';
 import '../utils/colors.dart';
 
@@ -24,20 +21,7 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
         ? const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(bbAccent),
           )
-        : FutureBuilder(
-            future: Authentication.initializeFirebase(context: context),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Text('Error initializing Firebase',
-                    style: GoogleFonts.plusJakartaSans(color: bbRed));
-              } else if (snapshot.connectionState == ConnectionState.done) {
-                return _buildEditorialButton();
-              }
-              return const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(bbAccent),
-              );
-            },
-          );
+        : _buildEditorialButton();
   }
 
   Widget _buildEditorialButton() {
@@ -85,24 +69,6 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
 
       if (user != null) {
         print('Google sign-in successful for: ${user.email}');
-        
-        final userExists = await CloudFirestore().isUserExists();
-        
-        if (!mounted) return;
-        
-        if (userExists) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => MainScaffold(),
-            ),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => OnBoardingPage(),
-            ),
-          );
-        }
       }
     } catch (e) {
       print('Error during Google sign-in: $e');

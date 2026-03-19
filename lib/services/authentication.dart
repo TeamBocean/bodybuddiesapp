@@ -1,55 +1,15 @@
-import 'package:bodybuddiesapp/pages/bookings_page.dart';
-import 'package:bodybuddiesapp/pages/main_scaffold.dart';
-import 'package:bodybuddiesapp/pages/sign_in_page.dart';
-import 'package:bodybuddiesapp/pages/wrapper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:the_apple_sign_in/the_apple_sign_in.dart';
-
-import '../pages/on_boarding_page.dart';
-import 'cloud_firestore.dart';
 
 class Authentication {
-  static Future<bool> initializeFirebase(
-      {required BuildContext context}) async {
-    FirebaseApp firebaseApp = await Firebase.initializeApp();
-
-    User? user = FirebaseAuth.instance.currentUser;
-    // print(user!.email);
-    if (user != null) {
-      await CloudFirestore().isUserExists().then((userExists) {
-        print(userExists);
-        if (userExists) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => MainScaffold(),
-            ),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => OnBoardingPage(),
-            ),
-          );
-        }
-      });
-    }
-
-    return true;
-  }
-
   static Future<User?> signInWithGoogle({required BuildContext context}) async {
-    FirebaseAuth auth = FirebaseAuth.instance;
+    final auth = FirebaseAuth.instance;
     User? user;
 
     final GoogleSignIn googleSignIn = GoogleSignIn();
-
     final GoogleSignInAccount? googleSignInAccount =
         await googleSignIn.signIn();
 
@@ -81,7 +41,7 @@ class Authentication {
             ),
           );
         }
-      } catch (e) {
+      } catch (_) {
         ScaffoldMessenger.of(context).showSnackBar(
           Authentication.customSnackBar(
             content: 'Error occurred using Google Sign In. Try again.',
@@ -93,32 +53,35 @@ class Authentication {
     return user;
   }
 
-  static Future<User?> signInWithApple(
-      {required BuildContext context, List<Scope> scopes = const []}) async {
-    final appleCred = await SignInWithApple.getAppleIDCredential(scopes: [
-      AppleIDAuthorizationScopes.email,
-      AppleIDAuthorizationScopes.fullName,
-    ]);
-    FirebaseAuth auth = FirebaseAuth.instance;
-    // final result = await TheAppleSignIn.performRequests([
-    //   const AppleIdRequest(
-    //       requestedScopes: [Scope.email, Scope.fullName],
-    //       requestedOperation: OpenIdOperation.operationLogin)
-    // ]);
+  static Future<User?> signInWithApple({required BuildContext context}) async {
+    try {
+      final appleCred = await SignInWithApple.getAppleIDCredential(scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ]);
 
-    // 2. check the result
+      final auth = FirebaseAuth.instance;
+      final oAuthProvider = OAuthProvider('apple.com')..addScope("name");
+      final credential = oAuthProvider.credential(
+        idToken: appleCred.identityToken,
+        accessToken: appleCred.authorizationCode,
+      );
+      final userCredential = await auth.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
 
-    // final appleIdCredential = result.credential!;
-    final oAuthProvider = OAuthProvider('apple.com')..addScope("name");
-    final credential = oAuthProvider.credential(
-      idToken: appleCred.identityToken,
-      accessToken: appleCred.authorizationCode,
-    );
-    final userCredential = await auth.signInWithCredential(credential);
-    final firebaseUser = userCredential.user!;
-    await FirebaseAuth.instance.currentUser!
-        .updateDisplayName(appleCred.givenName);
-    return firebaseUser;
+      if (firebaseUser != null && appleCred.givenName != null) {
+        await firebaseUser.updateDisplayName(appleCred.givenName);
+      }
+
+      return firebaseUser;
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        Authentication.customSnackBar(
+          content: 'Error occurred using Apple Sign In. Try again.',
+        ),
+      );
+      return null;
+    }
   }
 
   static Future<void> signOut({required BuildContext context}) async {
@@ -129,12 +92,7 @@ class Authentication {
         await googleSignIn.signOut();
       }
       await FirebaseAuth.instance.signOut();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => SignInPage(),
-        ),
-      );
-    } catch (e) {
+    } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
         Authentication.customSnackBar(
           content: 'Error signing out. Try again.',
@@ -148,7 +106,7 @@ class Authentication {
       backgroundColor: Colors.black,
       content: Text(
         content,
-        style: TextStyle(color: Colors.redAccent, letterSpacing: 0.5),
+        style: const TextStyle(color: Colors.redAccent, letterSpacing: 0.5),
       ),
     );
   }
