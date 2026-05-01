@@ -2,7 +2,6 @@ import 'package:bodybuddiesapp/models/booking.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/constants.dart';
 import 'package:bodybuddiesapp/widgets/booking_widget.dart';
-import 'package:bodybuddiesapp/widgets/medium_text_widget.dart';
 import 'package:bodybuddiesapp/widgets/no_bookings_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +16,7 @@ import '../services/cloud_firestore.dart';
 import '../utils/dimensions.dart';
 
 class BookingsPage extends StatefulWidget {
-  const BookingsPage({Key? key}) : super(key: key);
+  const BookingsPage({super.key});
 
   @override
   State<BookingsPage> createState() => _BookingsPageState();
@@ -33,8 +32,6 @@ class _BookingsPageState extends State<BookingsPage>
 
   DateTime currentDay = DateTime.now();
   final _currentDate = DateTime.now();
-  DateTime startTimeOne = DateTime(
-      DateTime.now().year, DateTime.now().month, DateTime.now().day, 7, 15, 0);
 
   Duration step = const Duration(minutes: 15);
   List<Widget> slots = [];
@@ -196,7 +193,7 @@ class _BookingsPageState extends State<BookingsPage>
                               HapticFeedback.lightImpact();
                               setState(() {
                                 currentDayPage = index;
-                                currentDay = DateTime.now()
+                                currentDay = _currentDate
                                     .add(Duration(days: currentDayPage - 365));
                               });
                             },
@@ -268,6 +265,11 @@ class _BookingsPageState extends State<BookingsPage>
 
       while (startTime.isBefore(endTime)) {
         DateTime timeIncrement = startTime.add(step);
+        if (!_shouldShowSlot(timeIncrement)) {
+          startTime = timeIncrement;
+          continue;
+        }
+
         final bookingDate =
             "${currentDay.day}/${currentDay.month}/${currentDay.year}";
 
@@ -295,7 +297,7 @@ class _BookingsPageState extends State<BookingsPage>
     } else if (selectedValue == "Mandalena") {
       while (startTime.isBefore(endTime)) {
         DateTime timeSlot = startTime.add(const Duration(minutes: 15));
-        if (_isSlotAvailable(timeSlot)) {
+        if (_shouldShowSlot(timeSlot) && _isSlotAvailable(timeSlot)) {
           slots.add(_buildBookingWidget(timeSlot));
         }
         startTime = timeSlot;
@@ -341,6 +343,10 @@ class _BookingsPageState extends State<BookingsPage>
   int _parseTimeToMinutes(String time) {
     final parts = time.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+
+  bool _shouldShowSlot(DateTime timeSlot) {
+    return timeSlot.isAfter(DateTime.now());
   }
 
   void _buildDateWidgets() {
@@ -509,17 +515,7 @@ class _BookingsPageState extends State<BookingsPage>
     return GestureDetector(
       onTap: () async {
         HapticFeedback.lightImpact();
-        setState(() {
-          if (dateTime.day != DateTime.now().day ||
-              dateTime.month != DateTime.now().month ||
-              dateTime.year != DateTime.now().year) {
-            int diff = dateTime.difference(DateTime.now()).inDays;
-            pageController.jumpToPage(diff < 0 ? diff + 365 : diff + 366);
-          } else {
-            pageController.jumpToPage(365);
-          }
-          currentDay = dateTime;
-        });
+        await _onDateTap(dateTime);
       },
       behavior: HitTestBehavior.opaque,
       child: Container(

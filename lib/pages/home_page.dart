@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 import '../utils/dimensions.dart';
 import '../widgets/no_bookings_widget.dart';
-import '../widgets/stamp_seal_painter.dart';
 import 'credits_page.dart';
 import 'admin_page/admin_tools_page.dart';
 
@@ -274,6 +273,7 @@ class _HomePageState extends State<HomePage>
                   booking.trainer.toLowerCase() !=
                   _trainerFilter!.toLowerCase());
             }
+            _sortBookingsByDateTime(bookings);
           }
 
           String displayName = name;
@@ -517,6 +517,7 @@ class _HomePageState extends State<HomePage>
           if (snapshot.hasData) {
             bookings = List.from(snapshot.data!.bookings);
             bookings.removeWhere((booking) => !booking.isOnDate(currentDate));
+            _sortBookingsByDateTime(bookings);
           }
 
           return SafeArea(
@@ -983,86 +984,12 @@ class _HomePageState extends State<HomePage>
     return "Good evening,";
   }
 
-  // ─── Credits Chip ──────────────────────────────────────────────────────────
-  Widget _buildPunchCard(int credits) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CreditsPage()),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: bbSurface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: bbBorder, width: 0.5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              credits.toString(),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 20,
-                color: bbText,
-                fontWeight: FontWeight.w600,
-                height: 1.0,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              "CREDITS",
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 9,
-                color: bbTextMuted,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatChip(String value, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: bbSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: bbBorder, width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 20,
-              color: bbText,
-              fontWeight: FontWeight.w600,
-              height: 1.0,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 9,
-              color: bbTextMuted,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String getTodaysDate() {
     return "${months[DateTime.now().month - 1]}, ${DateTime.now().day}";
+  }
+
+  void _sortBookingsByDateTime(List<Booking> bookings) {
+    bookings.sort((a, b) => a.getDateTime().compareTo(b.getDateTime()));
   }
 
   DateTime getBookingAsDateTime(String time, String date) {
