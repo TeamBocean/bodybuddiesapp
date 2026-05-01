@@ -6,16 +6,31 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class Wrapper extends StatelessWidget {
+class Wrapper extends StatefulWidget {
   const Wrapper({Key? key}) : super(key: key);
+
+  @override
+  State<Wrapper> createState() => _WrapperState();
+}
+
+class _WrapperState extends State<Wrapper> {
+  int _retryCount = 0;
 
   @override
   Widget build(BuildContext context) {
     Dimensions.init(context);
 
     return StreamBuilder<User?>(
+      key: ValueKey('auth-stream-$_retryCount'),
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, authSnapshot) {
+        if (authSnapshot.hasError) {
+          return _AuthErrorScreen(
+            message: 'We had trouble checking your sign-in status.',
+            onRetry: _retryAuthGate,
+          );
+        }
+
         if (authSnapshot.connectionState != ConnectionState.active) {
           return const _AuthLoadingScreen();
         }
@@ -26,17 +41,27 @@ class Wrapper extends StatelessWidget {
         }
 
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          key: ValueKey('user-doc-${user.uid}-$_retryCount'),
           stream: FirebaseFirestore.instance
               .collection("users")
               .doc(user.uid)
               .snapshots(),
           builder: (context, userDocSnapshot) {
+            if (userDocSnapshot.hasError) {
+              return _AuthErrorScreen(
+                message: 'We had trouble loading your account.',
+                onRetry: _retryAuthGate,
+              );
+            }
+
             if (!userDocSnapshot.hasData &&
                 userDocSnapshot.connectionState == ConnectionState.waiting) {
               return const _AuthLoadingScreen();
             }
 
-            if (userDocSnapshot.data?.exists == true) {
+            final userData = userDocSnapshot.data?.data();
+            if (_hasCompletedProfile(userData)) {
+              _backfillEmailIfNeeded(user, userData);
               return const MainScaffold();
             }
 
@@ -45,6 +70,65 @@ class Wrapper extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _retryAuthGate() {
+    setState(() {
+      _retryCount++;
+    });
+  }
+
+  bool _hasCompletedProfile(Map<String, dynamic>? data) {
+    if (data == null) {
+      return false;
+    }
+
+    if (data['profile_completed'] == true) {
+      return true;
+    }
+
+    final name = (data['name'] as String?)?.trim() ?? '';
+    final weight = _parseWeight(data['weight']);
+
+    return name.length >= 2 && weight > 0;
+  }
+
+  int _parseWeight(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    if (value is String) {
+      return int.tryParse(value.trim()) ?? 0;
+    }
+    return 0;
+  }
+
+  void _backfillEmailIfNeeded(User user, Map<String, dynamic>? data) {
+    if (data == null) {
+      return;
+    }
+
+    final storedEmail = (data['email'] as String?)?.trim() ?? '';
+    final authEmail = user.email?.trim().toLowerCase() ?? '';
+    final patch = <String, dynamic>{};
+
+    if (storedEmail.isEmpty && authEmail.isNotEmpty) {
+      patch["email"] = authEmail;
+    }
+
+    if (data['profile_completed'] != true && _hasCompletedProfile(data)) {
+      patch["profile_completed"] = true;
+    }
+
+    if (patch.isNotEmpty) {
+      FirebaseFirestore.instance
+          .collection("users")
+          .doc(user.uid)
+          .set(patch, SetOptions(merge: true));
+    }
   }
 }
 
@@ -56,6 +140,43 @@ class _AuthLoadingScreen extends StatelessWidget {
     return const Scaffold(
       body: Center(
         child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class _AuthErrorScreen extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _AuthErrorScreen({
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off, size: 40),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: onRetry,
+                child: const Text('Try Again'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -21,12 +21,12 @@ class CloudFirestore {
   /// Returns true if successful, false otherwise
   Future<bool> setUserInfo(String name, int weight, {int retries = 3}) async {
     final FirebaseAuth auth = FirebaseAuth.instance;
-    
+
     if (auth.currentUser == null) {
       print('ERROR: No authenticated user found');
       return false;
     }
-    
+
     final userId = auth.currentUser!.uid;
     final userData = {
       "credits": 0,
@@ -34,42 +34,49 @@ class CloudFirestore {
       "subscriptions": [],
       "active": false,
       "credit_type": "",
+      "email": auth.currentUser!.email?.toLowerCase() ?? "",
       "name": name,
-      "weight": weight
+      "weight": weight,
+      "profile_completed": true,
+      "onboarding_completed_at": FieldValue.serverTimestamp(),
     };
-    
+
     for (int attempt = 0; attempt < retries; attempt++) {
       try {
-        print('Creating user document for $userId (attempt ${attempt + 1}/$retries)');
-        
+        print(
+            'Creating user document for $userId (attempt ${attempt + 1}/$retries)');
+
         // Use set with merge to avoid overwriting if document exists
         await reference.collection("users").doc(userId).set(
-          userData,
-          SetOptions(merge: true),
-        );
-        
+              userData,
+              SetOptions(merge: true),
+            );
+
         // Verify the document was created
         final doc = await reference.collection("users").doc(userId).get();
         if (doc.exists) {
           print('✅ User document created successfully for $userId');
           return true;
         } else {
-          print('⚠️  Document creation verification failed (attempt ${attempt + 1})');
+          print(
+              '⚠️  Document creation verification failed (attempt ${attempt + 1})');
         }
       } catch (e) {
-        print('❌ Error creating user document (attempt ${attempt + 1}/$retries): $e');
-        
+        print(
+            '❌ Error creating user document (attempt ${attempt + 1}/$retries): $e');
+
         // If this is the last attempt, return false
         if (attempt == retries - 1) {
-          print('CRITICAL: Failed to create user document after $retries attempts');
+          print(
+              'CRITICAL: Failed to create user document after $retries attempts');
           return false;
         }
-        
+
         // Wait before retrying (exponential backoff)
         await Future.delayed(Duration(seconds: attempt + 1));
       }
     }
-    
+
     return false;
   }
 
@@ -101,7 +108,8 @@ class CloudFirestore {
   }
 
   Future<bool> updateBookingName(
-      String month, String day, String documentId, String newName, {int? year}) async {
+      String month, String day, String documentId, String newName,
+      {int? year}) async {
     try {
       final bookingYear = year ?? DateTime.now().year;
       reference
@@ -143,11 +151,7 @@ class CloudFirestore {
   }
 
   Stream<UserModel> streamUserData(String userID) {
-    return reference
-        .collection("users")
-        .doc(userID)
-        .snapshots()
-        .map((doc) {
+    return reference.collection("users").doc(userID).snapshots().map((doc) {
       if (doc.exists && doc.data() != null) {
         return UserModel.fromJson(doc.data()!);
       }
@@ -203,7 +207,7 @@ class CloudFirestore {
       time: booking.time,
       date: booking.normalizedDate, // Use normalized date with year
     );
-    
+
     reference.collection("users").doc(userID).update({
       "bookings": FieldValue.arrayUnion([bookingWithYear.toJson()])
     });
@@ -218,10 +222,7 @@ class CloudFirestore {
     String monthStr = booking.month.toString();
     String year = booking.year.toString();
 
-    reference
-        .collection("bookings")
-        .doc(year)
-        .update({
+    reference.collection("bookings").doc(year).update({
       "$monthStr.$day": FieldValue.arrayUnion([booking.time])
     });
 
@@ -232,7 +233,7 @@ class CloudFirestore {
     Map<String, dynamic> bookingAsMap = booking.toJson();
     bookingAsMap['name'] = username;
     String year = booking.year.toString();
-    
+
     reference
         .collection("bookings-list")
         .doc(year)
@@ -252,16 +253,17 @@ class CloudFirestore {
         price: booking.price,
         time: booking.time,
         date: booking.date));
-    
+
     reference.collection("users").doc(userID).update({
       "bookings": FieldValue.arrayRemove([booking.toJson()])
     });
-    
+
     removeBooking(booking);
-    
+
     // FIXED: Only refund if >24 hours BEFORE the booking time
     // Previous bug: Used .abs() which meant past bookings always got refunds
-    final hoursUntilBooking = booking.getDateTime().difference(DateTime.now()).inHours;
+    final hoursUntilBooking =
+        booking.getDateTime().difference(DateTime.now()).inHours;
     if (hoursUntilBooking > 24) {
       incrementCredit(1, userID);
     }
@@ -286,12 +288,9 @@ class CloudFirestore {
     String day = booking.day.toString();
     String month = booking.month.toString();
     String year = booking.year.toString();
-    
+
     // Remove from availability tracking
-    reference
-        .collection("bookings")
-        .doc(year)
-        .update({
+    reference.collection("bookings").doc(year).update({
       "$month.$day": FieldValue.arrayRemove([booking.time])
     });
 
@@ -347,7 +346,7 @@ class CloudFirestore {
       }
     });
   }
-  
+
   /// Atomically decrease credits using a transaction to prevent race conditions
   /// Returns true if credits were successfully deducted, false otherwise
   Future<bool> decreaseCreditsAtomic(int credits, String userID) async {
@@ -355,21 +354,22 @@ class CloudFirestore {
       return await reference.runTransaction<bool>((transaction) async {
         DocumentReference userRef = reference.collection("users").doc(userID);
         DocumentSnapshot userDoc = await transaction.get(userRef);
-        
+
         if (!userDoc.exists) {
           return false;
         }
-        
-        int currentCredits = (userDoc.data() as Map<String, dynamic>)['credits'] ?? 0;
-        
+
+        int currentCredits =
+            (userDoc.data() as Map<String, dynamic>)['credits'] ?? 0;
+
         if (currentCredits < credits) {
           return false; // Not enough credits
         }
-        
+
         transaction.update(userRef, {
           "credits": FieldValue.increment(-credits),
         });
-        
+
         return true;
       });
     } catch (e) {
@@ -420,26 +420,29 @@ class CloudFirestore {
         final year = booking.year.toString();
         final monthStr = booking.month.toString();
         final dayStr = booking.day.toString();
-        
+
         final availabilityRef = reference.collection("bookings").doc(year);
         final availabilityDoc = await transaction.get(availabilityRef);
-        
+
         if (!availabilityDoc.exists) {
           // Create year document if it doesn't exist
           transaction.set(availabilityRef, {
-            monthStr: {dayStr: [booking.time]}
+            monthStr: {
+              dayStr: [booking.time]
+            }
           });
         } else {
           // Check if slot is already booked
           final data = availabilityDoc.data() as Map<String, dynamic>;
           final monthData = data[monthStr] as Map<String, dynamic>?;
           final dayData = monthData?[dayStr] as List<dynamic>?;
-          
+
           if (dayData != null) {
             // Check for conflicts (45-minute sessions block multiple slots)
             final bookingMinutes = _parseTimeToMinutes(booking.time);
             for (final existingTime in dayData) {
-              final existingMinutes = _parseTimeToMinutes(existingTime as String);
+              final existingMinutes =
+                  _parseTimeToMinutes(existingTime as String);
               final diff = (bookingMinutes - existingMinutes).abs();
               // Sessions are 45 minutes, slots are 15 minutes apart
               if (diff < 45) {
@@ -447,13 +450,13 @@ class CloudFirestore {
               }
             }
           }
-          
+
           // Reserve the slot
           transaction.update(availabilityRef, {
             "$monthStr.$dayStr": FieldValue.arrayUnion([booking.time])
           });
         }
-        
+
         // Create the booking in bookings-list
         final publicBookingRef = reference
             .collection("bookings-list")
@@ -462,17 +465,17 @@ class CloudFirestore {
             .doc(dayStr)
             .collection("bookings")
             .doc(booking.id);
-        
+
         Map<String, dynamic> bookingData = booking.toJson();
         bookingData['name'] = username;
         transaction.set(publicBookingRef, bookingData);
-        
+
         // Add to user's bookings
         final userRef = reference.collection("users").doc(userID);
         transaction.update(userRef, {
           "bookings": FieldValue.arrayUnion([booking.toJson()])
         });
-        
+
         return true;
       });
     } catch (e) {
@@ -486,7 +489,7 @@ class CloudFirestore {
     final parts = time.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
   }
-  
+
   /// Self-healing: sync the availability map with the bookings list.
   /// Reads all bookings from bookings-list for a given day and ensures
   /// the bookings/{year} availability map contains all booked times.
@@ -518,7 +521,8 @@ class CloudFirestore {
       if (bookedTimes.isEmpty) return;
 
       // Ensure the availability map includes all these times
-      final availabilityRef = reference.collection("bookings").doc(year.toString());
+      final availabilityRef =
+          reference.collection("bookings").doc(year.toString());
       await availabilityRef.set(
         {"$month.$day": FieldValue.arrayUnion(bookedTimes)},
         SetOptions(merge: true),
@@ -533,76 +537,76 @@ class CloudFirestore {
   // ============================================
   // EMPLOYEE/ADMIN HELPERS
   // ============================================
-  
+
   /// List of employee emails (case-insensitive matching)
   static const List<String> _employeeEmails = [
     'markmcquaid54@gmail.com',
     'mandalena.work@gmail.com',
   ];
-  
+
   /// List of developer emails for debugging access
   static const List<String> _developerEmails = [
     'mahmoud.al808@gmail.com',
   ];
-  
+
   /// Main admin display name
   static const String _mainAdminName = 'BODY BUDDIES HEALTH & FITNESS';
-  
+
   /// Check if the current user is an employee (trainer)
   bool isEmployee() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
-    
+
     final email = user.email?.toLowerCase() ?? '';
     final displayName = user.displayName ?? '';
-    
+
     // Check if main admin
     if (displayName == _mainAdminName) return true;
-    
+
     // Check if developer
     if (_developerEmails.contains(email)) return true;
-    
+
     // Check if employee email
     return _employeeEmails.contains(email);
   }
-  
+
   /// Check if current user is a developer (for debugging access)
   bool isDeveloper() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
-    
+
     final email = user.email?.toLowerCase() ?? '';
     return _developerEmails.contains(email);
   }
-  
+
   /// Check if current user is the main admin
   bool isMainAdmin() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
-    
+
     final displayName = user.displayName ?? '';
     return displayName == _mainAdminName;
   }
-  
+
   /// Get the trainer name for the current employee
   /// Returns null if not an employee
   String? getEmployeeTrainerName() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    
+
     final email = user.email?.toLowerCase() ?? '';
     final displayName = user.displayName ?? '';
-    
+
     // Main admin sees all as "Mark"
     if (displayName == _mainAdminName) return null; // null = see all
-    
+
     // Developers see all
     if (_developerEmails.contains(email)) return null;
-    
+
     // Map employee emails to trainer names
     if (email == 'markmcquaid54@gmail.com') return 'Mark';
     if (email == 'mandalena.work@gmail.com') return 'Mandalena';
-    
+
     // Default: use display name
     return displayName;
   }

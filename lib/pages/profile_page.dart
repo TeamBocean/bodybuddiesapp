@@ -20,6 +20,33 @@ class _ProfilePageState extends State<ProfilePage> {
   TextEditingController name = TextEditingController();
   bool _useMetric = true; // true for kg, false for lbs
 
+  Color _dialogBackgroundColor(BuildContext context) =>
+      Theme.of(context).dialogTheme.backgroundColor ??
+      Theme.of(context).colorScheme.surface;
+
+  TextStyle _dialogTitleStyle(BuildContext context) =>
+      Theme.of(context).dialogTheme.titleTextStyle ??
+      const TextStyle(
+        color: bbText,
+        fontWeight: FontWeight.w600,
+      );
+
+  TextStyle _dialogContentStyle(BuildContext context) =>
+      Theme.of(context).dialogTheme.contentTextStyle ??
+      const TextStyle(
+        color: bbTextSecondary,
+      );
+
+  TextStyle _dialogFieldTextStyle(BuildContext context) =>
+      Theme.of(context).textTheme.bodyLarge?.copyWith(
+        color: Theme.of(context).colorScheme.onSurface,
+      ) ??
+      const TextStyle(color: bbText);
+
+  TextStyle _dialogSecondaryTextStyle(BuildContext context) =>
+      Theme.of(context).textTheme.bodyMedium?.copyWith(color: bbTextSecondary) ??
+      const TextStyle(color: bbTextSecondary);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,20 +234,20 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: background,
-        title: Text("Edit Name", style: TextStyle(color: Colors.white)),
+        backgroundColor: _dialogBackgroundColor(context),
+        title: Text("Edit Name", style: _dialogTitleStyle(context)),
         content: TextField(
           controller: name,
-          style: TextStyle(color: Colors.white),
+          cursorColor: Theme.of(context).colorScheme.primary,
+          style: _dialogFieldTextStyle(context),
           decoration: InputDecoration(
             hintText: "Enter your name",
-            hintStyle: TextStyle(color: Colors.grey),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancel", style: _dialogSecondaryTextStyle(context)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -242,24 +269,24 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: background,
-        title: Text("Edit Weight", style: TextStyle(color: Colors.white)),
+        backgroundColor: _dialogBackgroundColor(context),
+        title: Text("Edit Weight", style: _dialogTitleStyle(context)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
-              style: TextStyle(color: Colors.white),
+              cursorColor: Theme.of(context).colorScheme.primary,
+              style: _dialogFieldTextStyle(context),
               decoration: InputDecoration(
                 hintText: "Enter your weight",
-                hintStyle: TextStyle(color: Colors.grey),
               ),
             ),
             SizedBox(height: Dimensions.height10),
             Row(
               children: [
-                Text("Unit:", style: TextStyle(color: Colors.white)),
+                Text("Unit:", style: _dialogSecondaryTextStyle(context)),
                 SizedBox(width: Dimensions.width10),
                 ChoiceChip(
                   label: Text("kg"),
@@ -283,7 +310,7 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancel", style: _dialogSecondaryTextStyle(context)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -304,16 +331,16 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: background,
+        backgroundColor: _dialogBackgroundColor(context),
         title: Text("Delete Account", style: TextStyle(color: Colors.red)),
         content: Text(
           "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.",
-          style: TextStyle(color: Colors.white),
+          style: _dialogContentStyle(context),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancel", style: _dialogSecondaryTextStyle(context)),
           ),
           ElevatedButton(
             onPressed: () {
