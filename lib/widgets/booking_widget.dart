@@ -75,18 +75,15 @@ class _BookingWidgetState extends State<BookingWidget>
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           _previousData = snapshot.data;
-          final isBooked =
-              isAlreadyBooked(widget.booking, snapshot.data!.list);
+          final isBooked = isAlreadyBooked(widget.booking, snapshot.data!.list);
           final isPast = widget.booking.isPast;
           final isDisabled = (isBooked && !widget.isBooked) || isPast;
           return _buildBookingCard(context, isDisabled, snapshot.data!.list);
         } else if (_previousData != null) {
-          final isBooked =
-              isAlreadyBooked(widget.booking, _previousData!.list);
+          final isBooked = isAlreadyBooked(widget.booking, _previousData!.list);
           final isPast = widget.booking.isPast;
           final isDisabled = (isBooked && !widget.isBooked) || isPast;
-          return _buildBookingCard(
-              context, isDisabled, _previousData!.list);
+          return _buildBookingCard(context, isDisabled, _previousData!.list);
         } else {
           return _buildSkeletonCard();
         }
@@ -102,7 +99,6 @@ class _BookingWidgetState extends State<BookingWidget>
     final isPast = widget.booking.isPast;
     final canBook = !widget.isBooked && !isAlreadyTaken && !isPast;
 
-
     return AbsorbPointer(
       absorbing: isDisabled,
       child: Padding(
@@ -110,6 +106,7 @@ class _BookingWidgetState extends State<BookingWidget>
         child: Opacity(
           opacity: isDisabled ? 0.4 : 1.0,
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             // ─── Press-and-hold to book (Stamp Gesture) ─────────────────
             onLongPressStart: canBook
                 ? (_) {
@@ -156,9 +153,7 @@ class _BookingWidgetState extends State<BookingWidget>
                                   widget.booking.time,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 20,
-                                    color: widget.isBooked
-                                        ? bbAccent
-                                        : bbText,
+                                    color: widget.isBooked ? bbAccent : bbText,
                                     fontWeight: FontWeight.w300,
                                     height: 1.0,
                                     letterSpacing: 1.0,
@@ -181,8 +176,7 @@ class _BookingWidgetState extends State<BookingWidget>
                                 if (widget.isBooked &&
                                     widget.booking.bookingName.isNotEmpty)
                                   Padding(
-                                    padding:
-                                        const EdgeInsets.only(top: 3),
+                                    padding: const EdgeInsets.only(top: 3),
                                     child: Text(
                                       widget.booking.bookingName,
                                       style: GoogleFonts.plusJakartaSans(
@@ -212,11 +206,9 @@ class _BookingWidgetState extends State<BookingWidget>
                           child: Opacity(
                             opacity: _stampAnimation.value * 0.6,
                             child: Transform.scale(
-                              scale:
-                                  0.5 + (_stampAnimation.value * 0.5),
+                              scale: 0.5 + (_stampAnimation.value * 0.5),
                               child: Transform.rotate(
-                                angle:
-                                    (-0.15) * (1 - _stampAnimation.value),
+                                angle: (-0.15) * (1 - _stampAnimation.value),
                                 child: StampSeal(
                                   size: 80,
                                   progress: _stampAnimation.value,
@@ -255,8 +247,7 @@ class _BookingWidgetState extends State<BookingWidget>
           const SizedBox(height: 8),
           // Status
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: widget.booking.isPast
                   ? bbTextMuted.withOpacity(0.06)
@@ -496,8 +487,8 @@ class _BookingWidgetState extends State<BookingWidget>
                         decoration: BoxDecoration(
                           color: bbAccentAlt.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: bbAccentAlt.withOpacity(0.3)),
+                          border:
+                              Border.all(color: bbAccentAlt.withOpacity(0.3)),
                         ),
                         child: Center(
                           child: Text(
@@ -537,8 +528,18 @@ class _BookingWidgetState extends State<BookingWidget>
 
   String _getMonthName(int month) {
     const monthNames = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
     ];
     if (month < 1 || month > 12)
       throw RangeError("Invalid month index: $month");

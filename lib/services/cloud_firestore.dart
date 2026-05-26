@@ -388,7 +388,7 @@ class CloudFirestore {
   /// Add a subscription record to user's history
   void addUserSubscription(
       String userID, int credits, String subscription, double price) {
-    reference.collection("users").doc(userID).update({
+    reference.collection("users").doc(userID).set({
       "subscriptions": FieldValue.arrayUnion([
         {
           "date": DateTime.now(),
@@ -397,7 +397,7 @@ class CloudFirestore {
           "price": price
         }
       ])
-    });
+    }, SetOptions(merge: true));
   }
 
   Future<List<dynamic>> getAllPTs() async {
@@ -423,6 +423,8 @@ class CloudFirestore {
 
         final availabilityRef = reference.collection("bookings").doc(year);
         final availabilityDoc = await transaction.get(availabilityRef);
+        final userRef = reference.collection("users").doc(userID);
+        final userDoc = await transaction.get(userRef);
 
         if (!availabilityDoc.exists) {
           // Create year document if it doesn't exist
@@ -471,9 +473,15 @@ class CloudFirestore {
         transaction.set(publicBookingRef, bookingData);
 
         // Add to user's bookings
-        final userRef = reference.collection("users").doc(userID);
+        final currentStamps =
+            _readInt(userDoc.data()?['reward_stamps']);
+        final nextStamps = currentStamps + 1;
+        final completedRewardCard = nextStamps >= 12;
+
         transaction.update(userRef, {
-          "bookings": FieldValue.arrayUnion([booking.toJson()])
+          "bookings": FieldValue.arrayUnion([booking.toJson()]),
+          "reward_stamps": completedRewardCard ? 0 : nextStamps,
+          if (completedRewardCard) "credits": FieldValue.increment(1),
         });
 
         return true;
@@ -488,6 +496,13 @@ class CloudFirestore {
   int _parseTimeToMinutes(String time) {
     final parts = time.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+
+  int _readInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim()) ?? 0;
+    return 0;
   }
 
   /// Self-healing: sync the availability map with the bookings list.

@@ -32,7 +32,7 @@ class _CreditsPageState extends State<CreditsPage> {
       backgroundColor: bbBackground,
       appBar: AppBar(
         title: Text(
-          'The Collection',
+          'Training Credits',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 22,
             fontWeight: FontWeight.w500,
@@ -59,8 +59,10 @@ class _CreditsPageState extends State<CreditsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ─── Invitation Card (Punch Card) ──────────────────────
-                  _buildInvitationCard(currentCredits),
+                  _buildRewardCard(
+                    credits: currentCredits,
+                    rewardStamps: userSnapshot.data?.rewardStamps ?? 0,
+                  ),
                   SizedBox(height: Dimensions.height20 + Dimensions.height10),
 
                   // ─── Subtitle ──────────────────────────────────────────
@@ -121,11 +123,15 @@ class _CreditsPageState extends State<CreditsPage> {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // INVITATION CARD — Punch card with stamp circles
+  // REWARD CARD
   // ═══════════════════════════════════════════════════════════════════════════
-  Widget _buildInvitationCard(int credits) {
+  Widget _buildRewardCard({
+    required int credits,
+    required int rewardStamps,
+  }) {
     final maxDisplay = 12;
-    final displayCredits = credits.clamp(0, maxDisplay);
+    final displayStamps = rewardStamps.clamp(0, maxDisplay);
+    final stampsRemaining = maxDisplay - displayStamps;
 
     return Container(
       width: double.infinity,
@@ -150,7 +156,7 @@ class _CreditsPageState extends State<CreditsPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "YOUR INVITATION",
+                "REWARD CARD",
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10,
                   color: bbTextSecondary,
@@ -159,7 +165,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 ),
               ),
               Text(
-                "$credits remaining",
+                "$credits credits",
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   color: bbTextMuted,
@@ -176,7 +182,7 @@ class _CreditsPageState extends State<CreditsPage> {
               runSpacing: 16,
               alignment: WrapAlignment.center,
               children: List.generate(maxDisplay, (i) {
-                final isFilled = i < displayCredits;
+                final isFilled = i < displayStamps;
                 return SizedBox(
                   width: 40,
                   height: 40,
@@ -191,19 +197,6 @@ class _CreditsPageState extends State<CreditsPage> {
             ),
           ),
 
-          if (credits > maxDisplay) ...[
-            const SizedBox(height: 12),
-            Center(
-              child: Text(
-                "+ ${credits - maxDisplay} more",
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  color: bbTextMuted,
-                ),
-              ),
-            ),
-          ],
-
           const SizedBox(height: 20),
 
           // Thin divider
@@ -213,7 +206,9 @@ class _CreditsPageState extends State<CreditsPage> {
           // Footer message
           Center(
             child: Text(
-              "Each stamp represents a session.\nBook to fill your card.",
+              stampsRemaining == 0
+                  ? "Your next booked session unlocks a free credit."
+                  : "$stampsRemaining more stamps unlocks 1 free session.",
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
@@ -579,7 +574,7 @@ class _CreditsPageState extends State<CreditsPage> {
                           ),
                         )
                       : Text(
-                          "Add to Collection",
+                          "Purchase Pack",
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -607,8 +602,7 @@ class _CreditsPageState extends State<CreditsPage> {
     });
 
     try {
-      final result =
-          await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
+      final result = await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
 
       if (result == null) {
         throw Exception('Failed to create payment intent');
@@ -619,10 +613,14 @@ class _CreditsPageState extends State<CreditsPage> {
       }
 
       paymentIntent = result;
+      final clientSecret = paymentIntent!['client_secret'] as String?;
+      if (clientSecret == null || clientSecret.isEmpty) {
+        throw Exception('Stripe did not return a payment client secret');
+      }
 
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: paymentIntent!['client_secret'],
+          paymentIntentClientSecret: clientSecret,
           style: ThemeMode.light,
           merchantDisplayName: 'BodyBuddies',
         ),
@@ -634,7 +632,7 @@ class _CreditsPageState extends State<CreditsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Payment failed: ${e.toString()}',
+            content: Text(_friendlyPaymentError(e),
                 style: GoogleFonts.plusJakartaSans()),
             backgroundColor: bbRed,
           ),
@@ -690,7 +688,6 @@ class _CreditsPageState extends State<CreditsPage> {
 
       paymentIntent = null;
 
-      // ── Invitation Card Success Dialog ──────────────────────────────
       if (mounted) {
         showDialog(
           context: context,
@@ -737,7 +734,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  "$credits sessions have been\nadded to your invitation.",
+                  "$credits sessions have been\nadded to your credits.",
                   style: GoogleFonts.plusJakartaSans(
                     color: bbTextSecondary,
                     fontSize: 14,
@@ -768,8 +765,8 @@ class _CreditsPageState extends State<CreditsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Payment cancelled",
-                style: GoogleFonts.plusJakartaSans()),
+            content:
+                Text("Payment cancelled", style: GoogleFonts.plusJakartaSans()),
             backgroundColor: bbCard,
           ),
         );
@@ -779,7 +776,7 @@ class _CreditsPageState extends State<CreditsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Payment failed: ${e.toString()}",
+            content: Text(_friendlyPaymentError(e),
                 style: GoogleFonts.plusJakartaSans()),
             backgroundColor: bbRed,
           ),
@@ -800,15 +797,20 @@ class _CreditsPageState extends State<CreditsPage> {
     }
 
     try {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final user = FirebaseAuth.instance.currentUser!;
+      final userId = user.uid;
+      final userEmail = user.email?.trim();
       Map<String, dynamic> body = {
         'amount': calculateAmount(amount),
         'currency': currency,
-        'payment_method_types[]': 'card',
+        'automatic_payment_methods[enabled]': 'true',
         'metadata[userId]': userId,
         'metadata[credits]': _pendingCredits.toString(),
         'metadata[creditType]': isBuddy ? "2:1" : "1:1",
       };
+      if (userEmail != null && userEmail.isNotEmpty) {
+        body['receipt_email'] = userEmail;
+      }
 
       var response = await http.post(
         Uri.parse('https://api.stripe.com/v1/payment_intents'),
@@ -837,5 +839,15 @@ class _CreditsPageState extends State<CreditsPage> {
   String calculateAmount(String amount) {
     final calculatedAmount = (int.parse(amount)) * 100;
     return calculatedAmount.toString();
+  }
+
+  String _friendlyPaymentError(Object error) {
+    final message = error.toString().toLowerCase();
+    if (message.contains('api key') ||
+        message.contains('secret_key') ||
+        message.contains('client secret')) {
+      return 'Payment setup failed. Please contact Body Buddies.';
+    }
+    return 'Payment failed. Please try again.';
   }
 }
