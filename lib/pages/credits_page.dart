@@ -8,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/user.dart';
 import '../../services/cloud_firestore.dart';
-import '../../services/email.dart';
 import '../../utils/colors.dart';
 import '../../utils/dimensions.dart';
 import '../widgets/stamp_seal_painter.dart';
@@ -651,41 +650,6 @@ class _CreditsPageState extends State<CreditsPage> {
     try {
       await Stripe.instance.presentPaymentSheet();
 
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-
-      final creditsAdded = await CloudFirestore().addCredits(
-        credits,
-        userId,
-        isBuddy ? "2:1" : "1:1",
-      );
-
-      if (!creditsAdded) {
-        print(
-            'CRITICAL: Payment succeeded but credits failed to add for user $userId');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "Payment received but there was an issue adding credits. Please contact support.",
-                style: GoogleFonts.plusJakartaSans(),
-              ),
-              backgroundColor: bbAccentAlt,
-              duration: const Duration(seconds: 10),
-            ),
-          );
-        }
-        return;
-      }
-
-      CloudFirestore().addUserSubscription(
-        userId,
-        credits,
-        isBuddy ? "2:1" : "1:1",
-        price,
-      );
-
-      EmailService().sendSubscriptionConfirmationToUser();
-
       paymentIntent = null;
 
       if (mounted) {
@@ -734,7 +698,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  "$credits sessions have been\nadded to your credits.",
+                  "$credits sessions are being\nadded to your credits.",
                   style: GoogleFonts.plusJakartaSans(
                     color: bbTextSecondary,
                     fontSize: 14,
@@ -788,37 +752,36 @@ class _CreditsPageState extends State<CreditsPage> {
 
   Future<Map<String, dynamic>?> createPaymentIntent(
       String amount, String currency) async {
-    final secretKey = dotenv.env['STRIPE_SECRET_KEY'];
-    if (secretKey == null || secretKey.isEmpty) {
+    final endpoint = dotenv.env['PAYMENT_INTENT_ENDPOINT'];
+    if (endpoint == null || endpoint.isEmpty) {
       throw Exception(
-        'Missing STRIPE_SECRET_KEY in .env. '
-        'This key must be provided by the backend.',
+        'Missing PAYMENT_INTENT_ENDPOINT in .env. '
+        'Stripe PaymentIntents must be created by the backend.',
       );
     }
 
     try {
       final user = FirebaseAuth.instance.currentUser!;
       final userId = user.uid;
+      final idToken = await user.getIdToken();
       final userEmail = user.email?.trim();
-      Map<String, dynamic> body = {
-        'amount': calculateAmount(amount),
+      final body = {
+        'amount': int.parse(calculateAmount(amount)),
         'currency': currency,
-        'automatic_payment_methods[enabled]': 'true',
-        'metadata[userId]': userId,
-        'metadata[credits]': _pendingCredits.toString(),
-        'metadata[creditType]': isBuddy ? "2:1" : "1:1",
+        'userId': userId,
+        'credits': _pendingCredits,
+        'creditType': isBuddy ? "2:1" : "1:1",
+        if (userEmail != null && userEmail.isNotEmpty)
+          'receiptEmail': userEmail,
       };
-      if (userEmail != null && userEmail.isNotEmpty) {
-        body['receipt_email'] = userEmail;
-      }
 
-      var response = await http.post(
-        Uri.parse('https://api.stripe.com/v1/payment_intents'),
+      final response = await http.post(
+        Uri.parse(endpoint),
         headers: {
-          'Authorization': 'Bearer $secretKey',
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
         },
-        body: body,
+        body: jsonEncode(body),
       );
 
       print('Payment Intent Response: ${response.statusCode}');
@@ -829,7 +792,12 @@ class _CreditsPageState extends State<CreditsPage> {
         return errorBody;
       }
 
-      return jsonDecode(response.body);
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final nestedPaymentIntent = decoded['paymentIntent'];
+      if (nestedPaymentIntent is Map<String, dynamic>) {
+        return nestedPaymentIntent;
+      }
+      return decoded;
     } catch (err) {
       print('Error creating payment intent: ${err.toString()}');
       return null;
@@ -844,7 +812,7 @@ class _CreditsPageState extends State<CreditsPage> {
   String _friendlyPaymentError(Object error) {
     final message = error.toString().toLowerCase();
     if (message.contains('api key') ||
-        message.contains('secret_key') ||
+        message.contains('payment_intent_endpoint') ||
         message.contains('client secret')) {
       return 'Payment setup failed. Please contact Body Buddies.';
     }

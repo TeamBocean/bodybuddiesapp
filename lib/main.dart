@@ -12,21 +12,21 @@ void main() async {
     WidgetsFlutterBinding.ensureInitialized();
 
     await dotenv.load();
-    final publishableKey = "pk_live_51MubfEEgQfqRQxRaOcN3vULxR3iYBu8fuypsSi7MD84ZP0En6bwCgPxb7zggGBg6PiIOKZDNrXB0XrTxMpDw6X7q00GJ2evJgI";
-    if (publishableKey == null || publishableKey.isEmpty) {
+    final publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? "";
+    if (publishableKey.isEmpty) {
       throw Exception(
         'Missing STRIPE_PUBLISHABLE_KEY in .env. '
         'See README for setup instructions.',
       );
     }
-    
+
     // Initialize Stripe
     Stripe.publishableKey = publishableKey;
     await Stripe.instance.applySettings();
-    
+
     // Initialize Firebase
     await Firebase.initializeApp();
-    
+
     runApp(
       MultiProvider(
         providers: [

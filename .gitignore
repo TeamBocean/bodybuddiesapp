@@ -24,6 +24,10 @@ migrate_working_dir/
 # Environment files
 .env
 
+# Release signing secrets
+key.properties
+keystore.jks
+
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id

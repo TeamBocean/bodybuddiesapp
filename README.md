@@ -35,7 +35,7 @@ staying connected to their coach through curated content.
    ```
 3. **Configure environment variables**
    - Copy `env.example` to `.env`
-   - Fill in Stripe keys: `STRIPE_PUBLISHABLE_KEY` and `STRIPE_SECRET_KEY`
+   - Fill in Stripe settings: `STRIPE_PUBLISHABLE_KEY` and `PAYMENT_INTENT_ENDPOINT`
    - Fill in EmailJS values: `EMAILJS_SERVICE_ID`, `EMAILJS_USER_ID`, `EMAILJS_ACCESS_TOKEN`
 4. **Set up platform configs**
    - Place your `google-services.json` in `android/app/`

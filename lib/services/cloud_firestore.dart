@@ -426,18 +426,10 @@ class CloudFirestore {
         final userRef = reference.collection("users").doc(userID);
         final userDoc = await transaction.get(userRef);
 
-        if (!availabilityDoc.exists) {
-          // Create year document if it doesn't exist
-          transaction.set(availabilityRef, {
-            monthStr: {
-              dayStr: [booking.time]
-            }
-          });
-        } else {
+        if (availabilityDoc.exists) {
           // Check if slot is already booked
           final data = availabilityDoc.data() as Map<String, dynamic>;
-          final monthData = data[monthStr] as Map<String, dynamic>?;
-          final dayData = monthData?[dayStr] as List<dynamic>?;
+          final dayData = _bookedTimesFor(data, monthStr, dayStr);
 
           if (dayData != null) {
             // Check for conflicts (45-minute sessions block multiple slots)
@@ -452,12 +444,16 @@ class CloudFirestore {
               }
             }
           }
-
-          // Reserve the slot
-          transaction.update(availabilityRef, {
-            "$monthStr.$dayStr": FieldValue.arrayUnion([booking.time])
-          });
         }
+
+        // Reserve the slot in the canonical dotted key shape used by both apps.
+        transaction.set(
+          availabilityRef,
+          {
+            "$monthStr.$dayStr": FieldValue.arrayUnion([booking.time])
+          },
+          SetOptions(merge: true),
+        );
 
         // Create the booking in bookings-list
         final publicBookingRef = reference
@@ -473,8 +469,7 @@ class CloudFirestore {
         transaction.set(publicBookingRef, bookingData);
 
         // Add to user's bookings
-        final currentStamps =
-            _readInt(userDoc.data()?['reward_stamps']);
+        final currentStamps = _readInt(userDoc.data()?['reward_stamps']);
         final nextStamps = currentStamps + 1;
         final completedRewardCard = nextStamps >= 12;
 
@@ -496,6 +491,24 @@ class CloudFirestore {
   int _parseTimeToMinutes(String time) {
     final parts = time.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+
+  List<dynamic>? _bookedTimesFor(
+      Map<String, dynamic> data, String month, String day) {
+    final dottedTimes = data["$month.$day"];
+    if (dottedTimes is List) {
+      return dottedTimes;
+    }
+
+    final monthData = data[month];
+    if (monthData is Map) {
+      final nestedTimes = monthData[day];
+      if (nestedTimes is List) {
+        return nestedTimes;
+      }
+    }
+
+    return null;
   }
 
   int _readInt(dynamic value) {

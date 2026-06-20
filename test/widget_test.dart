@@ -1,31 +1,32 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:io';
 
-import 'package:bodybuddiesapp/pages/wrapper.dart';
-import 'package:flutter/material.dart';
+import 'package:bodybuddiesapp/models/bookings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:bodybuddiesapp/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const Wrapper());
+  test('release Android manifest declares internet permission', () {
+    final manifest =
+        File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(
+      manifest,
+      contains('android.permission.INTERNET'),
+      reason:
+          'Release builds need network access for Firebase, Stripe, and EmailJS.',
+    );
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  test('booking availability accepts dotted and legacy nested Firestore shapes',
+      () {
+    final bookings = Bookings.fromJson({
+      '6.20': ['09:00'],
+      '6': {
+        '20': ['09:15'],
+        '21': ['10:00'],
+      },
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(bookings.list['6']['20'], ['09:00', '09:15']);
+    expect(bookings.list['6']['21'], ['10:00']);
   });
 }
