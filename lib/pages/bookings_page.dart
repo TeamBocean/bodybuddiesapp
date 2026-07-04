@@ -34,7 +34,9 @@ class _BookingsPageState extends State<BookingsPage>
   final _currentDate = DateTime.now();
 
   Duration step = const Duration(minutes: 15);
-  List<Widget> slots = [];
+  // Raw availability for the current day. Widgets are built lazily in
+  // _buildSlotList so we can flag them once we know the user's own bookings.
+  final List<Booking> _slotData = [];
   int currentDayPage = 365;
   PageController pageController = PageController(initialPage: 365);
   Bookings? bookings;
@@ -73,22 +75,15 @@ class _BookingsPageState extends State<BookingsPage>
     super.dispose();
   }
 
-  Widget _buildBookingWidget(DateTime timeSlot) {
+  Booking _bookingFor(DateTime timeSlot) {
     var uuid = const Uuid();
-    return BookingWidget(
-      isBooked: false,
-      isAdmin: false,
-      slots: slots,
-      booking: Booking(
-        id: uuid.v1(),
-        bookingName: "",
-        trainer: selectedValue,
-        price: 1,
-        date: "${currentDay.day}/${currentDay.month}/${currentDay.year}",
-        time: _dateFormat.format(timeSlot),
-      ),
-      month: currentDay.month,
+    return Booking(
+      id: uuid.v1(),
+      bookingName: "",
       trainer: selectedValue,
+      price: 1,
+      date: "${currentDay.day}/${currentDay.month}/${currentDay.year}",
+      time: _dateFormat.format(timeSlot),
     );
   }
 
@@ -210,7 +205,7 @@ class _BookingsPageState extends State<BookingsPage>
                                   child: SingleChildScrollView(
                                     physics: const BouncingScrollPhysics(),
                                     child: Column(
-                                      children: slots.isEmpty
+                                      children: _slotData.isEmpty
                                           ? [_buildEmptyState()]
                                           : _buildSlotList(userSnapshot),
                                     ),
@@ -232,21 +227,30 @@ class _BookingsPageState extends State<BookingsPage>
     );
   }
 
-  /// Build the slot list with separators between each slot
+  /// Build the slot list, flagging every slot as unavailable (with a banner)
+  /// when the user already has a session booked on the selected day.
   List<Widget> _buildSlotList(AsyncSnapshot<UserModel> userSnapshot) {
-    List<Widget> items = [];
-    for (int i = 0; i < slots.length; i++) {
-      bool isBooked = userSnapshot.data?.bookings
-              .firstWhereOrNull((element) => element.isOnDate(currentDay)) !=
-          null;
+    final Booking? existing = userSnapshot.data?.bookings
+        .firstWhereOrNull((element) => element.isOnDate(currentDay));
+    final bool dayAlreadyBooked = existing != null;
 
+    List<Widget> items = [];
+    if (dayAlreadyBooked) {
+      items.add(_buildAlreadyBookedBanner(existing));
+    }
+
+    for (final booking in _slotData) {
       items.add(
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
-          child: AbsorbPointer(
-            key: ValueKey<bool>(isBooked),
-            absorbing: isBooked,
-            child: slots[i],
+          child: BookingWidget(
+            key: ValueKey('${booking.time}-$dayAlreadyBooked'),
+            isBooked: false,
+            trainer: selectedValue,
+            isAdmin: false,
+            booking: booking,
+            month: currentDay.month,
+            disabledReason: dayAlreadyBooked ? "Booked today" : null,
           ),
         ),
       );
@@ -254,15 +258,42 @@ class _BookingsPageState extends State<BookingsPage>
     return items;
   }
 
+  Widget _buildAlreadyBookedBanner(Booking existing) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: bbAccent.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: bbAccent.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle_outline, color: bbAccent, size: 18),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              "You're booked today at ${existing.time}. "
+              "Other slots are unavailable.",
+              style: GoogleFonts.inter(
+                fontSize: 12.5,
+                color: bbTextSecondary,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Build available slots based on current booking data
   void _buildAvailableSlots() {
-    slots.clear();
+    _slotData.clear();
     DateTime startTime = _getSessionsStartTime();
     DateTime endTime = _getSessionsEndTime();
 
     if (isCurrentDayNotWeekend()) {
-      DateFormat df = DateFormat('HH:mm');
-
       while (startTime.isBefore(endTime)) {
         DateTime timeIncrement = startTime.add(step);
         if (!_shouldShowSlot(timeIncrement)) {
@@ -270,26 +301,8 @@ class _BookingsPageState extends State<BookingsPage>
           continue;
         }
 
-        final bookingDate =
-            "${currentDay.day}/${currentDay.month}/${currentDay.year}";
-
-        if (!_isTimeSlotConflicting(df.format(timeIncrement))) {
-          var uuid = const Uuid();
-          slots.add(BookingWidget(
-            isBooked: false,
-            trainer: selectedValue,
-            isAdmin: false,
-            slots: slots,
-            booking: Booking(
-              id: uuid.v1(),
-              bookingName: "",
-              trainer: selectedValue,
-              price: 1,
-              date: bookingDate,
-              time: df.format(timeIncrement),
-            ),
-            month: currentDay.month,
-          ));
+        if (!_isTimeSlotConflicting(_dateFormat.format(timeIncrement))) {
+          _slotData.add(_bookingFor(timeIncrement));
         }
 
         startTime = timeIncrement;
@@ -298,7 +311,7 @@ class _BookingsPageState extends State<BookingsPage>
       while (startTime.isBefore(endTime)) {
         DateTime timeSlot = startTime.add(const Duration(minutes: 15));
         if (_shouldShowSlot(timeSlot) && _isSlotAvailable(timeSlot)) {
-          slots.add(_buildBookingWidget(timeSlot));
+          _slotData.add(_bookingFor(timeSlot));
         }
         startTime = timeSlot;
       }
@@ -390,34 +403,52 @@ class _BookingsPageState extends State<BookingsPage>
                     .map((item) => item['name'].toString())
                     .toList();
                 pts.add("Mark");
-                return StatefulBuilder(
-                  builder: (BuildContext context, StateSetter setState) {
-                    return DropdownButton<String>(
-                      value: selectedValue,
-                      icon: const Icon(Icons.keyboard_arrow_down,
-                          color: bbTextMuted, size: 14),
-                      dropdownColor: bbSurface,
-                      style: GoogleFonts.inter(
-                        color: bbTextSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      underline: const SizedBox(),
-                      isDense: true,
-                      onChanged: (String? newValue) {
-                        HapticFeedback.lightImpact();
-                        setState(() {
-                          selectedValue = newValue!;
-                        });
-                      },
-                      items: pts.map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value, style: GoogleFonts.inter()),
-                        );
-                      }).toList(),
-                    );
-                  },
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: bbCard,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: bbBorder, width: 1),
+                  ),
+                  child: StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setState) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.person_outline,
+                              size: 14, color: bbTextSecondary),
+                          const SizedBox(width: 6),
+                          DropdownButton<String>(
+                            value: selectedValue,
+                            icon: const Icon(Icons.keyboard_arrow_down,
+                                color: bbTextSecondary, size: 16),
+                            dropdownColor: bbSurface,
+                            style: GoogleFonts.inter(
+                              color: bbText,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            underline: const SizedBox(),
+                            isDense: true,
+                            onChanged: (String? newValue) {
+                              HapticFeedback.lightImpact();
+                              setState(() {
+                                selectedValue = newValue!;
+                              });
+                            },
+                            items: pts
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value, style: GoogleFonts.inter()),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 );
               } else {
                 return const SizedBox();
@@ -425,15 +456,37 @@ class _BookingsPageState extends State<BookingsPage>
             },
           ),
           const Spacer(),
-          // Calendar — just text, no box
-          GestureDetector(
-            onTap: _showCalendarDialog,
-            child: Text(
-              "${months[currentDay.month - 1]} ${currentDay.year}",
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: bbTextSecondary,
-                fontWeight: FontWeight.w400,
+          // Calendar — month/year chip
+          Semantics(
+            button: true,
+            label: "Change date",
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _showCalendarDialog,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: bbCard,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: bbBorder, width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.calendar_today_outlined,
+                        size: 13, color: bbTextSecondary),
+                    const SizedBox(width: 6),
+                    Text(
+                      "${months[currentDay.month - 1]} ${currentDay.year}",
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: bbText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

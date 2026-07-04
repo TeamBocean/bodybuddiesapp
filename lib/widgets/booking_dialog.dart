@@ -69,9 +69,11 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         return;
       }
 
+      // Use the selected booking's year (not "now") so bookings made near
+      // New Year are stored against the correct year.
       var uuid = const Uuid();
       final selectedDate = DateTime(
-        DateTime.now().year,
+        widget.booking.year,
         widget.month,
         widget.day,
       );
@@ -137,6 +139,13 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
     }
   }
 
+  void _openPlans() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreditsPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -151,20 +160,23 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Title
-            Text(
-              "Confirm your\nsession.",
-              style: GoogleFonts.inter(
-                fontSize: 26,
-                color: bbText,
-                fontWeight: FontWeight.w500,
-                height: 1.15,
+            Semantics(
+              header: true,
+              child: Text(
+                "Confirm your\nsession.",
+                style: GoogleFonts.inter(
+                  fontSize: 26,
+                  color: bbText,
+                  fontWeight: FontWeight.w500,
+                  height: 1.15,
+                ),
               ),
             ),
             const SizedBox(height: 24),
 
             // Details
             _buildDetailRow(
-                "Date", "${widget.day}/${widget.month}/${DateTime.now().year}"),
+                "Date", "${widget.day}/${widget.month}/${widget.booking.year}"),
             _buildDivider(),
             _buildDetailRow("Time", widget.booking.time),
             _buildDivider(),
@@ -179,79 +191,149 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
                   .streamUserData(FirebaseAuth.instance.currentUser!.uid),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  final hasCredits = snapshot.data!.credits > 0;
+                  final credits = snapshot.data!.credits;
+                  final hasCredits = credits > 0;
                   return Column(
                     children: [
-                      // Primary CTA
-                      SizedBox(
+                      // Current credit balance
+                      Container(
                         width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _isProcessing || !hasCredits
-                              ? null
-                              : () => _handleBooking(snapshot.data!),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: bbAccent,
-                            foregroundColor: bbOnAccent,
-                            disabledBackgroundColor: bbCard,
-                            disabledForegroundColor: bbTextMuted,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 11),
+                        decoration: BoxDecoration(
+                          color: bbCard,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Credit balance",
+                              style: GoogleFonts.inter(
+                                  fontSize: 13, color: bbTextSecondary),
                             ),
-                            elevation: 0,
-                          ),
-                          child: _isProcessing
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: bbOnAccent,
-                                  ),
-                                )
-                              : Text(
-                                  hasCredits
-                                      ? "Use 1 Credit"
-                                      : "No Credits Available",
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                            Text(
+                              "$credits ${credits == 1 ? 'credit' : 'credits'}",
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: hasCredits ? bbAccent : bbAccentAlt,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (hasCredits) ...[
+                        // Primary CTA — confirm the booking
+                        Semantics(
+                          button: true,
+                          label: "Confirm booking for 1 credit",
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: _isProcessing
+                                  ? null
+                                  : () => _handleBooking(snapshot.data!),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: bbAccent,
+                                foregroundColor: bbOnAccent,
+                                disabledBackgroundColor: bbCard,
+                                disabledForegroundColor: bbTextMuted,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Secondary CTA
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: OutlinedButton(
-                          onPressed: _isProcessing
-                              ? null
-                              : () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const CreditsPage(),
+                                elevation: 0,
+                              ),
+                              child: _isProcessing
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: bbOnAccent,
+                                      ),
+                                    )
+                                  : Text(
+                                      "Confirm booking · 1 credit",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  );
-                                },
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: bbBorder, width: 1),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: Text(
-                            "Browse Plans",
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: bbText,
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 12),
+                        // Secondary CTA — browse plans
+                        Semantics(
+                          button: true,
+                          label: "Browse credit plans",
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton(
+                              onPressed: _isProcessing ? null : _openPlans,
+                              style: OutlinedButton.styleFrom(
+                                side:
+                                    const BorderSide(color: bbBorder, width: 1),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: Text(
+                                "Browse Plans",
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: bbText,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        // Out of credits — Browse Plans becomes the primary CTA
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            "You're out of credits. Grab a plan to book this session.",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: bbTextSecondary,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                        Semantics(
+                          button: true,
+                          label: "Browse credit plans",
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: _isProcessing ? null : _openPlans,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: bbAccent,
+                                foregroundColor: bbOnAccent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Text(
+                                "Browse Plans",
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   );
                 } else {
