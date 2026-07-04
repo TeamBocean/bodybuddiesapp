@@ -1,36 +1,38 @@
 import 'dart:ui';
 
-// ─── Editorial Atelier Design System ─────────────────────────────────────────
-// Bone / Warm Sand / Charcoal / Deep Eucalyptus
+// BodyBuddies Figma design system
+// Source: https://www.figma.com/design/OcwswyLIyFvouN8hwEAsCb/BodyBuddies
 
 // Core canvas
-const Color bbBackground = Color(0xFFF5F0EB);   // Bone / Warm Linen
-const Color bbSurface = Color(0xFFFFFFFF);       // Warm White
-const Color bbCard = Color(0xFFEDE8E2);          // Parchment
-const Color bbBorder = Color(0xFFD8D0C6);        // Sand Border
+const Color bbBackground = Color(0xFF0D0E11);
+const Color bbSurface = Color(0xFF161920);
+const Color bbCard = Color(0xFF1F222A);
+const Color bbBorder = Color(0xFF262B36);
 
-// Accent — Deep Eucalyptus (grounded, architectural, readable)
-const Color bbAccent = Color(0xFF4D6B5C);        // Deep Eucalyptus
-const Color bbAccentAlt = Color(0xFFB07858);     // Warm Clay (secondary)
+// Brand and interaction colors
+const Color bbAccent = Color(0xFFCCFF00);
+const Color bbAccentAlt = Color(0xFFD9C3B0);
+const Color bbOnAccent = Color(0xFF0D0E11);
 
-// Text hierarchy — boosted contrast for readability
-const Color bbText = Color(0xFF2C2C2C);          // Charcoal (never pure black)
-const Color bbTextSecondary = Color(0xFF6B6158); // Warm Umber (readable)
-const Color bbTextMuted = Color(0xFF958D83);     // Warm Stone (visible)
+// Text hierarchy
+const Color bbText = Color(0xFFF4F5F7);
+const Color bbTextSecondary = Color(0xFF98A2B3);
+const Color bbTextMuted = Color(0xFF98A2B3);
 
 // Semantic
-const Color bbRed = Color(0xFFB07858);           // Warm Clay (alerts)
-const Color bbSuccess = Color(0xFF4D6B5C);       // Deep Eucalyptus (confirmations)
+const Color bbRed = Color(0xFFEF4444);
+const Color bbWarning = Color(0xFF8B3424);
+const Color bbSuccess = Color(0xFF10B981);
 
-// ─── Legacy aliases (backwards compatibility) ────────────────────────────────
+// Legacy aliases (backwards compatibility)
 Color background = bbBackground;
-Color blackShade2 = const Color(0xFFF0EBE5);
+Color blackShade2 = bbSurface;
 Color green = bbAccent;
-Color lightGreen = const Color(0xFF6B8B7A);
+Color lightGreen = bbAccentAlt;
 Color darkGreen = bbAccent;
 Color darkGrey = bbCard;
 
-// ─── Deprecated tokens (mapped to new system) ───────────────────────────────
+// Deprecated tokens (mapped to the Figma system)
 const Color bbBlack = bbBackground;
 const Color bbGrey = bbTextMuted;
 const Color bbLightGrey = bbTextSecondary;

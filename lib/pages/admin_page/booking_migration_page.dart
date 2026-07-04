@@ -14,7 +14,7 @@ class BookingMigrationPage extends StatefulWidget {
 
 class _BookingMigrationPageState extends State<BookingMigrationPage> {
   final BookingMigrationService _migrationService = BookingMigrationService();
-  
+
   bool _isRunning = false;
   MigrationResult? _lastResult;
   String _status = 'Ready to run migration';
@@ -85,7 +85,9 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
       final result = await _migrationService.migrate();
       setState(() {
         _lastResult = result;
-        _status = result.success ? 'Migration complete!' : 'Migration completed with errors';
+        _status = result.success
+            ? 'Migration complete!'
+            : 'Migration completed with errors';
       });
     } catch (e) {
       setState(() {
@@ -124,7 +126,8 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.info, color: Colors.blue, size: Dimensions.iconSize20),
+                      Icon(Icons.info,
+                          color: Colors.blue, size: Dimensions.iconSize20),
                       SizedBox(width: Dimensions.width10),
                       MediumTextWidget(
                         text: 'About This Migration',
@@ -145,9 +148,9 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
                 ],
               ),
             ),
-            
+
             SizedBox(height: Dimensions.height20),
-            
+
             // Status Card
             Container(
               width: double.infinity,
@@ -197,9 +200,9 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
                 ],
               ),
             ),
-            
+
             SizedBox(height: Dimensions.height20),
-            
+
             // Results Card (if available)
             if (_lastResult != null) ...[
               Container(
@@ -215,7 +218,9 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
                     Row(
                       children: [
                         MediumTextWidget(
-                          text: _lastResult!.dryRun ? 'Dry Run Results' : 'Migration Results',
+                          text: _lastResult!.dryRun
+                              ? 'Dry Run Results'
+                              : 'Migration Results',
                           fontSize: Dimensions.fontSize16,
                         ),
                         if (_lastResult!.dryRun) ...[
@@ -242,9 +247,12 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
                       ],
                     ),
                     SizedBox(height: Dimensions.height15),
-                    _buildResultRow('Users Processed', _lastResult!.usersProcessed.toString()),
-                    _buildResultRow('Bookings Needing Update', _lastResult!.bookingsUpdated.toString()),
-                    _buildResultRow('Already Migrated', _lastResult!.bookingsAlreadyMigrated.toString()),
+                    _buildResultRow('Users Processed',
+                        _lastResult!.usersProcessed.toString()),
+                    _buildResultRow('Bookings Needing Update',
+                        _lastResult!.bookingsUpdated.toString()),
+                    _buildResultRow('Already Migrated',
+                        _lastResult!.bookingsAlreadyMigrated.toString()),
                     _buildResultRow(
                       'Errors',
                       _lastResult!.errors.length.toString(),
@@ -277,9 +285,9 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
               ),
               SizedBox(height: Dimensions.height20),
             ],
-            
+
             const Spacer(),
-            
+
             // Action Buttons
             Row(
               children: [
@@ -288,7 +296,8 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
                     onPressed: _isRunning ? null : _runDryRun,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: darkGrey,
-                      padding: EdgeInsets.symmetric(vertical: Dimensions.height15),
+                      padding:
+                          EdgeInsets.symmetric(vertical: Dimensions.height15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(color: darkGreen),
@@ -307,7 +316,9 @@ class _BookingMigrationPageState extends State<BookingMigrationPage> {
                     onPressed: _isRunning ? null : _runMigration,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: darkGreen,
-                      padding: EdgeInsets.symmetric(vertical: Dimensions.height15),
+                      foregroundColor: bbOnAccent,
+                      padding:
+                          EdgeInsets.symmetric(vertical: Dimensions.height15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

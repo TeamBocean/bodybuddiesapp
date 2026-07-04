@@ -32,7 +32,7 @@ class NoBookingsWidget extends StatelessWidget {
           Text(
             message.toUpperCase(),
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 12,
               color: bbTextMuted,
               fontWeight: FontWeight.w400,
@@ -64,7 +64,7 @@ class NoBookingsWidget extends StatelessWidget {
                       onTap: onViewTomorrow,
                       child: Text(
                         "V I E W  T O M O R R O W",
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.inter(
                           fontSize: 10,
                           color: bbTextSecondary,
                           fontWeight: FontWeight.w500,
@@ -91,7 +91,7 @@ class NoBookingsWidget extends StatelessWidget {
                       onTap: onExploreSchedule,
                       child: Text(
                         "V I E W  S C H E D U L E",
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.inter(
                           fontSize: 10,
                           color: bbTextSecondary,
                           fontWeight: FontWeight.w500,
@@ -104,11 +104,13 @@ class NoBookingsWidget extends StatelessWidget {
                 ],
               ),
             ),
-          if (showSubHeading && onViewTomorrow == null && onExploreSchedule == null)
+          if (showSubHeading &&
+              onViewTomorrow == null &&
+              onExploreSchedule == null)
             Text(
               "V I E W  S C H E D U L E",
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: 10,
                 color: bbTextMuted,
                 fontWeight: FontWeight.w500,

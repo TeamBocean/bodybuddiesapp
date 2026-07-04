@@ -73,7 +73,7 @@ dependency_overrides:
   win32: 5.10.1
 
 flutter_native_splash:
-  color: "#F5F0EB"
+  color: "#0D0E11"
   image: assets/logo.png
   android: true
   ios: true

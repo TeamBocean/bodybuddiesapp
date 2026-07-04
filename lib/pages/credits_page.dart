@@ -32,7 +32,7 @@ class _CreditsPageState extends State<CreditsPage> {
       appBar: AppBar(
         title: Text(
           'Training Credits',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.inter(
             fontSize: 22,
             fontWeight: FontWeight.w500,
             color: bbText,
@@ -67,7 +67,7 @@ class _CreditsPageState extends State<CreditsPage> {
                   // ─── Subtitle ──────────────────────────────────────────
                   Text(
                     "INVEST IN YOURSELF.",
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.inter(
                       fontSize: 11,
                       color: bbTextSecondary,
                       fontWeight: FontWeight.w500,
@@ -77,7 +77,7 @@ class _CreditsPageState extends State<CreditsPage> {
                   const SizedBox(height: 6),
                   Text(
                     "Choose your plan.",
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.inter(
                       fontSize: 14,
                       color: bbTextSecondary,
                       height: 1.5,
@@ -156,7 +156,7 @@ class _CreditsPageState extends State<CreditsPage> {
             children: [
               Text(
                 "REWARD CARD",
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 10,
                   color: bbTextSecondary,
                   fontWeight: FontWeight.w600,
@@ -165,7 +165,7 @@ class _CreditsPageState extends State<CreditsPage> {
               ),
               Text(
                 "$credits credits",
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 12,
                   color: bbTextMuted,
                 ),
@@ -209,7 +209,7 @@ class _CreditsPageState extends State<CreditsPage> {
                   ? "Your next booked session unlocks a free credit."
                   : "$stampsRemaining more stamps unlocks 1 free session.",
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: 12,
                 color: bbTextMuted,
                 height: 1.5,
@@ -269,7 +269,7 @@ class _CreditsPageState extends State<CreditsPage> {
         child: Center(
           child: Text(
             label,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
               color: isActive ? bbText : bbTextMuted,
@@ -333,10 +333,10 @@ class _CreditsPageState extends State<CreditsPage> {
                 ),
                 child: Text(
                   "MOST POPULAR",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: bbOnAccent,
                     letterSpacing: 1,
                   ),
                 ),
@@ -352,7 +352,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     children: [
                       Text(
                         label,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.inter(
                           fontSize: 24,
                           fontWeight: FontWeight.w500,
                           color: bbText,
@@ -361,7 +361,7 @@ class _CreditsPageState extends State<CreditsPage> {
                       const SizedBox(height: 6),
                       Text(
                         description,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.inter(
                           fontSize: 13,
                           color: bbTextSecondary,
                           height: 1.4,
@@ -375,7 +375,7 @@ class _CreditsPageState extends State<CreditsPage> {
                   children: [
                     Text(
                       "€${price.toStringAsFixed(0)}",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.inter(
                         fontSize: 28,
                         fontWeight: FontWeight.w600,
                         color: bbAccent,
@@ -384,7 +384,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     const SizedBox(height: 2),
                     Text(
                       "€${(price / credits).toStringAsFixed(0)} per session",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.inter(
                         fontSize: 11,
                         color: bbTextMuted,
                       ),
@@ -400,7 +400,7 @@ class _CreditsPageState extends State<CreditsPage> {
             Center(
               child: Text(
                 "Tap to view →",
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 12,
                   color: bbTextMuted,
                   letterSpacing: 0.3,
@@ -451,7 +451,7 @@ class _CreditsPageState extends State<CreditsPage> {
               // Sheet title
               Text(
                 "The Session Pack",
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 14,
                   color: bbTextMuted,
                   letterSpacing: 2,
@@ -462,7 +462,7 @@ class _CreditsPageState extends State<CreditsPage> {
               // Pack name
               Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 32,
                   color: bbText,
                   fontWeight: FontWeight.w500,
@@ -471,7 +471,7 @@ class _CreditsPageState extends State<CreditsPage> {
               const SizedBox(height: 8),
               Text(
                 description,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 14,
                   color: bbTextSecondary,
                 ),
@@ -506,7 +506,7 @@ class _CreditsPageState extends State<CreditsPage> {
                       const SizedBox(height: 8),
                       Text(
                         "+ ${credits - 12} more stamps",
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.inter(
                           fontSize: 11,
                           color: bbTextMuted,
                         ),
@@ -515,7 +515,7 @@ class _CreditsPageState extends State<CreditsPage> {
                     const SizedBox(height: 16),
                     Text(
                       "$credits sessions · ${isBuddy ? '2:1' : '1:1'}",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.inter(
                         fontSize: 13,
                         color: bbTextSecondary,
                       ),
@@ -528,7 +528,7 @@ class _CreditsPageState extends State<CreditsPage> {
               // Price
               Text(
                 "€${price.toStringAsFixed(0)}",
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 40,
                   color: bbAccent,
                   fontWeight: FontWeight.w600,
@@ -537,7 +537,7 @@ class _CreditsPageState extends State<CreditsPage> {
               const SizedBox(height: 4),
               Text(
                 "€${(price / credits).toStringAsFixed(0)} per session",
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 13,
                   color: bbTextMuted,
                 ),
@@ -557,7 +557,7 @@ class _CreditsPageState extends State<CreditsPage> {
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: bbAccent,
-                    foregroundColor: Colors.white,
+                    foregroundColor: bbOnAccent,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -569,12 +569,12 @@ class _CreditsPageState extends State<CreditsPage> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: bbOnAccent,
                           ),
                         )
                       : Text(
                           "Purchase Pack",
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -637,8 +637,7 @@ class _CreditsPageState extends State<CreditsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_friendlyPaymentError(e),
-                style: GoogleFonts.plusJakartaSans()),
+            content: Text(_friendlyPaymentError(e), style: GoogleFonts.inter()),
             backgroundColor: bbRed,
           ),
         );
@@ -695,7 +694,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 Text(
                   "Welcome to your\nnext chapter.",
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.inter(
                     fontSize: 22,
                     color: bbText,
                     fontWeight: FontWeight.w500,
@@ -705,7 +704,7 @@ class _CreditsPageState extends State<CreditsPage> {
                 const SizedBox(height: 10),
                 Text(
                   "$credits sessions are being\nadded to your credits.",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.inter(
                     color: bbTextSecondary,
                     fontSize: 14,
                   ),
@@ -719,7 +718,7 @@ class _CreditsPageState extends State<CreditsPage> {
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     "Continue",
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.inter(
                       color: bbAccent,
                       fontWeight: FontWeight.w600,
                     ),
@@ -735,8 +734,7 @@ class _CreditsPageState extends State<CreditsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text("Payment cancelled", style: GoogleFonts.plusJakartaSans()),
+            content: Text("Payment cancelled", style: GoogleFonts.inter()),
             backgroundColor: bbCard,
           ),
         );
@@ -746,8 +744,7 @@ class _CreditsPageState extends State<CreditsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_friendlyPaymentError(e),
-                style: GoogleFonts.plusJakartaSans()),
+            content: Text(_friendlyPaymentError(e), style: GoogleFonts.inter()),
             backgroundColor: bbRed,
           ),
         );

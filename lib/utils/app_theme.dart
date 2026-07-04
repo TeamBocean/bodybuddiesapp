@@ -1,215 +1,337 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'colors.dart';
 
 class AppTheme {
-  // ─── Editorial Atelier Theme ──────────────────────────────────────────────
-  // Bone canvas · Playfair Display serif · Plus Jakarta Sans geometric sans
-  static ThemeData get darkTheme {
+  static ThemeData get darkTheme => _buildFigmaTheme();
+
+  // The current Figma system is dark-only, so light mode intentionally resolves
+  // to the same token set until a light companion system exists in Figma.
+  static ThemeData get lightTheme => _buildFigmaTheme();
+
+  static ThemeData _buildFigmaTheme() {
+    const colorScheme = ColorScheme.dark(
+      primary: bbAccent,
+      secondary: bbAccentAlt,
+      surface: bbSurface,
+      onPrimary: bbOnAccent,
+      onSecondary: bbBackground,
+      onSurface: bbText,
+      outline: bbBorder,
+      error: bbRed,
+      onError: Colors.white,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: Brightness.dark,
+      fontFamily: GoogleFonts.inter().fontFamily,
       scaffoldBackgroundColor: bbBackground,
-      colorScheme: const ColorScheme.light(
-        primary: bbAccent,
-        secondary: bbAccentAlt,
-        surface: bbSurface,
-        background: bbBackground,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: bbText,
-        onBackground: bbText,
-        outline: bbBorder,
-        error: bbRed,
-        onError: Colors.white,
-      ),
-
-      // ─── Typography ─────────────────────────────────────────────────────
-      textTheme: TextTheme(
-        // Display – Playfair Display (editorial serif headlines)
-        displayLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 56, color: bbText, height: 1.05, fontWeight: FontWeight.w400,
+      canvasColor: bbBackground,
+      cardColor: bbCard,
+      colorScheme: colorScheme,
+      textTheme: _buildTextTheme(),
+      appBarTheme: AppBarTheme(
+        backgroundColor: bbBackground,
+        foregroundColor: bbText,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        iconTheme: const IconThemeData(color: bbText, size: 22),
+        titleTextStyle: GoogleFonts.inter(
+          color: bbText,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0,
         ),
-        displayMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 44, color: bbText, height: 1.08, fontWeight: FontWeight.w400,
-        ),
-        displaySmall: GoogleFonts.plusJakartaSans(
-          fontSize: 36, color: bbText, height: 1.1, fontWeight: FontWeight.w400,
-        ),
-        // Headlines – Playfair Display
-        headlineLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 32, color: bbText, height: 1.1, fontWeight: FontWeight.w500,
-        ),
-        headlineMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 26, color: bbText, height: 1.15, fontWeight: FontWeight.w500,
-        ),
-        headlineSmall: GoogleFonts.plusJakartaSans(
-          fontSize: 20, color: bbText, height: 1.2, fontWeight: FontWeight.w500,
-        ),
-        // Titles – Plus Jakarta Sans (geometric, wide-spaced)
-        titleLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 20, fontWeight: FontWeight.w600, color: bbText, letterSpacing: 0.2,
-        ),
-        titleMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 16, fontWeight: FontWeight.w600, color: bbText, letterSpacing: 0.15,
-        ),
-        titleSmall: GoogleFonts.plusJakartaSans(
-          fontSize: 14, fontWeight: FontWeight.w500, color: bbTextSecondary, letterSpacing: 0.1,
-        ),
-        // Body – Plus Jakarta Sans (clean, readable)
-        bodyLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 16, color: bbText, height: 1.5,
-        ),
-        bodyMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 14, color: bbTextSecondary, height: 1.5,
-        ),
-        bodySmall: GoogleFonts.plusJakartaSans(
-          fontSize: 12, color: bbTextMuted, height: 1.4,
-        ),
-        // Labels
-        labelLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 14, fontWeight: FontWeight.w600, color: bbText, letterSpacing: 0.5,
-        ),
-        labelMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 12, fontWeight: FontWeight.w500, color: bbTextSecondary, letterSpacing: 0.4,
-        ),
-        labelSmall: GoogleFonts.plusJakartaSans(
-          fontSize: 10, color: bbTextMuted, letterSpacing: 1.2, fontWeight: FontWeight.w500,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarBrightness: Brightness.dark,
+          statusBarIconBrightness: Brightness.light,
+          statusBarColor: Colors.transparent,
         ),
       ),
-
-      // ─── Cards ──────────────────────────────────────────────────────────
       cardTheme: CardTheme(
-        color: bbSurface,
+        color: bbCard,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: bbBorder, width: 0.5),
+          side: const BorderSide(color: bbBorder, width: 1),
         ),
       ),
-
-      // ─── AppBar ─────────────────────────────────────────────────────────
-      appBarTheme: AppBarTheme(
-        backgroundColor: bbBackground,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        iconTheme: const IconThemeData(color: bbText),
-        titleTextStyle: GoogleFonts.plusJakartaSans(
-          color: bbText,
-          fontSize: 20,
-          fontWeight: FontWeight.w500,
-        ),
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarBrightness: Brightness.light,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarColor: Colors.transparent,
-        ),
-      ),
-
-      // ─── Buttons ────────────────────────────────────────────────────────
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: bbAccent,
-          foregroundColor: Colors.white,
+          foregroundColor: bbOnAccent,
+          disabledBackgroundColor: bbCard,
+          disabledForegroundColor: bbTextMuted,
           elevation: 0,
           shadowColor: Colors.transparent,
+          minimumSize: const Size(0, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: GoogleFonts.inter(
             fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0,
           ),
         ),
       ),
-
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: bbText,
           side: const BorderSide(color: bbBorder, width: 1),
+          minimumSize: const Size(0, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          textStyle: GoogleFonts.plusJakartaSans(
+          textStyle: GoogleFonts.inter(
             fontSize: 14,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.3,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0,
           ),
         ),
       ),
-
-      // ─── Bottom Nav ─────────────────────────────────────────────────────
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: bbAccent,
+          textStyle: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0,
+          ),
+        ),
+      ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: bbBackground,
+        backgroundColor: bbSurface,
         selectedItemColor: bbAccent,
         unselectedItemColor: bbTextMuted,
         elevation: 0,
         showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
       ),
-
-      // ─── Input Fields ───────────────────────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: bbSurface,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: bbBorder, width: 0.5),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: bbBorder, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: bbBorder, width: 0.5),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: bbBorder, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: bbAccent, width: 1.5),
         ),
-        hintStyle: GoogleFonts.plusJakartaSans(color: bbTextMuted, fontSize: 14),
-        labelStyle: GoogleFonts.plusJakartaSans(color: bbTextSecondary, fontSize: 14),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: bbRed, width: 1),
+        ),
+        hintStyle: GoogleFonts.inter(
+          color: bbTextMuted,
+          fontSize: 14,
+          letterSpacing: 0,
+        ),
+        labelStyle: GoogleFonts.inter(
+          color: bbTextSecondary,
+          fontSize: 14,
+          letterSpacing: 0,
+        ),
       ),
-
-      // ─── Dialog ─────────────────────────────────────────────────────────
+      tabBarTheme: TabBarTheme(
+        labelColor: bbOnAccent,
+        unselectedLabelColor: bbTextSecondary,
+        indicator: BoxDecoration(
+          color: bbAccent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        labelStyle: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0,
+        ),
+        unselectedLabelStyle: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: bbSurface,
+        disabledColor: bbCard,
+        selectedColor: bbAccent,
+        secondarySelectedColor: bbAccent,
+        labelStyle: GoogleFonts.inter(
+          color: bbTextSecondary,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0,
+        ),
+        secondaryLabelStyle: GoogleFonts.inter(
+          color: bbOnAccent,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0,
+        ),
+        side: const BorderSide(color: bbBorder, width: 1),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
       dialogTheme: DialogTheme(
         backgroundColor: bbSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        titleTextStyle: GoogleFonts.plusJakartaSans(
-          fontSize: 22, color: bbText, fontWeight: FontWeight.w500,
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 22,
+          color: bbText,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0,
         ),
-        contentTextStyle: GoogleFonts.plusJakartaSans(
-          fontSize: 14, color: bbTextSecondary, height: 1.5,
+        contentTextStyle: GoogleFonts.inter(
+          fontSize: 14,
+          color: bbTextSecondary,
+          height: 1.45,
+          letterSpacing: 0,
         ),
       ),
-
-      // ─── Misc ───────────────────────────────────────────────────────────
       dividerTheme: const DividerThemeData(
         color: bbBorder,
-        thickness: 0.5,
+        thickness: 1,
         space: 1,
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: bbCard,
-        contentTextStyle: GoogleFonts.plusJakartaSans(color: bbText, fontSize: 14),
+        contentTextStyle: GoogleFonts.inter(
+          color: bbText,
+          fontSize: 14,
+          letterSpacing: 0,
+        ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         behavior: SnackBarBehavior.floating,
         actionTextColor: bbAccent,
       ),
-      iconTheme: const IconThemeData(color: bbTextSecondary),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: bbAccent,
+      iconTheme: const IconThemeData(color: bbTextSecondary, size: 22),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(color: bbAccent),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? bbOnAccent : bbTextMuted,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? bbAccent : bbCard,
+        ),
       ),
     );
   }
 
-  // ─── Light Theme (alias to editorial theme) ───────────────────────────────
-  static ThemeData get lightTheme {
-    return darkTheme; // The editorial theme IS light — unified
+  static TextTheme _buildTextTheme() {
+    return TextTheme(
+      displayLarge: GoogleFonts.inter(
+        fontSize: 48,
+        color: bbText,
+        height: 1.08,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
+      ),
+      displayMedium: GoogleFonts.inter(
+        fontSize: 30,
+        color: bbText,
+        height: 1.12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
+      ),
+      displaySmall: GoogleFonts.inter(
+        fontSize: 24,
+        color: bbText,
+        height: 1.16,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
+      ),
+      headlineLarge: GoogleFonts.inter(
+        fontSize: 24,
+        color: bbText,
+        height: 1.16,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
+      ),
+      headlineMedium: GoogleFonts.inter(
+        fontSize: 18,
+        color: bbText,
+        height: 1.22,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
+      ),
+      headlineSmall: GoogleFonts.inter(
+        fontSize: 16,
+        color: bbText,
+        height: 1.24,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
+      ),
+      titleLarge: GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: bbText,
+        letterSpacing: 0,
+      ),
+      titleMedium: GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: bbText,
+        letterSpacing: 0,
+      ),
+      titleSmall: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: bbAccentAlt,
+        letterSpacing: 0,
+      ),
+      bodyLarge: GoogleFonts.inter(
+        fontSize: 14,
+        color: bbText,
+        height: 1.45,
+        letterSpacing: 0,
+      ),
+      bodyMedium: GoogleFonts.inter(
+        fontSize: 12,
+        color: bbTextSecondary,
+        height: 1.45,
+        letterSpacing: 0,
+      ),
+      bodySmall: GoogleFonts.inter(
+        fontSize: 10,
+        color: bbTextMuted,
+        height: 1.35,
+        letterSpacing: 0,
+      ),
+      labelLarge: GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: bbText,
+        letterSpacing: 0,
+      ),
+      labelMedium: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: bbAccentAlt,
+        letterSpacing: 0,
+      ),
+      labelSmall: GoogleFonts.inter(
+        fontSize: 10,
+        color: bbTextSecondary,
+        letterSpacing: 0,
+        fontWeight: FontWeight.w400,
+      ),
+    );
   }
 }

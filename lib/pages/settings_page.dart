@@ -42,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 // ── Header ──────────────────────────────────────────────
                 Text(
                   "SETTINGS",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.inter(
                     fontSize: 11,
                     color: bbTextMuted,
                     fontWeight: FontWeight.w500,
@@ -58,17 +58,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       CircleAvatar(
                         radius: 36,
                         backgroundColor: bbCard,
-                        backgroundImage:
-                            FirebaseAuth.instance.currentUser?.photoURL != null
-                                ? NetworkImage(FirebaseAuth
-                                    .instance.currentUser!.photoURL!)
-                                : null,
+                        backgroundImage: FirebaseAuth
+                                    .instance.currentUser?.photoURL !=
+                                null
+                            ? NetworkImage(
+                                FirebaseAuth.instance.currentUser!.photoURL!)
+                            : null,
                         child:
                             FirebaseAuth.instance.currentUser?.photoURL == null
                                 ? StreamBuilder<UserModel>(
                                     stream: CloudFirestore().streamUserData(
-                                        FirebaseAuth
-                                            .instance.currentUser!.uid),
+                                        FirebaseAuth.instance.currentUser!.uid),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData &&
                                           snapshot.data!.name.isNotEmpty) {
@@ -76,7 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                           snapshot.data!.name
                                               .substring(0, 1)
                                               .toUpperCase(),
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: GoogleFonts.inter(
                                             fontSize: 24,
                                             color: bbTextSecondary,
                                             fontWeight: FontWeight.w300,
@@ -103,7 +103,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 snapshot.hasData
                                     ? snapshot.data!.name
                                     : "Loading",
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.inter(
                                   fontSize: 16,
                                   color: bbText,
                                   fontWeight: FontWeight.w500,
@@ -112,7 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               const SizedBox(height: 4),
                               Text(
                                 FirebaseAuth.instance.currentUser!.email ?? "",
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.inter(
                                   fontSize: 12,
                                   color: bbTextSecondary,
                                   fontWeight: FontWeight.w400,
@@ -129,14 +129,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
                 // ── Info Row — floating text ────────────────────────────
                 StreamBuilder<UserModel>(
-                  stream: CloudFirestore().streamUserData(
-                      FirebaseAuth.instance.currentUser!.uid),
+                  stream: CloudFirestore()
+                      .streamUserData(FirebaseAuth.instance.currentUser!.uid),
                   builder: (context, snapshot) {
                     final credits =
                         snapshot.hasData ? snapshot.data!.credits : 0;
-                    final creditType = snapshot.hasData
-                        ? snapshot.data!.creditType
-                        : "...";
+                    final creditType =
+                        snapshot.hasData ? snapshot.data!.creditType : "...";
                     return Row(
                       children: [
                         GestureDetector(
@@ -153,7 +152,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             children: [
                               Text(
                                 credits.toString(),
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.inter(
                                   fontSize: 24,
                                   color: bbText,
                                   fontWeight: FontWeight.w300,
@@ -163,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               const SizedBox(width: 5),
                               Text(
                                 "CREDITS",
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.inter(
                                   fontSize: 9,
                                   color: bbTextMuted,
                                   letterSpacing: 1.5,
@@ -180,7 +179,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Text(
                               creditType.toString().toUpperCase(),
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.inter(
                                 fontSize: 10,
                                 color: bbTextSecondary,
                                 letterSpacing: 1.5,
@@ -212,10 +211,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   "Purchase new credits",
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const CreditsPage()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const CreditsPage()));
                   },
                 ),
                 _settingsRow(
@@ -264,7 +261,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           title: Text(
                             "LOG OUT",
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 12,
                               color: bbText,
                               fontWeight: FontWeight.w600,
@@ -273,7 +270,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           content: Text(
                             "Are you sure you want to log out?",
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 14,
                               color: bbTextSecondary,
                             ),
@@ -283,7 +280,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               onPressed: () => Navigator.pop(context),
                               child: Text(
                                 "CANCEL",
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.inter(
                                   fontSize: 11,
                                   color: bbTextMuted,
                                   letterSpacing: 1.5,
@@ -298,7 +295,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               },
                               child: Text(
                                 "LOG OUT",
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.inter(
                                   fontSize: 11,
                                   color: bbAccentAlt,
                                   letterSpacing: 1.5,
@@ -312,7 +309,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                     child: Text(
                       "LOG OUT",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.inter(
                         fontSize: 11,
                         color: bbAccentAlt,
                         fontWeight: FontWeight.w500,
@@ -340,7 +337,7 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.inter(
             fontSize: 10,
             color: bbTextMuted,
             fontWeight: FontWeight.w500,
@@ -375,7 +372,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.inter(
                       fontSize: 15,
                       color: bbText,
                       fontWeight: FontWeight.w400,
@@ -384,7 +381,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.inter(
                       fontSize: 12,
                       color: bbTextSecondary,
                       fontWeight: FontWeight.w400,

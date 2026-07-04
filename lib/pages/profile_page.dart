@@ -39,12 +39,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
   TextStyle _dialogFieldTextStyle(BuildContext context) =>
       Theme.of(context).textTheme.bodyLarge?.copyWith(
-        color: Theme.of(context).colorScheme.onSurface,
-      ) ??
+            color: Theme.of(context).colorScheme.onSurface,
+          ) ??
       const TextStyle(color: bbText);
 
   TextStyle _dialogSecondaryTextStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodyMedium?.copyWith(color: bbTextSecondary) ??
+      Theme.of(context)
+          .textTheme
+          .bodyMedium
+          ?.copyWith(color: bbTextSecondary) ??
       const TextStyle(color: bbTextSecondary);
 
   @override
@@ -108,21 +111,26 @@ class _ProfilePageState extends State<ProfilePage> {
                           CircleAvatar(
                             radius: Dimensions.width20 * 2,
                             backgroundColor: darkGreen,
-                            backgroundImage: FirebaseAuth.instance.currentUser!.photoURL != null
-                                ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
-                                : null,
-                            child: FirebaseAuth.instance.currentUser!.photoURL == null
-                                ? Text(
-                                    userData.name.isNotEmpty
-                                        ? userData.name[0].toUpperCase()
-                                        : "?",
-                                    style: TextStyle(
-                                      fontSize: Dimensions.fontSize22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : null,
+                            backgroundImage:
+                                FirebaseAuth.instance.currentUser!.photoURL !=
+                                        null
+                                    ? NetworkImage(FirebaseAuth
+                                        .instance.currentUser!.photoURL!)
+                                    : null,
+                            child:
+                                FirebaseAuth.instance.currentUser!.photoURL ==
+                                        null
+                                    ? Text(
+                                        userData.name.isNotEmpty
+                                            ? userData.name[0].toUpperCase()
+                                            : "?",
+                                        style: TextStyle(
+                                          fontSize: Dimensions.fontSize22,
+                                          fontWeight: FontWeight.bold,
+                                          color: bbOnAccent,
+                                        ),
+                                      )
+                                    : null,
                           ),
                           SizedBox(height: Dimensions.height20),
 
@@ -131,8 +139,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           settingsOption(
                             userData.name,
                             Icons.person,
-                            onTap: () =>
-                                _showEditNameDialog(userData.name),
+                            onTap: () => _showEditNameDialog(userData.name),
                             showEdit: true,
                           ),
                           settingsOption(
@@ -143,8 +150,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           settingsOption(
                             _formatWeight(userData.weight),
                             Icons.monitor_weight,
-                            onTap: () =>
-                                _showEditWeightDialog(userData.weight),
+                            onTap: () => _showEditWeightDialog(userData.weight),
                             showEdit: true,
                           ),
 
@@ -256,7 +262,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 Navigator.pop(context);
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: darkGreen),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: darkGreen,
+              foregroundColor: bbOnAccent,
+            ),
             child: Text("Save"),
           ),
         ],
@@ -319,7 +328,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 Navigator.pop(context);
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: darkGreen),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: darkGreen,
+              foregroundColor: bbOnAccent,
+            ),
             child: Text("Save"),
           ),
         ],

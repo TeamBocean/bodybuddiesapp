@@ -758,7 +758,7 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - PromisesObjC (2.4.0)
+  - PromisesObjC (2.4.1)
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -907,7 +907,7 @@ SPEC CHECKSUMS:
   Libuv-gRPC: 55e51798e14ef436ad9bc45d12d43b77b49df378
   nanopb: d4d75c12cd1316f4a64e3c6963f879ecd4b5e0d5
   path_provider_foundation: 9b2865ae0d177584c376882d93e61be1e80b9e39
-  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   shared_preferences_foundation: 84ce365ee5ce19a94de8ece53db7142d35141a5b
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
   Stripe: 7393b16fe555d4a68e6555044e7b57eff11ae547

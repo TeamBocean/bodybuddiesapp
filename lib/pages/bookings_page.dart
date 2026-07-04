@@ -168,7 +168,8 @@ class _BookingsPageState extends State<BookingsPage>
                   stream: CloudFirestore()
                       .streamUserData(FirebaseAuth.instance.currentUser!.uid),
                   builder: (context, userSnapshot) {
-                    if (!bookingsSnapshot.hasData && !dayBookingsSnapshot.hasData) {
+                    if (!bookingsSnapshot.hasData &&
+                        !dayBookingsSnapshot.hasData) {
                       return const Center(
                         child: CircularProgressIndicator(color: bbAccent),
                       );
@@ -236,8 +237,7 @@ class _BookingsPageState extends State<BookingsPage>
     List<Widget> items = [];
     for (int i = 0; i < slots.length; i++) {
       bool isBooked = userSnapshot.data?.bookings
-              .firstWhereOrNull(
-                  (element) => element.isOnDate(currentDay)) !=
+              .firstWhereOrNull((element) => element.isOnDate(currentDay)) !=
           null;
 
       items.add(
@@ -373,7 +373,7 @@ class _BookingsPageState extends State<BookingsPage>
           // Tiny all-caps title
           Text(
             "BOOK",
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 11,
               color: bbTextMuted,
               fontWeight: FontWeight.w500,
@@ -397,7 +397,7 @@ class _BookingsPageState extends State<BookingsPage>
                       icon: const Icon(Icons.keyboard_arrow_down,
                           color: bbTextMuted, size: 14),
                       dropdownColor: bbSurface,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.inter(
                         color: bbTextSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
@@ -410,12 +410,10 @@ class _BookingsPageState extends State<BookingsPage>
                           selectedValue = newValue!;
                         });
                       },
-                      items: pts
-                          .map<DropdownMenuItem<String>>((String value) {
+                      items: pts.map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value,
-                              style: GoogleFonts.plusJakartaSans()),
+                          child: Text(value, style: GoogleFonts.inter()),
                         );
                       }).toList(),
                     );
@@ -432,7 +430,7 @@ class _BookingsPageState extends State<BookingsPage>
             onTap: _showCalendarDialog,
             child: Text(
               "${months[currentDay.month - 1]} ${currentDay.year}",
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: 12,
                 color: bbTextSecondary,
                 fontWeight: FontWeight.w400,
@@ -527,7 +525,7 @@ class _BookingsPageState extends State<BookingsPage>
             // Weekday abbreviation
             Text(
               weekDay.toUpperCase(),
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: 8,
                 color: isCurrent ? bbAccent : bbTextMuted,
                 letterSpacing: 0.8,
@@ -538,7 +536,7 @@ class _BookingsPageState extends State<BookingsPage>
             // Day number — weight change for current day
             Text(
               dateTime.day.toString(),
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: isCurrent ? 22 : 18,
                 color: isCurrent ? bbText : bbTextSecondary,
                 fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w300,
@@ -579,8 +577,7 @@ class _BookingsPageState extends State<BookingsPage>
         onExploreSchedule: () async {
           HapticFeedback.lightImpact();
           DateTime now = DateTime.now();
-          DateTime nextMonday =
-              now.add(Duration(days: (8 - now.weekday) % 7));
+          DateTime nextMonday = now.add(Duration(days: (8 - now.weekday) % 7));
           if (nextMonday.weekday != DateTime.monday) {
             nextMonday = nextMonday.add(const Duration(days: 7));
           }
@@ -620,9 +617,8 @@ class _BookingsPageState extends State<BookingsPage>
   bool isAlreadyBooked(Booking booking, Map bookings) {
     String month = booking.month.toString();
     String day = booking.day.toString();
-    List<dynamic>? bookedTimes = bookings.containsKey(month)
-        ? bookings[month][day]
-        : [];
+    List<dynamic>? bookedTimes =
+        bookings.containsKey(month) ? bookings[month][day] : [];
     return bookedTimes != null ? bookedTimes.contains(booking.time) : false;
   }
 }

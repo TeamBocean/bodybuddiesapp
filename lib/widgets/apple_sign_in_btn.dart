@@ -33,7 +33,7 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
         icon: const Icon(Icons.apple, color: Colors.white, size: 22),
         label: Text(
           "Continue with Apple",
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w500,
             color: Colors.white,
@@ -70,7 +70,7 @@ class _AppleSignInBTNState extends State<AppleSignInBTN> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Sign-in failed. Please try again.',
-                style: GoogleFonts.plusJakartaSans()),
+                style: GoogleFonts.inter()),
             backgroundColor: bbCard,
           ),
         );

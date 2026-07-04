@@ -60,8 +60,7 @@ class _MySessionsPageState extends State<MySessionsPage> {
                 final aDateTime = a.getDateTime();
                 final bDateTime = b.getDateTime();
 
-                if ((a.isUpcoming && b.isUpcoming) ||
-                    (a.isPast && b.isPast)) {
+                if ((a.isUpcoming && b.isUpcoming) || (a.isPast && b.isPast)) {
                   return a.isUpcoming
                       ? aDateTime.compareTo(bDateTime)
                       : bDateTime.compareTo(aDateTime);
@@ -81,7 +80,7 @@ class _MySessionsPageState extends State<MySessionsPage> {
                     // ── Header ───────────────────────────────────────────
                     Text(
                       "SESSIONS",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.inter(
                         fontSize: 11,
                         color: bbTextMuted,
                         fontWeight: FontWeight.w500,
@@ -96,11 +95,10 @@ class _MySessionsPageState extends State<MySessionsPage> {
                         _buildStat(
                             upcomingBookings.length.toString(), "UPCOMING"),
                         const SizedBox(width: 24),
-                        _buildStat(thisMonthBookings.length.toString(),
-                            "THIS MONTH"),
-                        const SizedBox(width: 24),
                         _buildStat(
-                            completedBookings.length.toString(), "DONE"),
+                            thisMonthBookings.length.toString(), "THIS MONTH"),
+                        const SizedBox(width: 24),
+                        _buildStat(completedBookings.length.toString(), "DONE"),
                       ],
                     ),
                     const SizedBox(height: 28),
@@ -109,10 +107,8 @@ class _MySessionsPageState extends State<MySessionsPage> {
                     Row(
                       children: [
                         Text(
-                          _showCompletedSessions
-                              ? "ALL SESSIONS"
-                              : "UPCOMING",
-                          style: GoogleFonts.plusJakartaSans(
+                          _showCompletedSessions ? "ALL SESSIONS" : "UPCOMING",
+                          style: GoogleFonts.inter(
                             fontSize: 10,
                             color: bbTextSecondary,
                             fontWeight: FontWeight.w500,
@@ -122,22 +118,20 @@ class _MySessionsPageState extends State<MySessionsPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Container(
-                              height: 0.25,
-                              color: bbBorder.withOpacity(0.5)),
+                              height: 0.25, color: bbBorder.withOpacity(0.5)),
                         ),
                         const SizedBox(width: 12),
                         GestureDetector(
                           onTap: () {
                             setState(() {
-                              _showCompletedSessions =
-                                  !_showCompletedSessions;
+                              _showCompletedSessions = !_showCompletedSessions;
                             });
                           },
                           child: Text(
                             _showCompletedSessions
                                 ? "HIDE COMPLETED"
                                 : "SHOW COMPLETED",
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 9,
                               color: bbAccent,
                               fontWeight: FontWeight.w500,
@@ -158,7 +152,7 @@ class _MySessionsPageState extends State<MySessionsPage> {
                         child: Center(
                           child: Text(
                             "NO SESSIONS YET.",
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 12,
                               color: bbTextMuted,
                               fontWeight: FontWeight.w400,
@@ -196,7 +190,7 @@ class _MySessionsPageState extends State<MySessionsPage> {
       children: [
         Text(
           value,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.inter(
             fontSize: 24,
             color: bbText,
             fontWeight: FontWeight.w300,
@@ -207,7 +201,7 @@ class _MySessionsPageState extends State<MySessionsPage> {
         const SizedBox(width: 5),
         Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.inter(
             fontSize: 9,
             color: bbTextMuted,
             letterSpacing: 1.5,

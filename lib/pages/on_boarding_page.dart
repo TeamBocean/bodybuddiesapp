@@ -388,7 +388,8 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
         style: ElevatedButton.styleFrom(
           backgroundColor: darkGreen,
           disabledBackgroundColor: darkGreen.withOpacity(0.5),
-          disabledForegroundColor: Colors.white.withOpacity(0.8),
+          foregroundColor: bbOnAccent,
+          disabledForegroundColor: bbOnAccent.withOpacity(0.6),
           minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(Dimensions.width10),
@@ -400,11 +401,12 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(bbOnAccent),
                 ),
               )
             : MediumTextWidget(
                 text: "Complete setup",
+                color: bbOnAccent,
               ),
       ),
     );

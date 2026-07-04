@@ -27,8 +27,10 @@ class _ProgressPicturesPageState extends State<ProgressPicturesPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: darkGreen,
+        foregroundColor: bbOnAccent,
         title: MediumTextWidget(
           text: 'My Progress',
+          color: bbOnAccent,
         ),
       ),
       body: SizedBox(
@@ -91,6 +93,7 @@ class _ProgressPicturesPageState extends State<ProgressPicturesPage> {
       backgroundColor: background,
       floatingActionButton: FloatingActionButton(
         backgroundColor: darkGreen,
+        foregroundColor: bbOnAccent,
         child: Icon(Icons.add),
         onPressed: () {
           getImage(ImageSource.gallery);

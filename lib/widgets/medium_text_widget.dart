@@ -21,7 +21,7 @@ class _MediumTextWidgetState extends State<MediumTextWidget> {
     return Text(
       widget.text,
       overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.plusJakartaSans(
+      style: GoogleFonts.inter(
         fontSize: widget.fontSize,
         color: widget.color,
         fontWeight: FontWeight.w600,

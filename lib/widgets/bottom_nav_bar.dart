@@ -29,7 +29,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   ];
 
   static const List<String> _labels = [
-    "Agenda",
+    "Home",
     "Book",
     "Sessions",
     "Settings",
@@ -37,20 +37,31 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: bbBackground,
-        border: const Border(
-          top: BorderSide(color: bbBorder, width: 0.5),
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 80,
+        margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: bbSurface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: bbBorder, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF000000).withOpacity(0.25),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(4, (i) => _buildNavItem(i)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(
+            4,
+            (i) => Expanded(
+              child: _buildNavItem(i),
+            ),
           ),
         ),
       ),
@@ -69,9 +80,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
@@ -79,28 +91,32 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 isActive ? _activeIcons[index] : _icons[index],
                 key: ValueKey<bool>(isActive),
                 color: isActive ? bbAccent : bbTextMuted,
-                size: 22,
+                size: 20,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 5),
             Text(
               _labels[index],
-              style: GoogleFonts.plusJakartaSans(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
                 fontSize: 10,
                 color: isActive ? bbAccent : bbTextMuted,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                letterSpacing: 0.2,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                letterSpacing: 0,
               ),
             ),
-            // Active dot indicator
             const SizedBox(height: 4),
-            AnimatedContainer(
+            AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
-              width: isActive ? 4 : 0,
-              height: isActive ? 4 : 0,
-              decoration: const BoxDecoration(
-                color: bbAccent,
-                shape: BoxShape.circle,
+              opacity: isActive ? 1 : 0,
+              child: Container(
+                width: 18,
+                height: 2,
+                decoration: BoxDecoration(
+                  color: bbAccent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ],

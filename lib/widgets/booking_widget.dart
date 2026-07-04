@@ -151,7 +151,7 @@ class _BookingWidgetState extends State<BookingWidget>
                               children: [
                                 Text(
                                   widget.booking.time,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.inter(
                                     fontSize: 20,
                                     color: widget.isBooked ? bbAccent : bbText,
                                     fontWeight: FontWeight.w300,
@@ -164,7 +164,7 @@ class _BookingWidgetState extends State<BookingWidget>
                                     padding: const EdgeInsets.only(top: 4),
                                     child: Text(
                                       "45 MIN",
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.inter(
                                         fontSize: 9,
                                         color: bbTextMuted,
                                         fontWeight: FontWeight.w500,
@@ -179,7 +179,7 @@ class _BookingWidgetState extends State<BookingWidget>
                                     padding: const EdgeInsets.only(top: 3),
                                     child: Text(
                                       widget.booking.bookingName,
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.inter(
                                         fontSize: 12,
                                         color: bbTextSecondary,
                                       ),
@@ -239,7 +239,7 @@ class _BookingWidgetState extends State<BookingWidget>
           // Date
           Text(
             _formatDate(widget.booking),
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 11,
               color: bbTextMuted,
             ),
@@ -256,7 +256,7 @@ class _BookingWidgetState extends State<BookingWidget>
             ),
             child: Text(
               widget.booking.isPast ? "Complete" : "Confirmed",
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: 10,
                 color: widget.booking.isPast ? bbTextMuted : bbAccent,
                 fontWeight: FontWeight.w600,
@@ -269,7 +269,7 @@ class _BookingWidgetState extends State<BookingWidget>
             onTap: () => _showCancelBookingDialog(context),
             child: Text(
               "Cancel",
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: 11,
                 color: bbAccentAlt,
                 decoration: TextDecoration.underline,
@@ -282,7 +282,7 @@ class _BookingWidgetState extends State<BookingWidget>
     } else if (isAlreadyTaken) {
       return Text(
         "TAKEN",
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.inter(
           fontSize: 10,
           color: bbTextMuted,
           fontWeight: FontWeight.w500,
@@ -292,7 +292,7 @@ class _BookingWidgetState extends State<BookingWidget>
     } else if (canBook) {
       return Text(
         "AVAILABLE",
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.inter(
           fontSize: 9,
           color: bbAccent.withOpacity(0.6),
           fontWeight: FontWeight.w500,
@@ -397,7 +397,7 @@ class _BookingWidgetState extends State<BookingWidget>
               Text(
                 "Cancel this\nsession?",
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 22,
                   color: bbText,
                   fontWeight: FontWeight.w500,
@@ -408,7 +408,7 @@ class _BookingWidgetState extends State<BookingWidget>
               Text(
                 "Are you sure you'd like to cancel?",
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.inter(
                   fontSize: 14,
                   color: bbTextSecondary,
                 ),
@@ -430,7 +430,7 @@ class _BookingWidgetState extends State<BookingWidget>
                       Expanded(
                         child: Text(
                           "Cancelling within 24 hours will not refund your credit.",
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.inter(
                             color: bbAccentAlt,
                             fontSize: 12,
                             height: 1.4,
@@ -456,7 +456,7 @@ class _BookingWidgetState extends State<BookingWidget>
                         child: Center(
                           child: Text(
                             "Keep it",
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 14,
                               color: bbText,
                               fontWeight: FontWeight.w600,
@@ -493,7 +493,7 @@ class _BookingWidgetState extends State<BookingWidget>
                         child: Center(
                           child: Text(
                             "Cancel",
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 14,
                               color: bbAccentAlt,
                               fontWeight: FontWeight.w600,

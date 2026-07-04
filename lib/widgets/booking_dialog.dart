@@ -53,9 +53,10 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
 
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
-      
-      final creditSuccess = await CloudFirestore().decreaseCreditsAtomic(1, userId);
-      
+
+      final creditSuccess =
+          await CloudFirestore().decreaseCreditsAtomic(1, userId);
+
       if (!creditSuccess) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +75,7 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         widget.month,
         widget.day,
       );
-      
+
       Booking userBooking = Booking(
         id: uuid.v1(),
         bookingName: user.name,
@@ -96,8 +97,9 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("This slot was just booked. Please choose another time.",
-                  style: GoogleFonts.plusJakartaSans()),
+              content: Text(
+                  "This slot was just booked. Please choose another time.",
+                  style: GoogleFonts.inter(color: bbOnAccent)),
               backgroundColor: bbAccentAlt,
             ),
           );
@@ -115,8 +117,10 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         Navigator.pop(context, 'dialog');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Session confirmed.",
-                style: GoogleFonts.plusJakartaSans()),
+            content: Text(
+              "Session confirmed.",
+              style: GoogleFonts.inter(color: bbOnAccent),
+            ),
             backgroundColor: bbAccent,
           ),
         );
@@ -149,7 +153,7 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
             // Title
             Text(
               "Confirm your\nsession.",
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.inter(
                 fontSize: 26,
                 color: bbText,
                 fontWeight: FontWeight.w500,
@@ -159,8 +163,8 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
             const SizedBox(height: 24),
 
             // Details
-            _buildDetailRow("Date",
-                "${widget.day}/${widget.month}/${DateTime.now().year}"),
+            _buildDetailRow(
+                "Date", "${widget.day}/${widget.month}/${DateTime.now().year}"),
             _buildDivider(),
             _buildDetailRow("Time", widget.booking.time),
             _buildDivider(),
@@ -188,7 +192,7 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
                               : () => _handleBooking(snapshot.data!),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: bbAccent,
-                            foregroundColor: Colors.white,
+                            foregroundColor: bbOnAccent,
                             disabledBackgroundColor: bbCard,
                             disabledForegroundColor: bbTextMuted,
                             shape: RoundedRectangleBorder(
@@ -202,14 +206,14 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.white,
+                                    color: bbOnAccent,
                                   ),
                                 )
                               : Text(
                                   hasCredits
                                       ? "Use 1 Credit"
                                       : "No Credits Available",
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.inter(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -228,21 +232,19 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          const CreditsPage(),
+                                      builder: (context) => const CreditsPage(),
                                     ),
                                   );
                                 },
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                                color: bbBorder, width: 1),
+                            side: const BorderSide(color: bbBorder, width: 1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
                           child: Text(
                             "Browse Plans",
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: bbText,
@@ -276,14 +278,14 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         children: [
           Text(
             label,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 14,
               color: bbTextSecondary,
             ),
           ),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 14,
               color: bbText,
               fontWeight: FontWeight.w600,

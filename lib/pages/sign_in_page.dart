@@ -67,7 +67,7 @@ class _SignInPageState extends State<SignInPage>
                 // ─── Editorial Headline ──────────────────────────────────
                 Text(
                   "Your studio\nawaits.",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.inter(
                     fontSize: 42,
                     color: bbText,
                     height: 1.1,
@@ -79,7 +79,7 @@ class _SignInPageState extends State<SignInPage>
                 // ─── Subtitle ────────────────────────────────────────────
                 Text(
                   "Personal training, reimagined.",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.inter(
                     fontSize: 16,
                     color: bbTextSecondary,
                     fontWeight: FontWeight.w400,
@@ -121,7 +121,7 @@ class _SignInPageState extends State<SignInPage>
       children: [
         Text(
           "Developed by",
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.inter(
             fontSize: 12,
             color: bbTextMuted,
           ),
@@ -133,7 +133,7 @@ class _SignInPageState extends State<SignInPage>
           },
           child: Text(
             "BlueOcean",
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontSize: 14,
               color: bbAccent,
               fontWeight: FontWeight.w600,

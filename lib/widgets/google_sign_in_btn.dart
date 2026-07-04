@@ -34,12 +34,12 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
           'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
           width: 20,
           height: 20,
-          errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata,
-              color: bbText, size: 22),
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.g_mobiledata, color: bbText, size: 22),
         ),
         label: Text(
           "Continue with Google",
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w500,
             color: bbText,
@@ -76,7 +76,7 @@ class _GoogleSignInBTNState extends State<GoogleSignInBTN> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Sign-in failed. Please try again.',
-                style: GoogleFonts.plusJakartaSans()),
+                style: GoogleFonts.inter()),
             backgroundColor: bbCard,
           ),
         );
