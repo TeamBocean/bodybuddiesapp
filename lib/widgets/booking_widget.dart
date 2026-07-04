@@ -88,7 +88,7 @@ class _BookingWidgetState extends State<BookingWidget> {
       child: AbsorbPointer(
         absorbing: isDisabled,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           child: Opacity(
             opacity: isDisabled ? 0.4 : 1.0,
             child: GestureDetector(
@@ -107,7 +107,16 @@ class _BookingWidgetState extends State<BookingWidget> {
                 duration: const Duration(milliseconds: 120),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: _pressed ? bbCard.withOpacity(0.78) : bbCard,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: canBook ? bbAccent.withOpacity(0.26) : bbBorder,
+                      width: 1,
+                    ),
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -126,7 +135,7 @@ class _BookingWidgetState extends State<BookingWidget> {
   }
 
   String _semanticLabel(bool canBook, bool isAlreadyTaken) {
-    if (canBook) return "Book ${widget.booking.time}, 45 minute session";
+    if (canBook) return "Reserve ${widget.booking.time}, 45 minute session";
     if (widget.isBooked) {
       return "${widget.booking.time} session, "
           "${widget.booking.isPast ? 'complete' : 'confirmed'}";
@@ -136,46 +145,67 @@ class _BookingWidgetState extends State<BookingWidget> {
   }
 
   Widget _buildTimeColumn() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Text(
-          widget.booking.time,
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            color: widget.isBooked ? bbAccent : bbText,
-            fontWeight: FontWeight.w300,
-            height: 1.0,
-            letterSpacing: 1.0,
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: widget.isBooked
+                ? bbAccent.withOpacity(0.12)
+                : bbSurface.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(color: bbBorder, width: 1),
+          ),
+          child: Icon(
+            widget.isBooked
+                ? Icons.check_circle_outline_rounded
+                : Icons.schedule_rounded,
+            color: widget.isBooked ? bbAccent : bbTextSecondary,
+            size: 18,
           ),
         ),
-        if (!widget.isBooked)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              "45 MIN",
-              style: GoogleFonts.inter(
-                fontSize: 9,
-                color: bbTextMuted,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 1.5,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.booking.time,
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  color: widget.isBooked ? bbAccent : bbText,
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
+                ),
               ),
-            ),
-          ),
-        // Booking name (admin / user booked view)
-        if (widget.isBooked && widget.booking.bookingName.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Text(
-              widget.booking.bookingName,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: bbTextSecondary,
+              const SizedBox(height: 5),
+              Text(
+                widget.isBooked ? "Session" : "45 min training session",
+                style: GoogleFonts.inter(
+                  fontSize: 11.5,
+                  color: bbTextMuted,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+              if (widget.isBooked && widget.booking.bookingName.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 3),
+                  child: Text(
+                    widget.booking.bookingName,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: bbTextSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
           ),
+        ),
       ],
     );
   }
@@ -234,21 +264,30 @@ class _BookingWidgetState extends State<BookingWidget> {
     } else if (isAlreadyTaken) {
       return _mutedChip("Taken");
     } else if (canBook) {
-      // Clear, tappable Book pill with a pressed state.
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: _pressed ? bbAccent.withOpacity(0.75) : bbAccent,
           borderRadius: BorderRadius.circular(22),
         ),
-        child: Text(
-          "Book",
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: bbOnAccent,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.3,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Reserve",
+              style: GoogleFonts.inter(
+                fontSize: 12.5,
+                color: bbOnAccent,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(width: 5),
+            const Icon(
+              Icons.arrow_forward_rounded,
+              color: bbOnAccent,
+              size: 14,
+            ),
+          ],
         ),
       );
     }
@@ -503,8 +542,9 @@ class _BookingWidgetState extends State<BookingWidget> {
       "Nov",
       "Dec"
     ];
-    if (month < 1 || month > 12)
+    if (month < 1 || month > 12) {
       throw RangeError("Invalid month index: $month");
+    }
     return monthNames[month - 1];
   }
 

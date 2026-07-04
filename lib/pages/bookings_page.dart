@@ -24,6 +24,8 @@ class BookingsPage extends StatefulWidget {
 
 class _BookingsPageState extends State<BookingsPage>
     with SingleTickerProviderStateMixin {
+  static const int _quickDateCount = 14;
+
   List<Widget> dates = [];
   String selectedValue = "Mark";
   final DateFormat _dateFormat = DateFormat('HH:mm');
@@ -173,15 +175,15 @@ class _BookingsPageState extends State<BookingsPage>
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Editorial Header ──────────────────────────────────
+                        // Header and booking controls.
                         _buildHeader(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
-                        // ── Horizon Timeline Ribbon ───────────────────────────
+                        // Nearby date strip.
                         _buildHorizonRibbon(),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
 
-                        // ── Slot List ─────────────────────────────────────────
+                        // Available times.
                         Expanded(
                           child: PageView.builder(
                             controller: pageController,
@@ -194,6 +196,13 @@ class _BookingsPageState extends State<BookingsPage>
                               });
                             },
                             itemBuilder: (context, index) {
+                              final List<Widget> children = _slotData.isEmpty
+                                  ? [
+                                      _buildBookingSummary(userSnapshot),
+                                      _buildEmptyState(),
+                                    ]
+                                  : _buildSlotList(userSnapshot);
+
                               return Padding(
                                 padding: EdgeInsets.only(
                                     bottom: Dimensions.height50 +
@@ -204,11 +213,7 @@ class _BookingsPageState extends State<BookingsPage>
                                           Dimensions.height10 * 8),
                                   child: SingleChildScrollView(
                                     physics: const BouncingScrollPhysics(),
-                                    child: Column(
-                                      children: _slotData.isEmpty
-                                          ? [_buildEmptyState()]
-                                          : _buildSlotList(userSnapshot),
-                                    ),
+                                    child: Column(children: children),
                                   ),
                                 ),
                               );
@@ -234,28 +239,219 @@ class _BookingsPageState extends State<BookingsPage>
         .firstWhereOrNull((element) => element.isOnDate(currentDay));
     final bool dayAlreadyBooked = existing != null;
 
-    List<Widget> items = [];
+    List<Widget> items = [_buildBookingSummary(userSnapshot)];
     if (dayAlreadyBooked) {
       items.add(_buildAlreadyBookedBanner(existing));
     }
 
-    for (final booking in _slotData) {
-      items.add(
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: BookingWidget(
-            key: ValueKey('${booking.time}-$dayAlreadyBooked'),
-            isBooked: false,
-            trainer: selectedValue,
-            isAdmin: false,
-            booking: booking,
-            month: currentDay.month,
-            disabledReason: dayAlreadyBooked ? "Booked today" : null,
+    final groupedSlots = _groupSlotsByPeriod(_slotData);
+    groupedSlots.forEach((period, slots) {
+      items.add(_buildTimeGroupHeader(period, slots.length));
+      for (final booking in slots) {
+        items.add(
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: BookingWidget(
+              key: ValueKey('${booking.time}-$dayAlreadyBooked'),
+              isBooked: false,
+              trainer: selectedValue,
+              isAdmin: false,
+              booking: booking,
+              month: currentDay.month,
+              disabledReason: dayAlreadyBooked ? "Booked today" : null,
+            ),
           ),
-        ),
-      );
-    }
+        );
+      }
+    });
+
     return items;
+  }
+
+  Widget _buildBookingSummary(AsyncSnapshot<UserModel> userSnapshot) {
+    final credits = userSnapshot.data?.credits;
+    final slotCopy = _slotData.length == 1 ? "time" : "times";
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bbSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: bbBorder, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: bbAccent.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: bbAccent.withOpacity(0.2)),
+                ),
+                child: const Icon(
+                  Icons.fitness_center_rounded,
+                  color: bbAccent,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Pick a session time",
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: bbText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "${_formatFullDate(currentDay)} with $selectedValue",
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: bbTextSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _summaryPill(
+                icon: Icons.schedule_rounded,
+                label: "45 min",
+              ),
+              _summaryPill(
+                icon: Icons.event_available_rounded,
+                label: _slotData.isEmpty
+                    ? "No times open"
+                    : "${_slotData.length} $slotCopy open",
+              ),
+              if (credits != null)
+                _summaryPill(
+                  icon: Icons.confirmation_number_outlined,
+                  label: "$credits ${credits == 1 ? 'credit' : 'credits'}",
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Tap a time to review the details before your credit is used.",
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: bbTextMuted,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryPill({
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: bbCard,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: bbBorder, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: bbTextSecondary, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 11.5,
+              color: bbText,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeGroupHeader(String label, int count) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: bbText,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: bbAccent.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              "$count",
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                color: bbAccent,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(left: 12),
+              child: Divider(color: bbBorder, thickness: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, List<Booking>> _groupSlotsByPeriod(List<Booking> slots) {
+    final Map<String, List<Booking>> groups = {
+      "MORNING": [],
+      "AFTERNOON": [],
+      "EVENING": [],
+    };
+
+    for (final booking in slots) {
+      groups[_periodForTime(booking.time)]!.add(booking);
+    }
+
+    groups.removeWhere((_, bookings) => bookings.isEmpty);
+    return groups;
+  }
+
+  String _periodForTime(String time) {
+    final minutes = _parseTimeToMinutes(time);
+    if (minutes < 12 * 60) return "MORNING";
+    if (minutes < 17 * 60) return "AFTERNOON";
+    return "EVENING";
   }
 
   Widget _buildAlreadyBookedBanner(Booking existing) {
@@ -364,8 +560,10 @@ class _BookingsPageState extends State<BookingsPage>
 
   void _buildDateWidgets() {
     dates.clear();
-    for (int i = 0; i < 360; i++) {
-      final date = _currentDate.add(Duration(days: i));
+    final startDate = _dateStripStartDate();
+
+    for (int i = 0; i < _quickDateCount; i++) {
+      final date = startDate.add(Duration(days: i));
       dates.add(_horizonDateItem(
         date,
         daysOfWeek[date.weekday - 1].substring(0, 3),
@@ -376,243 +574,278 @@ class _BookingsPageState extends State<BookingsPage>
     }
   }
 
-  // ─── Editorial Header ──────────────────────────────────────────────────────
+  DateTime _dateStripStartDate() {
+    final today =
+        DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
+    final selected =
+        DateTime(currentDay.year, currentDay.month, currentDay.day);
+    final selectedOffset = selected.difference(today).inDays;
+
+    if (selectedOffset <= 5) return today;
+
+    return selected.subtract(const Duration(days: 3));
+  }
+
+  // Header.
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tiny all-caps title
           Text(
-            "BOOK",
+            "Book a session",
             style: GoogleFonts.inter(
-              fontSize: 11,
-              color: bbTextMuted,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 3.0,
+              fontSize: 28,
+              color: bbText,
+              fontWeight: FontWeight.w800,
+              height: 1.05,
             ),
           ),
-          const SizedBox(width: 16),
-          // Coach filter — just the name, no box
-          FutureBuilder<List<dynamic>>(
-            future: CloudFirestore().getAllPTs(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                List<String> pts = snapshot.data!
-                    .map((item) => item['name'].toString())
-                    .toList();
-                pts.add("Mark");
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: bbCard,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: bbBorder, width: 1),
-                  ),
-                  child: StatefulBuilder(
-                    builder: (BuildContext context, StateSetter setState) {
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
+          const SizedBox(height: 8),
+          Text(
+            "Choose your coach, then reserve an available 45 minute slot.",
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: bbTextSecondary,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              FutureBuilder<List<dynamic>>(
+                future: CloudFirestore().getAllPTs(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: bbAccent,
+                        strokeWidth: 1.5,
+                      ),
+                    );
+                  }
+
+                  List<String> pts = snapshot.data!
+                      .map((item) => item['name'].toString())
+                      .toList();
+                  if (!pts.contains("Mark")) pts.add("Mark");
+
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: bbCard,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: bbBorder, width: 1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.person_outline,
+                            size: 15, color: bbTextSecondary),
+                        const SizedBox(width: 7),
+                        DropdownButton<String>(
+                          value: selectedValue,
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                              color: bbTextSecondary, size: 18),
+                          dropdownColor: bbSurface,
+                          style: GoogleFonts.inter(
+                            color: bbText,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          underline: const SizedBox(),
+                          isDense: true,
+                          onChanged: (String? newValue) {
+                            if (newValue == null) return;
+                            HapticFeedback.lightImpact();
+                            setState(() {
+                              selectedValue = newValue;
+                            });
+                          },
+                          items:
+                              pts.map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value, style: GoogleFonts.inter()),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Semantics(
+                  button: true,
+                  label: "Open calendar",
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _showCalendarDialog,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: bbCard,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: bbBorder, width: 1),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.person_outline,
-                              size: 14, color: bbTextSecondary),
-                          const SizedBox(width: 6),
-                          DropdownButton<String>(
-                            value: selectedValue,
-                            icon: const Icon(Icons.keyboard_arrow_down,
-                                color: bbTextSecondary, size: 16),
-                            dropdownColor: bbSurface,
-                            style: GoogleFonts.inter(
-                              color: bbText,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                          const Icon(Icons.calendar_month_outlined,
+                              size: 15, color: bbTextSecondary),
+                          const SizedBox(width: 7),
+                          Flexible(
+                            child: Text(
+                              "${months[currentDay.month - 1]} ${currentDay.year}",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: bbText,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            underline: const SizedBox(),
-                            isDense: true,
-                            onChanged: (String? newValue) {
-                              HapticFeedback.lightImpact();
-                              setState(() {
-                                selectedValue = newValue!;
-                              });
-                            },
-                            items: pts
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value, style: GoogleFonts.inter()),
-                              );
-                            }).toList(),
                           ),
                         ],
-                      );
-                    },
-                  ),
-                );
-              } else {
-                return const SizedBox();
-              }
-            },
-          ),
-          const Spacer(),
-          // Calendar — month/year chip
-          Semantics(
-            button: true,
-            label: "Change date",
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _showCalendarDialog,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: bbCard,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: bbBorder, width: 1),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.calendar_today_outlined,
-                        size: 13, color: bbTextSecondary),
-                    const SizedBox(width: 6),
-                    Text(
-                      "${months[currentDay.month - 1]} ${currentDay.year}",
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: bbText,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // ─── Horizon Timeline Ribbon ───────────────────────────────────────────────
+  // Nearby date strip.
   Widget _buildHorizonRibbon() {
     return SizedBox(
-      height: 56,
-      child: Stack(
-        children: [
-          // The ultra-thin grey line
-          Positioned(
-            left: 20,
-            right: 20,
-            top: 28,
-            child: Container(height: 0.25, color: bbBorder.withOpacity(0.4)),
-          ),
-          // Scrollable dates sitting ON the line
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: ListView.builder(
-              controller: _horizonScrollController,
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              itemCount: dates.length,
-              itemBuilder: (context, index) => dates[index],
-            ),
-          ),
-          // Left fade
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: 16,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [bbBackground, bbBackground.withOpacity(0)],
-                ),
-              ),
-            ),
-          ),
-          // Right fade
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: 16,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerRight,
-                  end: Alignment.centerLeft,
-                  colors: [bbBackground, bbBackground.withOpacity(0)],
-                ),
-              ),
-            ),
-          ),
-        ],
+      height: 86,
+      child: ListView.builder(
+        controller: _horizonScrollController,
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: dates.length,
+        itemBuilder: (context, index) => dates[index],
       ),
     );
   }
 
-  // ─── Horizon Date Item ─────────────────────────────────────────────────────
-  // Dates sit on the thin line. Current day has an "ink drop" marker.
+  // Date strip item.
   Widget _horizonDateItem(DateTime dateTime, String weekDay, bool isCurrent) {
-    bool hasBookings = bookings?.list[dateTime.month.toString()]
-            ?[dateTime.day.toString()] !=
-        null;
+    final hasBookings = _hasKnownBookings(dateTime);
+    final isTrainingDay = _isTrainingDay(dateTime);
+    final label = _dateAvailabilityLabel(dateTime);
 
-    return GestureDetector(
-      onTap: () async {
-        HapticFeedback.lightImpact();
-        await _onDateTap(dateTime);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 48,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Weekday abbreviation
-            Text(
-              weekDay.toUpperCase(),
-              style: GoogleFonts.inter(
-                fontSize: 8,
-                color: isCurrent ? bbAccent : bbTextMuted,
-                letterSpacing: 0.8,
-                fontWeight: FontWeight.w500,
-              ),
+    return Semantics(
+      button: true,
+      selected: isCurrent,
+      label: "${DateFormat('EEEE d MMMM').format(dateTime)}, $label",
+      child: GestureDetector(
+        onTap: () async {
+          HapticFeedback.lightImpact();
+          await _onDateTap(dateTime);
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 74,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isCurrent ? bbAccent : bbSurface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isCurrent ? bbAccent : bbBorder,
+              width: 1,
             ),
-            const SizedBox(height: 2),
-            // Day number — weight change for current day
-            Text(
-              dateTime.day.toString(),
-              style: GoogleFonts.inter(
-                fontSize: isCurrent ? 22 : 18,
-                color: isCurrent ? bbText : bbTextSecondary,
-                fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w300,
-                height: 1.0,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                weekDay.toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: isCurrent ? bbOnAccent : bbTextMuted,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            // "Ink drop" marker for current day
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: isCurrent ? 6 : (hasBookings ? 4 : 0),
-              height: isCurrent ? 6 : (hasBookings ? 4 : 0),
-              decoration: BoxDecoration(
-                color: isCurrent
-                    ? bbText
-                    : (hasBookings ? bbAccentAlt : Colors.transparent),
-                shape: BoxShape.circle,
+              const SizedBox(height: 5),
+              Text(
+                dateTime.day.toString(),
+                style: GoogleFonts.inter(
+                  fontSize: 24,
+                  color: isCurrent ? bbOnAccent : bbText,
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: isCurrent
+                          ? bbOnAccent
+                          : hasBookings
+                              ? bbAccentAlt
+                              : isTrainingDay
+                                  ? bbAccent
+                                  : bbTextMuted.withOpacity(0.4),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 9,
+                      color: isCurrent ? bbOnAccent : bbTextSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  bool _isTrainingDay(DateTime date) {
+    return selectedValue == "Mandalena" ||
+        (date.weekday != DateTime.saturday && date.weekday != DateTime.sunday);
+  }
+
+  bool _hasKnownBookings(DateTime date) {
+    return bookings?.list[date.month.toString()]?[date.day.toString()] != null;
+  }
+
+  String _dateAvailabilityLabel(DateTime date) {
+    if (!_isTrainingDay(date)) return "Rest";
+    if (_hasKnownBookings(date)) return "Limited";
+    return "Open";
+  }
+
+  String _formatFullDate(DateTime date) {
+    return DateFormat('EEE, d MMM').format(date);
   }
 
   // ─── Typographic Empty State ───────────────────────────────────────────────
@@ -641,15 +874,317 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Future<void> _showCalendarDialog() async {
-    DateTime? pickedDate = await showDatePicker(
+    DateTime visibleMonth = DateTime(currentDay.year, currentDay.month, 1);
+    DateTime selectedDate = currentDay;
+
+    final pickedDate = await showModalBottomSheet<DateTime>(
       context: context,
-      initialDate: currentDay,
-      firstDate: _currentDate,
-      lastDate: DateTime(_currentDate.year + 1, 12, 30),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return _buildCalendarSheet(
+              context: context,
+              visibleMonth: visibleMonth,
+              selectedDate: selectedDate,
+              onMonthChanged: (date) {
+                setModalState(() {
+                  visibleMonth = date;
+                });
+              },
+              onDateSelected: (date) {
+                setModalState(() {
+                  selectedDate = date;
+                });
+              },
+            );
+          },
+        );
+      },
     );
+
     if (pickedDate != null) {
       await _onDateTap(pickedDate);
     }
+  }
+
+  Widget _buildCalendarSheet({
+    required BuildContext context,
+    required DateTime visibleMonth,
+    required DateTime selectedDate,
+    required ValueChanged<DateTime> onMonthChanged,
+    required ValueChanged<DateTime> onDateSelected,
+  }) {
+    final monthLabel = DateFormat('MMMM yyyy').format(visibleMonth);
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+        decoration: const BoxDecoration(
+          color: bbSurface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(
+                color: bbBorder,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Select date",
+                        style: GoogleFonts.inter(
+                          fontSize: 22,
+                          color: bbText,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Available days update for $selectedValue.",
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: bbTextSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded, color: bbText),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: BoxDecoration(
+                color: bbCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: bbBorder, width: 1),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: _canShowPreviousMonth(visibleMonth)
+                        ? () => onMonthChanged(
+                              DateTime(
+                                visibleMonth.year,
+                                visibleMonth.month - 1,
+                                1,
+                              ),
+                            )
+                        : null,
+                    icon: const Icon(Icons.chevron_left_rounded),
+                    color: bbText,
+                    disabledColor: bbTextMuted.withOpacity(0.35),
+                  ),
+                  Expanded(
+                    child: Text(
+                      monthLabel,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: bbText,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => onMonthChanged(
+                      DateTime(
+                        visibleMonth.year,
+                        visibleMonth.month + 1,
+                        1,
+                      ),
+                    ),
+                    icon: const Icon(Icons.chevron_right_rounded),
+                    color: bbText,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: daysOfWeek
+                  .map(
+                    (day) => Expanded(
+                      child: Center(
+                        child: Text(
+                          day.substring(0, 3).toUpperCase(),
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            color: bbTextMuted,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+            _buildCalendarGrid(
+              visibleMonth: visibleMonth,
+              selectedDate: selectedDate,
+              onDateSelected: onDateSelected,
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Cancel"),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, selectedDate),
+                    child: const Text("Done"),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalendarGrid({
+    required DateTime visibleMonth,
+    required DateTime selectedDate,
+    required ValueChanged<DateTime> onDateSelected,
+  }) {
+    final firstDay = DateTime(visibleMonth.year, visibleMonth.month, 1);
+    final leadingBlanks = firstDay.weekday - 1;
+    final daysInMonth =
+        DateTime(visibleMonth.year, visibleMonth.month + 1, 0).day;
+    final itemCount = leadingBlanks + daysInMonth;
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 6,
+      ),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        if (index < leadingBlanks) return const SizedBox();
+
+        final day = index - leadingBlanks + 1;
+        final date = DateTime(visibleMonth.year, visibleMonth.month, day);
+
+        return _calendarDayCell(
+          date: date,
+          isSelected: _isSameDate(date, selectedDate),
+          onTap: () => onDateSelected(date),
+        );
+      },
+    );
+  }
+
+  Widget _calendarDayCell({
+    required DateTime date,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final today =
+        DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
+    final isPast = date.isBefore(today);
+    final isTrainingDay = _isTrainingDay(date);
+    final hasBookings = _hasKnownBookings(date);
+
+    return Semantics(
+      button: !isPast,
+      selected: isSelected,
+      enabled: !isPast,
+      label:
+          "${DateFormat('EEEE d MMMM').format(date)}, ${_dateAvailabilityLabel(date)}",
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: isPast ? null : onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          decoration: BoxDecoration(
+            color: isSelected ? bbAccent : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? bbAccent
+                  : hasBookings
+                      ? bbAccentAlt.withOpacity(0.35)
+                      : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                date.day.toString(),
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  color: isPast
+                      ? bbTextMuted.withOpacity(0.35)
+                      : isSelected
+                          ? bbOnAccent
+                          : bbText,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? bbOnAccent
+                      : isPast
+                          ? Colors.transparent
+                          : hasBookings
+                              ? bbAccentAlt
+                              : isTrainingDay
+                                  ? bbAccent
+                                  : bbTextMuted.withOpacity(0.35),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _canShowPreviousMonth(DateTime visibleMonth) {
+    final currentMonth = DateTime(_currentDate.year, _currentDate.month, 1);
+    return visibleMonth.isAfter(currentMonth);
+  }
+
+  bool _isSameDate(DateTime first, DateTime second) {
+    return first.year == second.year &&
+        first.month == second.month &&
+        first.day == second.day;
   }
 
   Future<void> _onDateTap(DateTime date) async {
