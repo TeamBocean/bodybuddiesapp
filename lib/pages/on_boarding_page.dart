@@ -10,7 +10,21 @@ import '../services/email.dart';
 import '../widgets/medium_text_widget.dart';
 
 class OnBoardingPage extends StatefulWidget {
-  const OnBoardingPage({Key? key}) : super(key: key);
+  const OnBoardingPage({
+    Key? key,
+    @visibleForTesting this.initialName,
+    @visibleForTesting this.submitUserInfo,
+    @visibleForTesting this.sendWelcomeEmail,
+  }) : super(key: key);
+
+  @visibleForTesting
+  final String? initialName;
+
+  @visibleForTesting
+  final Future<bool> Function(String name, int weight)? submitUserInfo;
+
+  @visibleForTesting
+  final Future<void> Function(String name)? sendWelcomeEmail;
 
   @override
   State<OnBoardingPage> createState() => _OnBoardingPageState();
@@ -20,21 +34,28 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
+  final FocusNode _nameFocusNode = FocusNode();
   final FocusNode _weightFocusNode = FocusNode();
 
   @override
   void initState() {
+    super.initState();
+    if (widget.initialName != null) {
+      nameController.text = widget.initialName!;
+      return;
+    }
+
     final displayName = FirebaseAuth.instance.currentUser?.displayName;
     if (displayName != null && displayName.trim().isNotEmpty) {
       nameController.text = displayName.trim();
     }
-    super.initState();
   }
 
   @override
   void dispose() {
     nameController.dispose();
     weightController.dispose();
+    _nameFocusNode.dispose();
     _weightFocusNode.dispose();
     super.dispose();
   }
@@ -42,106 +63,102 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: background,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.symmetric(
-                horizontal: Dimensions.width20,
-                vertical: Dimensions.height20,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: AutofillGroup(
-                  child: Form(
-                    key: _formKey,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            onPressed: () =>
-                                Authentication.signOut(context: context),
-                            icon: const Icon(Icons.logout, size: 18),
-                            label: const Text('Use another account'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: theme.colorScheme.primary,
-                              minimumSize: const Size(48, 48),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: Dimensions.height20),
-                        message(),
-                        SizedBox(height: Dimensions.height35),
-                        _textFormField(
-                          label: 'Name',
-                          hint: 'Jane Doe',
-                          iconData: Icons.person,
-                          controller: nameController,
-                          textInputType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.name],
-                          onFieldSubmitted: (_) =>
-                              _weightFocusNode.requestFocus(),
-                          validator: (value) {
-                            final name = value?.trim() ?? '';
-                            if (name.length < 2) {
-                              return 'Please enter your name';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: Dimensions.height15),
-                        _textFormField(
-                          label: 'Weight (kg)',
-                          hint: '75',
-                          iconData: Icons.monitor_weight_outlined,
-                          controller: weightController,
-                          focusNode: _weightFocusNode,
-                          textInputType: const TextInputType.numberWithOptions(
-                            signed: false,
-                            decimal: false,
-                          ),
-                          textInputAction: TextInputAction.done,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          onFieldSubmitted: (_) =>
-                              FocusScope.of(context).unfocus(),
-                          validator: (value) {
-                            final rawWeight = value?.trim() ?? '';
-                            if (rawWeight.isEmpty) {
-                              return 'Please enter your weight';
-                            }
-
-                            final weight = int.tryParse(rawWeight);
-                            if (weight == null || weight <= 0) {
-                              return 'Please enter a valid weight';
-                            }
-
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: Dimensions.height35),
-                        _OnboardingButton(
-                          formKey: _formKey,
-                          nameController: nameController,
-                          weightController: weightController,
-                        ),
-                      ],
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+          padding: EdgeInsets.fromLTRB(
+            Dimensions.width20,
+            Dimensions.height20,
+            Dimensions.width20,
+            Dimensions.height20 + bottomInset,
+          ),
+          child: AutofillGroup(
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () => Authentication.signOut(context: context),
+                      icon: const Icon(Icons.logout, size: 18),
+                      label: const Text('Use another account'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: theme.colorScheme.primary,
+                        minimumSize: const Size(48, 48),
+                      ),
                     ),
                   ),
-                ),
+                  SizedBox(height: Dimensions.height20),
+                  message(),
+                  SizedBox(height: Dimensions.height35),
+                  _textFormField(
+                    label: 'Name',
+                    hint: 'Jane Doe',
+                    iconData: Icons.person,
+                    controller: nameController,
+                    focusNode: _nameFocusNode,
+                    textInputType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.name],
+                    onFieldSubmitted: (_) => _weightFocusNode.requestFocus(),
+                    validator: (value) {
+                      final name = value?.trim() ?? '';
+                      if (name.length < 2) {
+                        return 'Please enter your name';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: Dimensions.height15),
+                  _textFormField(
+                    label: 'Weight (kg)',
+                    hint: '75',
+                    iconData: Icons.monitor_weight_outlined,
+                    controller: weightController,
+                    focusNode: _weightFocusNode,
+                    textInputType: const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: false,
+                    ),
+                    textInputAction: TextInputAction.done,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
+                    validator: (value) {
+                      final rawWeight = value?.trim() ?? '';
+                      if (rawWeight.isEmpty) {
+                        return 'Please enter your weight';
+                      }
+
+                      final weight = int.tryParse(rawWeight);
+                      if (weight == null || weight <= 0) {
+                        return 'Please enter a valid weight';
+                      }
+
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: Dimensions.height35),
+                  _OnboardingButton(
+                    formKey: _formKey,
+                    nameController: nameController,
+                    weightController: weightController,
+                    submitUserInfo: widget.submitUserInfo,
+                    sendWelcomeEmail: widget.sendWelcomeEmail,
+                  ),
+                ],
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -174,6 +191,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
       autofillHints: autofillHints,
       validator: validator,
       onFieldSubmitted: onFieldSubmitted,
+      scrollPadding: const EdgeInsets.only(bottom: 120),
       style: theme.textTheme.bodyLarge?.copyWith(
         color: theme.colorScheme.onSurface,
       ),
@@ -216,11 +234,15 @@ class _OnboardingButton extends StatefulWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final TextEditingController weightController;
+  final Future<bool> Function(String name, int weight)? submitUserInfo;
+  final Future<void> Function(String name)? sendWelcomeEmail;
 
   const _OnboardingButton({
     required this.formKey,
     required this.nameController,
     required this.weightController,
+    this.submitUserInfo,
+    this.sendWelcomeEmail,
   });
 
   @override
@@ -229,6 +251,7 @@ class _OnboardingButton extends StatefulWidget {
 
 class _OnboardingButtonState extends State<_OnboardingButton> {
   bool _isCreatingUser = false;
+  bool _setupSucceeded = false;
 
   Future<void> _handleSubmit() async {
     final formState = widget.formKey.currentState;
@@ -238,28 +261,43 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
 
     setState(() {
       _isCreatingUser = true;
+      _setupSucceeded = false;
     });
 
+    var succeeded = false;
     try {
       final name = widget.nameController.text.trim();
       final weight = int.parse(widget.weightController.text.trim());
 
-      final success = await CloudFirestore().setUserInfo(name, weight);
+      succeeded = widget.submitUserInfo != null
+          ? await widget.submitUserInfo!(name, weight)
+          : await CloudFirestore().setUserInfo(name, weight);
 
       if (!mounted) return;
 
-      if (success) {
-        EmailService().sendPDFToUser(name);
+      if (succeeded) {
+        setState(() {
+          _setupSucceeded = true;
+        });
+        try {
+          if (widget.sendWelcomeEmail != null) {
+            await widget.sendWelcomeEmail!(name);
+          } else {
+            await EmailService().sendPDFToUser(name);
+          }
+        } catch (e) {
+          debugPrint('Welcome email failed (non-blocking): $e');
+        }
       } else {
         _showRetryDialog();
       }
     } catch (e) {
-      print('Unexpected error in onboarding: $e');
+      debugPrint('Unexpected error in onboarding: $e');
       if (mounted) {
         _showRetryDialog();
       }
     } finally {
-      if (mounted) {
+      if (mounted && !succeeded) {
         setState(() {
           _isCreatingUser = false;
         });
@@ -275,7 +313,7 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor:
             theme.dialogTheme.backgroundColor ?? theme.colorScheme.surface,
         title: Text(
@@ -289,7 +327,7 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               _handleSubmit();
             },
             child: Text(
@@ -299,7 +337,16 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Setup was not completed. Tap Complete setup to try again, '
+                    'or use another account to sign out.',
+                  ),
+                ),
+              );
             },
             child: Text(
               'Cancel',
@@ -313,13 +360,35 @@ class _OnboardingButtonState extends State<_OnboardingButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (_setupSucceeded) {
+      return Column(
+        children: [
+          SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(darkGreen),
+            ),
+          ),
+          SizedBox(height: Dimensions.height15),
+          MediumTextWidget(
+            text: "You're all set! Opening the app…",
+            fontSize: Dimensions.fontSize16,
+            color: bbTextSecondary,
+          ),
+        ],
+      );
+    }
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: _isCreatingUser ? null : _handleSubmit,
         style: ElevatedButton.styleFrom(
           backgroundColor: darkGreen,
-          disabledBackgroundColor: darkGrey,
+          disabledBackgroundColor: darkGreen.withOpacity(0.5),
+          disabledForegroundColor: Colors.white.withOpacity(0.8),
           minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(Dimensions.width10),

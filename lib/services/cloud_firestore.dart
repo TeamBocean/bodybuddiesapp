@@ -1,6 +1,7 @@
 import 'package:bodybuddiesapp/models/bookings.dart';
 import 'package:bodybuddiesapp/models/user.dart';
 import 'package:bodybuddiesapp/services/email.dart';
+import 'package:bodybuddiesapp/utils/onboarding_user_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -28,33 +29,27 @@ class CloudFirestore {
     }
 
     final userId = auth.currentUser!.uid;
-    final userData = {
-      "credits": 0,
-      "bookings": [],
-      "subscriptions": [],
-      "active": false,
-      "credit_type": "",
-      "email": auth.currentUser!.email?.toLowerCase() ?? "",
-      "name": name,
-      "weight": weight,
-      "profile_completed": true,
-      "onboarding_completed_at": FieldValue.serverTimestamp(),
-    };
+    final docRef = reference.collection("users").doc(userId);
+    final email = auth.currentUser!.email?.toLowerCase() ?? "";
 
     for (int attempt = 0; attempt < retries; attempt++) {
       try {
         print(
             'Creating user document for $userId (attempt ${attempt + 1}/$retries)');
 
-        // Use set with merge to avoid overwriting if document exists
-        await reference.collection("users").doc(userId).set(
-              userData,
-              SetOptions(merge: true),
-            );
+        final existingDoc = await docRef.get();
+        final userData = buildOnboardingUserData(
+          documentExists: existingDoc.exists,
+          name: name,
+          weight: weight,
+          email: email,
+        );
+        userData["onboarding_completed_at"] = FieldValue.serverTimestamp();
 
-        // Verify the document was created
-        final doc = await reference.collection("users").doc(userId).get();
-        if (doc.exists) {
+        await docRef.set(userData, SetOptions(merge: true));
+
+        final doc = await docRef.get();
+        if (isOnboardingWriteVerified(doc.data())) {
           print('✅ User document created successfully for $userId');
           return true;
         } else {

@@ -2,6 +2,7 @@ import 'package:bodybuddiesapp/pages/main_scaffold.dart';
 import 'package:bodybuddiesapp/pages/on_boarding_page.dart';
 import 'package:bodybuddiesapp/pages/sign_in_page.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
+import 'package:bodybuddiesapp/utils/profile_completion.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ class _WrapperState extends State<Wrapper> {
             }
 
             final userData = userDocSnapshot.data?.data();
-            if (_hasCompletedProfile(userData)) {
+            if (hasCompletedProfile(userData)) {
               _backfillEmailIfNeeded(user, userData);
               return const MainScaffold();
             }
@@ -78,34 +79,6 @@ class _WrapperState extends State<Wrapper> {
     });
   }
 
-  bool _hasCompletedProfile(Map<String, dynamic>? data) {
-    if (data == null) {
-      return false;
-    }
-
-    if (data['profile_completed'] == true) {
-      return true;
-    }
-
-    final name = (data['name'] as String?)?.trim() ?? '';
-    final weight = _parseWeight(data['weight']);
-
-    return name.length >= 2 && weight > 0;
-  }
-
-  int _parseWeight(dynamic value) {
-    if (value is int) {
-      return value;
-    }
-    if (value is num) {
-      return value.toInt();
-    }
-    if (value is String) {
-      return int.tryParse(value.trim()) ?? 0;
-    }
-    return 0;
-  }
-
   void _backfillEmailIfNeeded(User user, Map<String, dynamic>? data) {
     if (data == null) {
       return;
@@ -119,7 +92,7 @@ class _WrapperState extends State<Wrapper> {
       patch["email"] = authEmail;
     }
 
-    if (data['profile_completed'] != true && _hasCompletedProfile(data)) {
+    if (data['profile_completed'] != true && hasCompletedProfile(data)) {
       patch["profile_completed"] = true;
     }
 

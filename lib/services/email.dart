@@ -120,13 +120,11 @@ class EmailService {
     ));
   }
 
-  void sendPDFToUser(String name) async {
-    final user = FirebaseAuth.instance.currentUser;
-
+  Future<void> sendPDFToUser(String name) async {
     await _postEmail(_emailJsPayload(
       templateId: 'template_09td3c9',
       templateParams: {
-        'to_name': "",
+        'to_name': name,
         'user_email': FirebaseAuth.instance.currentUser!.email,
       },
     ));

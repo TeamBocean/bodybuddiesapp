@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:bodybuddiesapp/config/payment_runtime_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -601,14 +601,20 @@ class _CreditsPageState extends State<CreditsPage> {
     });
 
     try {
-      final result = await createPaymentIntent(price.toStringAsFixed(0), 'EUR');
+      final result = await createPaymentIntent(
+        price.toStringAsFixed(0),
+        'EUR',
+        credits: credits,
+        creditType: isBuddy ? "2:1" : "1:1",
+      );
 
       if (result == null) {
         throw Exception('Failed to create payment intent');
       }
 
-      if (result['error'] != null) {
-        throw Exception(result['error']['message'] ?? 'Payment failed');
+      final error = result['error'];
+      if (error != null) {
+        throw Exception(_paymentErrorMessage(error));
       }
 
       paymentIntent = result;
@@ -751,11 +757,15 @@ class _CreditsPageState extends State<CreditsPage> {
   }
 
   Future<Map<String, dynamic>?> createPaymentIntent(
-      String amount, String currency) async {
-    final endpoint = dotenv.env['PAYMENT_INTENT_ENDPOINT'];
+    String amount,
+    String currency, {
+    required int credits,
+    required String creditType,
+  }) async {
+    final endpoint = PaymentRuntimeConfig.paymentIntentEndpoint;
     if (endpoint == null || endpoint.isEmpty) {
       throw Exception(
-        'Missing PAYMENT_INTENT_ENDPOINT in .env. '
+        'Missing payment endpoint in .env. '
         'Stripe PaymentIntents must be created by the backend.',
       );
     }
@@ -769,8 +779,8 @@ class _CreditsPageState extends State<CreditsPage> {
         'amount': int.parse(calculateAmount(amount)),
         'currency': currency,
         'userId': userId,
-        'credits': _pendingCredits,
-        'creditType': isBuddy ? "2:1" : "1:1",
+        'credits': credits,
+        'creditType': creditType,
         if (userEmail != null && userEmail.isNotEmpty)
           'receiptEmail': userEmail,
       };
@@ -789,7 +799,9 @@ class _CreditsPageState extends State<CreditsPage> {
       if (response.statusCode != 200) {
         final errorBody = jsonDecode(response.body);
         print('Stripe API Error: ${errorBody}');
-        return errorBody;
+        throw Exception(_paymentErrorMessage(errorBody is Map<String, dynamic>
+            ? errorBody['error']
+            : errorBody));
       }
 
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -817,5 +829,14 @@ class _CreditsPageState extends State<CreditsPage> {
       return 'Payment setup failed. Please contact Body Buddies.';
     }
     return 'Payment failed. Please try again.';
+  }
+
+  String _paymentErrorMessage(Object? error) {
+    if (error is Map) {
+      final message = error['message'];
+      if (message is String && message.isNotEmpty) return message;
+    }
+    if (error is String && error.isNotEmpty) return error;
+    return 'Payment failed';
   }
 }
