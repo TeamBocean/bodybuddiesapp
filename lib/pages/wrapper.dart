@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bodybuddiesapp/pages/main_scaffold.dart';
 import 'package:bodybuddiesapp/pages/on_boarding_page.dart';
 import 'package:bodybuddiesapp/pages/sign_in_page.dart';
@@ -8,7 +10,30 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Wrapper extends StatefulWidget {
-  const Wrapper({Key? key}) : super(key: key);
+  const Wrapper({
+    Key? key,
+    @visibleForTesting this.authStateStream,
+    @visibleForTesting this.userDocumentStreamFor,
+    @visibleForTesting this.signInBuilder,
+    @visibleForTesting this.onboardingBuilder,
+    @visibleForTesting this.mainScaffoldBuilder,
+  }) : super(key: key);
+
+  @visibleForTesting
+  final Stream<User?>? authStateStream;
+
+  @visibleForTesting
+  final Stream<DocumentSnapshot<Map<String, dynamic>>> Function(String uid)?
+      userDocumentStreamFor;
+
+  @visibleForTesting
+  final WidgetBuilder? signInBuilder;
+
+  @visibleForTesting
+  final WidgetBuilder? onboardingBuilder;
+
+  @visibleForTesting
+  final WidgetBuilder? mainScaffoldBuilder;
 
   @override
   State<Wrapper> createState() => _WrapperState();
@@ -16,6 +41,16 @@ class Wrapper extends StatefulWidget {
 
 class _WrapperState extends State<Wrapper> {
   int _retryCount = 0;
+  late Stream<User?> _authStateStream;
+  final Map<String, Stream<DocumentSnapshot<Map<String, dynamic>>>>
+      _userDocumentStreams = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _authStateStream =
+        widget.authStateStream ?? FirebaseAuth.instance.authStateChanges();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +58,7 @@ class _WrapperState extends State<Wrapper> {
 
     return StreamBuilder<User?>(
       key: ValueKey('auth-stream-$_retryCount'),
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: _authStateStream,
       builder: (context, authSnapshot) {
         if (authSnapshot.hasError) {
           return _AuthErrorScreen(
@@ -38,15 +73,12 @@ class _WrapperState extends State<Wrapper> {
 
         final user = authSnapshot.data;
         if (user == null) {
-          return const SignInPage();
+          return widget.signInBuilder?.call(context) ?? const SignInPage();
         }
 
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           key: ValueKey('user-doc-${user.uid}-$_retryCount'),
-          stream: FirebaseFirestore.instance
-              .collection("users")
-              .doc(user.uid)
-              .snapshots(),
+          stream: _userDocumentStreamFor(user.uid),
           builder: (context, userDocSnapshot) {
             if (userDocSnapshot.hasError) {
               return _AuthErrorScreen(
@@ -63,10 +95,12 @@ class _WrapperState extends State<Wrapper> {
             final userData = userDocSnapshot.data?.data();
             if (hasCompletedProfile(userData)) {
               _backfillEmailIfNeeded(user, userData);
-              return const MainScaffold();
+              return widget.mainScaffoldBuilder?.call(context) ??
+                  const MainScaffold();
             }
 
-            return const OnBoardingPage();
+            return widget.onboardingBuilder?.call(context) ??
+                const OnBoardingPage();
           },
         );
       },
@@ -76,7 +110,21 @@ class _WrapperState extends State<Wrapper> {
   void _retryAuthGate() {
     setState(() {
       _retryCount++;
+      _authStateStream =
+          widget.authStateStream ?? FirebaseAuth.instance.authStateChanges();
+      _userDocumentStreams.clear();
     });
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> _userDocumentStreamFor(
+    String uid,
+  ) {
+    return _userDocumentStreams.putIfAbsent(
+      uid,
+      () =>
+          widget.userDocumentStreamFor?.call(uid) ??
+          FirebaseFirestore.instance.collection("users").doc(uid).snapshots(),
+    );
   }
 
   void _backfillEmailIfNeeded(User user, Map<String, dynamic>? data) {
