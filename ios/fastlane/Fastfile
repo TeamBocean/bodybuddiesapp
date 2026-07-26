@@ -39,30 +39,30 @@ platform :ios do
     capability_types = Spaceship::ConnectAPI::BundleIdCapability::Type
     capability_settings = Spaceship::ConnectAPI::BundleIdCapability::Settings
     capability_options = Spaceship::ConnectAPI::BundleIdCapability::Options
-    enabled_capabilities = bundle_id.get_capabilities.map(&:capability_type)
-    capabilities_changed = false
+    current_capabilities = bundle_id.get_capabilities
+    UI.message(
+      "Current App ID capabilities: " \
+      "#{current_capabilities.map(&:capability_type).sort.join(', ')}"
+    )
 
-    unless enabled_capabilities.include?(capability_types::PUSH_NOTIFICATIONS)
-      bundle_id.update_capability(
-        capability_types::PUSH_NOTIFICATIONS,
-        enabled: true
-      )
-      capabilities_changed = true
-    end
-
-    unless enabled_capabilities.include?(capability_types::APPLE_ID_AUTH)
-      bundle_id.update_capability(
-        capability_types::APPLE_ID_AUTH,
-        enabled: true,
-        settings: [
-          {
-            key: capability_settings::APPLE_ID_AUTH_APP_CONSENT,
-            options: [{ key: capability_options::PRIMARY_APP_CONSENT }]
-          }
-        ]
-      )
-      capabilities_changed = true
-    end
+    # Re-assert both services before regenerating the profile. Merely observing
+    # the capabilities in the API is not sufficient: Apple can retain an older
+    # service configuration that produces a profile without its entitlements.
+    bundle_id.update_capability(
+      capability_types::PUSH_NOTIFICATIONS,
+      enabled: true
+    )
+    bundle_id.update_capability(
+      capability_types::APPLE_ID_AUTH,
+      enabled: true,
+      settings: [
+        {
+          key: capability_settings::APPLE_ID_AUTH_APP_CONSENT,
+          options: [{ key: capability_options::PRIMARY_APP_CONSENT }]
+        }
+      ]
+    )
+    UI.success("Push Notifications and Sign in with Apple are enabled")
 
     delete_keychain(name: keychain_name) if File.exist?(
       File.expand_path("~/Library/Keychains/#{keychain_name}-db")

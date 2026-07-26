@@ -25,21 +25,13 @@ jobs:
             exit 1
           fi
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.3'
-          cache: true
-
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
 
-      - name: Install release dependencies
+      - name: Install signing dependencies
         run: |
           gem install fastlane --version 2.237.0 --no-document
-          flutter pub get
-          cd ios
-          pod install
 
       - name: Install or renew the distribution certificate and profile
         working-directory: ios
@@ -55,6 +47,35 @@ jobs:
           export MATCH_GIT_BASIC_AUTHORIZATION="$match_auth"
           fastlane ios prepare_ci_signing
 
+      - name: Verify required profile entitlements
+        run: |
+          profile_path="$(find "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" \
+            -maxdepth 1 -name '*.mobileprovision' -print -quit)"
+          test -n "$profile_path"
+          security cms -D -i "$profile_path" > "$RUNNER_TEMP/bodybuddies-profile.plist"
+
+          aps_environment="$(/usr/libexec/PlistBuddy \
+            -c 'Print :Entitlements:aps-environment' \
+            "$RUNNER_TEMP/bodybuddies-profile.plist")"
+          apple_sign_in="$(/usr/libexec/PlistBuddy \
+            -c 'Print :Entitlements:com.apple.developer.applesignin:0' \
+            "$RUNNER_TEMP/bodybuddies-profile.plist")"
+
+          test "$aps_environment" = "production"
+          test "$apple_sign_in" = "Default"
+          echo "Provisioning profile contains production APNs and Sign in with Apple."
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'
+          cache: true
+
+      - name: Install app dependencies
+        run: |
+          flutter pub get
+          cd ios
+          pod install
+
       - name: Build signed sandbox IPA
         env:
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
@@ -68,6 +89,8 @@ jobs:
             --dart-define=STRIPE_TEST_PUBLISHABLE_KEY="$STRIPE_TEST_PUBLISHABLE_KEY" \
             --dart-define=PAYMENT_INTENT_ENDPOINT="$PAYMENT_INTENT_ENDPOINT" \
             --dart-define=PAYMENT_INTENT_TEST_ENDPOINT="$PAYMENT_INTENT_TEST_ENDPOINT"
+          ipa_path="$(find build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit)"
+          test -n "$ipa_path"
 
       - name: Upload to TestFlight
         working-directory: ios
