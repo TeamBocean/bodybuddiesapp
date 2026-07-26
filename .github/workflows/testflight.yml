@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-upload:
@@ -41,11 +41,14 @@ jobs:
           cd ios
           pod install
 
-      - name: Install the existing distribution certificate and profile
+      - name: Install or renew the distribution certificate and profile
         working-directory: ios
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
         run: |
           match_auth="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64)"
           echo "::add-mask::$match_auth"
