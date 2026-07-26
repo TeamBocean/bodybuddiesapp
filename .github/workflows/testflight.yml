@@ -44,14 +44,12 @@ jobs:
       - name: Install the existing distribution certificate and profile
         working-directory: ios
         env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.IOS_DIST_SIGNING_KEY_PASSWORD }}
-          SIGNING_KEY_FILE_PATH: ${{ github.workspace }}/signing-cert.p12
-          CERTIFICATE_BASE64: ${{ secrets.IOS_DIST_SIGNING_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          printf '%s' "$CERTIFICATE_BASE64" | base64 --decode > "$SIGNING_KEY_FILE_PATH"
+          match_auth="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64)"
+          echo "::add-mask::$match_auth"
+          export MATCH_GIT_BASIC_AUTHORIZATION="$match_auth"
           fastlane ios prepare_ci_signing
 
       - name: Build signed sandbox IPA
