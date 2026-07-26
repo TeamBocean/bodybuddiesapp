@@ -13,6 +13,8 @@
 # Uncomment the line if you want fastlane to automatically update itself
 # update_fastlane
 
+require "plist"
+
 default_platform(:ios)
 
 platform :ios do
@@ -88,6 +90,27 @@ platform :ios do
       keychain_name: keychain_name,
       keychain_password: keychain_password,
       renew_expired_certs: true
+    )
+
+    profile_path = ENV.fetch(
+      "sigh_#{app_identifier}_appstore_profile-path"
+    )
+    profile = Plist.parse_xml(
+      sh("security", "cms", "-D", "-i", profile_path)
+    )
+    profile_entitlements = profile.fetch("Entitlements", {})
+    aps_environment = profile_entitlements["aps-environment"]
+    apple_sign_in = profile_entitlements["com.apple.developer.applesignin"]
+
+    UI.user_error!(
+      "Provisioning profile is missing production Push Notifications"
+    ) unless aps_environment == "production"
+    UI.user_error!(
+      "Provisioning profile is missing Sign in with Apple"
+    ) unless Array(apple_sign_in).include?("Default")
+
+    UI.success(
+      "Provisioning profile contains production APNs and Sign in with Apple"
     )
   end
 
