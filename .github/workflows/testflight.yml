@@ -84,6 +84,7 @@ jobs:
           PAYMENT_INTENT_TEST_ENDPOINT: ${{ secrets.PAYMENT_INTENT_TEST_ENDPOINT }}
         run: |
           flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist \
             --dart-define=PAYMENT_MODE=test \
             --dart-define=STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" \
             --dart-define=STRIPE_TEST_PUBLISHABLE_KEY="$STRIPE_TEST_PUBLISHABLE_KEY" \
