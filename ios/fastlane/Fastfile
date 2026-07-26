@@ -69,7 +69,7 @@ platform :ios do
       api_key: api_key,
       type: "appstore",
       readonly: false,
-      force: true,
+      force: false,
       app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
       git_url: ENV.fetch(
         "MATCH_GIT_URL",
