@@ -1,0 +1,55 @@
+name: Upload retained IPA to TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: GitHub Actions run containing the retained IPA
+        required: true
+        type: string
+      artifact_name:
+        description: Retained IPA artifact name
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  upload:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install upload dependencies
+        run: gem install fastlane --version 2.237.0 --no-document
+
+      - name: Download retained IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: build/ios/ipa
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.run_id }}
+
+      - name: Upload to TestFlight
+        working-directory: ios
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        run: |
+          ipa_path="$(find "$GITHUB_WORKSPACE/build/ios/ipa" \
+            -maxdepth 1 -name '*.ipa' -print -quit)"
+          test -n "$ipa_path"
+          fastlane ios upload_ipa ipa_path:"$ipa_path"
