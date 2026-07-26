@@ -2,7 +2,6 @@ import 'package:bodybuddiesapp/models/user.dart';
 import 'package:bodybuddiesapp/pages/credits_page.dart';
 import 'package:bodybuddiesapp/pages/profile_page.dart';
 import 'package:bodybuddiesapp/pages/progress_pics_page.dart';
-import 'package:bodybuddiesapp/providers/theme_provider.dart';
 import 'package:bodybuddiesapp/services/cloud_firestore.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/utils/dimensions.dart';
@@ -11,7 +10,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 import '../services/authentication.dart';
 
@@ -25,8 +23,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return Scaffold(
       backgroundColor: bbBackground,
       body: SafeArea(
@@ -225,25 +221,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         MaterialPageRoute(
                             builder: (_) => ProgressPicturesPage()));
                   },
-                ),
-                const SizedBox(height: 24),
-
-                // ── Appearance ───────────────────────────────────────────
-                _sectionLabel("APPEARANCE"),
-                const SizedBox(height: 12),
-                _settingsRow(
-                  "Dark Mode",
-                  themeProvider.isDarkMode ? "On" : "Off",
-                  trailing: Switch(
-                    value: themeProvider.isDarkMode,
-                    activeColor: bbAccent,
-                    onChanged: (value) {
-                      HapticFeedback.lightImpact();
-                      themeProvider.setThemeMode(
-                        value ? ThemeMode.dark : ThemeMode.light,
-                      );
-                    },
-                  ),
                 ),
                 const SizedBox(height: 32),
 

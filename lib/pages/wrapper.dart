@@ -100,7 +100,7 @@ class _WrapperState extends State<Wrapper> {
             }
 
             return widget.onboardingBuilder?.call(context) ??
-                const OnBoardingPage();
+                OnBoardingPage(onContinue: _retryAuthGate);
           },
         );
       },

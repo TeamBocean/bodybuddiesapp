@@ -1,9 +1,7 @@
 import 'package:bodybuddiesapp/models/booking.dart';
-import 'package:bodybuddiesapp/models/bookings.dart';
-import 'package:bodybuddiesapp/services/cloud_firestore.dart';
+import 'package:bodybuddiesapp/services/booking_api.dart';
 import 'package:bodybuddiesapp/utils/colors.dart';
 import 'package:bodybuddiesapp/widgets/booking_dialog.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -38,43 +36,18 @@ class BookingWidget extends StatefulWidget {
 }
 
 class _BookingWidgetState extends State<BookingWidget> {
-  Bookings? _previousData;
-
   // Pressed state for the tappable slot (drives the Book pill highlight)
   bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Bookings>(
-      stream: CloudFirestore().streamBookedDates("", year: widget.booking.year),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          _previousData = snapshot.data;
-          final isBooked = isAlreadyBooked(widget.booking, snapshot.data!.list);
-          final isPast = widget.booking.isPast;
-          final isDisabled = (isBooked && !widget.isBooked) ||
-              isPast ||
-              widget.disabledReason != null;
-          return _buildBookingCard(context, isDisabled, snapshot.data!.list);
-        } else if (_previousData != null) {
-          final isBooked = isAlreadyBooked(widget.booking, _previousData!.list);
-          final isPast = widget.booking.isPast;
-          final isDisabled = (isBooked && !widget.isBooked) ||
-              isPast ||
-              widget.disabledReason != null;
-          return _buildBookingCard(context, isDisabled, _previousData!.list);
-        } else {
-          return _buildSkeletonCard();
-        }
-      },
-    );
+    final isDisabled = widget.booking.isPast || widget.disabledReason != null;
+    return _buildBookingCard(context, isDisabled);
   }
 
   // ─── Slot Card ───────────────────────────────────────────────────────────
-  Widget _buildBookingCard(
-      BuildContext context, bool isDisabled, Map bookings) {
-    final isAlreadyTaken =
-        isAlreadyBooked(widget.booking, bookings) && !widget.isBooked;
+  Widget _buildBookingCard(BuildContext context, bool isDisabled) {
+    const isAlreadyTaken = false;
     final isPast = widget.booking.isPast;
     final canBook = !widget.isBooked &&
         !isAlreadyTaken &&
@@ -89,42 +62,37 @@ class _BookingWidgetState extends State<BookingWidget> {
         absorbing: isDisabled,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-          child: Opacity(
-            opacity: isDisabled ? 0.4 : 1.0,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTapDown:
-                  canBook ? (_) => setState(() => _pressed = true) : null,
-              onTapUp: canBook ? (_) => setState(() => _pressed = false) : null,
-              onTapCancel:
-                  canBook ? () => setState(() => _pressed = false) : null,
-              onTap: () {
-                if (canBook) HapticFeedback.lightImpact();
-                _handleTap(context, bookings);
-              },
-              child: AnimatedScale(
-                scale: _pressed ? 0.98 : 1.0,
-                duration: const Duration(milliseconds: 120),
-                child: Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: _pressed ? bbCard.withOpacity(0.78) : bbCard,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: canBook ? bbAccent.withOpacity(0.26) : bbBorder,
-                      width: 1,
-                    ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: canBook ? (_) => setState(() => _pressed = true) : null,
+            onTapUp: canBook ? (_) => setState(() => _pressed = false) : null,
+            onTapCancel:
+                canBook ? () => setState(() => _pressed = false) : null,
+            onTap: () {
+              if (canBook) HapticFeedback.lightImpact();
+              _handleTap(context);
+            },
+            child: AnimatedScale(
+              scale: _pressed ? 0.98 : 1.0,
+              duration: const Duration(milliseconds: 120),
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: _pressed ? bbCard.withOpacity(0.78) : bbCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: canBook ? bbAccent.withOpacity(0.26) : bbBorder,
+                    width: 1,
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(child: _buildTimeColumn()),
-                      _buildRightSide(
-                          context, bookings, canBook, isAlreadyTaken),
-                    ],
-                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(child: _buildTimeColumn()),
+                    _buildRightSide(context, canBook, isAlreadyTaken),
+                  ],
                 ),
               ),
             ),
@@ -211,7 +179,7 @@ class _BookingWidgetState extends State<BookingWidget> {
   }
 
   Widget _buildRightSide(
-      BuildContext context, Map bookings, bool canBook, bool isAlreadyTaken) {
+      BuildContext context, bool canBook, bool isAlreadyTaken) {
     if (widget.isBooked) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -245,15 +213,18 @@ class _BookingWidgetState extends State<BookingWidget> {
           ),
           const SizedBox(height: 8),
           // Cancel
-          GestureDetector(
-            onTap: () => _showCancelBookingDialog(context),
-            child: Text(
-              "Cancel",
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: bbAccentAlt,
-                decoration: TextDecoration.underline,
-                decorationColor: bbAccentAlt.withOpacity(0.5),
+          SizedBox(
+            height: 48,
+            child: TextButton(
+              onPressed: () => _showCancelBookingDialog(context),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: bbAccentAlt,
+                  decoration: TextDecoration.underline,
+                  decorationColor: bbAccentAlt,
+                ),
               ),
             ),
           ),
@@ -314,49 +285,14 @@ class _BookingWidgetState extends State<BookingWidget> {
     );
   }
 
-  // ─── Skeleton ───────────────────────────────────────────────────────────────
-  Widget _buildSkeletonCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _skeletonBar(width: 80, height: 28),
-              const SizedBox(height: 8),
-              _skeletonBar(width: 100, height: 14),
-            ],
-          ),
-          const Spacer(),
-          _skeletonBar(width: 50, height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _skeletonBar({required double width, required double height}) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: bbCard,
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
-
   // ─── Thin separator between slots ──────────────────────────────────────────
   // Used by the parent to render between slots
 
-  // ─── Business Logic (unchanged) ────────────────────────────────────────────
-  void _handleTap(BuildContext context, Map bookings) {
+  // ─── Business Logic ────────────────────────────────────────────────────────
+  void _handleTap(BuildContext context) {
     if (widget.isBooked) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Booked")));
-    } else if (isAlreadyBooked(widget.booking, bookings)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Not Available")));
     } else {
       // Tap also opens the dialog as a fallback
       bookingDialog(
@@ -470,18 +406,28 @@ class _BookingWidgetState extends State<BookingWidget> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
-                        CloudFirestore().removeUserBooking(
-                          widget.booking,
-                          FirebaseAuth.instance.currentUser!.uid,
-                        );
-                        Navigator.pop(context, 'dialog');
-                        setState(() {});
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Session cancelled"),
-                          ),
-                        );
+                      onTap: () async {
+                        try {
+                          await BookingApi().cancelSession(
+                            booking: widget.booking,
+                            userId: widget.booking.userId.isEmpty
+                                ? null
+                                : widget.booking.userId,
+                          );
+                          if (!context.mounted) return;
+                          Navigator.pop(context, 'dialog');
+                          setState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Session cancelled"),
+                            ),
+                          );
+                        } on BookingCommandException catch (error) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error.message)),
+                          );
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -511,13 +457,6 @@ class _BookingWidgetState extends State<BookingWidget> {
         ),
       ),
     );
-  }
-
-  bool isAlreadyBooked(Booking booking, Map bookings) {
-    String month = booking.month.toString();
-    String day = booking.day.toString();
-    List<dynamic>? bookedTimes = bookings[month]?[day];
-    return bookedTimes != null && bookedTimes.contains(booking.time);
   }
 
   String _formatDate(Booking booking) {

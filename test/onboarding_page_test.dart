@@ -76,6 +76,43 @@ void main() {
         isTrue,
       );
     });
+
+    testWidgets('submits from the weight keyboard action', (tester) async {
+      int? submittedWeight;
+
+      await pumpOnboardingPage(
+        tester,
+        submitUserInfo: (_, weight) async {
+          submittedWeight = weight;
+          return true;
+        },
+        sendWelcomeEmail: (_) async {},
+      );
+
+      final fields = onboardingTextFields();
+      await tester.enterText(fields.at(0), 'Jane Doe');
+      await tester.tap(find.widgetWithText(ChoiceChip, 'lb'));
+      await tester.enterText(fields.at(1), '165');
+      await tester.tap(fields.at(1));
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(submittedWeight, 75);
+      expect(find.text('Your profile is saved.'), findsOneWidget);
+    });
+
+    testWidgets('converts the existing value when the unit changes',
+        (tester) async {
+      await pumpOnboardingPage(tester);
+
+      final fields = onboardingTextFields();
+      await tester.enterText(fields.at(1), '75');
+      await tester.tap(find.widgetWithText(ChoiceChip, 'lb'));
+      await tester.pump();
+
+      expect(find.text('165.3'), findsOneWidget);
+      expect(find.text('Weight (lb)'), findsOneWidget);
+    });
   });
 
   group('OnBoardingPage submit flow', () {
@@ -90,13 +127,17 @@ void main() {
       await tester.tap(find.text('Complete setup'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Connection Issue'), findsOneWidget);
+      expect(find.text('Setup not finished'), findsOneWidget);
+      expect(
+        find.textContaining('Check your connection and try again'),
+        findsOneWidget,
+      );
       expect(find.text('Try Again'), findsOneWidget);
-      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Keep editing'), findsOneWidget);
       expect(find.text('Complete setup'), findsOneWidget);
     });
 
-    testWidgets('cancel on retry dialog explains recovery options',
+    testWidgets('keep editing on retry dialog explains recovery options',
         (tester) async {
       await pumpOnboardingPage(
         tester,
@@ -107,19 +148,21 @@ void main() {
 
       await tester.tap(find.text('Complete setup'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Cancel'));
+      await tester.tap(find.text('Keep editing'));
       await tester.pumpAndSettle();
 
       expect(find.text('Connection Issue'), findsNothing);
       expect(find.byType(SnackBar), findsOneWidget);
       expect(
-        find.textContaining('Tap Complete setup to try again'),
+        find.textContaining('Check your connection, then tap Complete setup'),
         findsOneWidget,
       );
     });
 
     testWidgets('shows success state after verified setup write',
         (tester) async {
+      var continued = false;
+
       await pumpOnboardingPage(
         tester,
         submitUserInfo: (name, weight) async {
@@ -128,6 +171,7 @@ void main() {
           return true;
         },
         sendWelcomeEmail: (_) async {},
+        onContinue: () => continued = true,
       );
       await fillValidOnboardingForm(tester);
 
@@ -135,8 +179,12 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      expect(find.text("You're all set! Opening the app…"), findsOneWidget);
+      expect(find.text('Your profile is saved.'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
       expect(find.text('Complete setup'), findsNothing);
+
+      await tester.tap(find.text('Continue'));
+      expect(continued, isTrue);
     });
 
     testWidgets('retries setup from dialog after failure', (tester) async {
@@ -159,7 +207,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       expect(attempts, 2);
-      expect(find.text("You're all set! Opening the app…"), findsOneWidget);
+      expect(find.text('Your profile is saved.'), findsOneWidget);
     });
   });
 }

@@ -411,18 +411,36 @@ class _HomePageState extends State<HomePage>
                                     return Padding(
                                       padding: EdgeInsets.only(
                                           bottom: Dimensions.height10),
-                                      child: GestureDetector(
-                                        onDoubleTap: () {
-                                          _showUpdateNameDialog(
-                                              bookings[index]);
-                                        },
-                                        child: BookingWidget(
-                                          isBooked: true,
-                                          slots: const [],
-                                          booking: bookings[index],
-                                          isAdmin: true,
-                                          month: 0,
-                                        ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: BookingWidget(
+                                              isBooked: true,
+                                              slots: const [],
+                                              booking: bookings[index],
+                                              isAdmin: true,
+                                              month: 0,
+                                            ),
+                                          ),
+                                          Semantics(
+                                            button: true,
+                                            label:
+                                                'Edit session for ${bookings[index].bookingName}',
+                                            child: IconButton(
+                                              tooltip: 'Edit session client',
+                                              constraints: const BoxConstraints(
+                                                minWidth: 48,
+                                                minHeight: 48,
+                                              ),
+                                              onPressed: () =>
+                                                  _showUpdateNameDialog(
+                                                      bookings[index]),
+                                              icon: const Icon(
+                                                  Icons.edit_outlined),
+                                              color: bbTextSecondary,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     );
                                   },
@@ -1435,15 +1453,24 @@ class _HomePageState extends State<HomePage>
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
-                        CloudFirestore().removeUserBooking(
-                          booking,
-                          FirebaseAuth.instance.currentUser!.uid,
-                        );
-                        Navigator.pop(dialogContext, 'dialog');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Session cancelled")),
-                        );
+                      onTap: () async {
+                        try {
+                          await CloudFirestore().removeUserBooking(
+                            booking,
+                            FirebaseAuth.instance.currentUser!.uid,
+                          );
+                          if (!dialogContext.mounted) return;
+                          Navigator.pop(dialogContext, 'dialog');
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Session cancelled")),
+                          );
+                        } catch (error) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error.toString())),
+                          );
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),

@@ -1,5 +1,3 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 class PaymentRuntimeConfig {
   static bool usesStripeTestMode = false;
   static String publishableKey = '';
@@ -12,12 +10,14 @@ class PaymentRuntimeConfig {
         normalizedOverride == 'test' ||
         (normalizedOverride.isEmpty && isTestFlight);
 
-    publishableKey = usesStripeTestMode
-        ? dotenv.env['STRIPE_TEST_PUBLISHABLE_KEY'] ?? ''
-        : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
+    const livePublishableKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
+    const testPublishableKey =
+        String.fromEnvironment('STRIPE_TEST_PUBLISHABLE_KEY');
+    publishableKey =
+        usesStripeTestMode ? testPublishableKey : livePublishableKey;
 
-    paymentIntentEndpoint = usesStripeTestMode
-        ? dotenv.env['PAYMENT_INTENT_TEST_ENDPOINT'] ?? ''
-        : dotenv.env['PAYMENT_INTENT_ENDPOINT'] ?? '';
+    const liveEndpoint = String.fromEnvironment('PAYMENT_INTENT_ENDPOINT');
+    const testEndpoint = String.fromEnvironment('PAYMENT_INTENT_TEST_ENDPOINT');
+    paymentIntentEndpoint = usesStripeTestMode ? testEndpoint : liveEndpoint;
   }
 }

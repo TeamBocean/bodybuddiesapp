@@ -626,7 +626,7 @@ class _CreditsPageState extends State<CreditsPage> {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
-          style: ThemeMode.light,
+          style: ThemeMode.dark,
           merchantDisplayName: 'BodyBuddies',
         ),
       );
@@ -762,7 +762,7 @@ class _CreditsPageState extends State<CreditsPage> {
     final endpoint = PaymentRuntimeConfig.paymentIntentEndpoint;
     if (endpoint == null || endpoint.isEmpty) {
       throw Exception(
-        'Missing payment endpoint in .env. '
+        'Missing PAYMENT_INTENT_ENDPOINT build configuration. '
         'Stripe PaymentIntents must be created by the backend.',
       );
     }

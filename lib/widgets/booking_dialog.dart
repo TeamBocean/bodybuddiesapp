@@ -7,7 +7,6 @@ import '../models/booking.dart';
 import '../models/user.dart';
 import '../pages/credits_page.dart';
 import '../services/cloud_firestore.dart';
-import '../services/email.dart';
 import '../utils/colors.dart';
 
 /// Shows the booking confirmation dialog.
@@ -54,21 +53,6 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
 
-      final creditSuccess =
-          await CloudFirestore().decreaseCreditsAtomic(1, userId);
-
-      if (!creditSuccess) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("You are out of credits")),
-          );
-          setState(() {
-            _isProcessing = false;
-          });
-        }
-        return;
-      }
-
       // Use the selected booking's year (not "now") so bookings made near
       // New Year are stored against the correct year.
       var uuid = const Uuid();
@@ -82,25 +66,30 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         id: uuid.v1(),
         bookingName: user.name,
         trainer: widget.trainer,
+        trainerId: widget.booking.trainerId,
         price: widget.booking.price,
         time: widget.booking.time,
         date: "${widget.day}/${widget.month}/${selectedDate.year}",
       );
 
-      final bookingSuccess = await CloudFirestore().bookSlotAtomic(
+      final bookingResult = await CloudFirestore().bookSlotAtomic(
         booking: userBooking,
         userID: userId,
         month: widget.month,
         username: user.name,
+        userEmail: user.email,
       );
 
-      if (!bookingSuccess) {
-        CloudFirestore().incrementCredit(1, userId);
+      if (bookingResult != BookingResult.success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  "This slot was just booked. Please choose another time.",
+                  bookingResult == BookingResult.noCredits
+                      ? "You are out of credits."
+                      : bookingResult == BookingResult.conflict
+                          ? "This slot was just booked. Please choose another time."
+                          : "We couldn't complete the booking. Please try again.",
                   style: GoogleFonts.inter(color: bbOnAccent)),
               backgroundColor: bbAccentAlt,
             ),
@@ -111,9 +100,6 @@ class _BookingDialogContentState extends State<_BookingDialogContent> {
         }
         return;
       }
-
-      EmailService().sendBookingConfirmationToMark(userBooking);
-      EmailService().sendBookingConfirmationToUser(userBooking);
 
       if (mounted) {
         Navigator.pop(context, 'dialog');

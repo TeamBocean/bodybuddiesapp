@@ -1,29 +1,25 @@
 import 'package:bodybuddiesapp/config/payment_runtime_config.dart';
 import 'package:bodybuddiesapp/pages/wrapper.dart';
-import 'package:bodybuddiesapp/providers/theme_provider.dart';
 import 'package:bodybuddiesapp/utils/app_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:provider/provider.dart';
 
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    await dotenv.load();
     final isTestFlight = await _isTestFlight();
     PaymentRuntimeConfig.initialize(isTestFlight: isTestFlight);
     final publishableKey = PaymentRuntimeConfig.publishableKey;
     _validateReleasePaymentConfiguration();
     if (publishableKey.isEmpty) {
       throw Exception(
-        'Missing Stripe publishable key in .env. '
-        'See README for setup instructions.',
+        'Missing Stripe publishable key. Supply STRIPE_PUBLISHABLE_KEY '
+        'as a Dart define.',
       );
     }
 
@@ -33,21 +29,19 @@ void main() async {
 
     // Initialize Firebase
     await Firebase.initializeApp();
-    if (dotenv.env['USE_FIRESTORE_EMULATOR'] == 'true') {
+    const useFirestoreEmulator = bool.fromEnvironment('USE_FIRESTORE_EMULATOR');
+    if (useFirestoreEmulator) {
       FirebaseFirestore.instance.useFirestoreEmulator(
-        dotenv.env['FIRESTORE_EMULATOR_HOST'] ?? '127.0.0.1',
-        int.tryParse(dotenv.env['FIRESTORE_EMULATOR_PORT'] ?? '') ?? 8080,
+        const String.fromEnvironment(
+          'FIRESTORE_EMULATOR_HOST',
+          defaultValue: '127.0.0.1',
+        ),
+        const int.fromEnvironment('FIRESTORE_EMULATOR_PORT',
+            defaultValue: 8080),
       );
     }
 
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ],
-        child: const MyApp(),
-      ),
-    );
+    runApp(const MyApp());
   } catch (e) {
     print('Initialization error: $e');
     runApp(
@@ -78,7 +72,7 @@ void _validateReleasePaymentConfiguration() {
 
   final publishableKey = PaymentRuntimeConfig.publishableKey;
   final endpoint = PaymentRuntimeConfig.paymentIntentEndpoint;
-  final usesFirestoreEmulator = dotenv.env['USE_FIRESTORE_EMULATOR'] == 'true';
+  const usesFirestoreEmulator = bool.fromEnvironment('USE_FIRESTORE_EMULATOR');
   final pointsAtLocalhost = endpoint.contains('localhost') ||
       endpoint.contains('127.0.0.1') ||
       endpoint.contains('10.0.2.2');
@@ -113,16 +107,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeProvider.themeMode,
-          home: const Wrapper(),
-        );
-      },
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.darkTheme,
+      themeMode: ThemeMode.dark,
+      home: const Wrapper(),
     );
   }
 }

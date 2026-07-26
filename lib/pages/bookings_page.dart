@@ -9,10 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
-import '../models/bookings.dart';
 import '../models/user.dart';
 import '../services/cloud_firestore.dart';
+import '../services/booking_api.dart';
 import '../utils/dimensions.dart';
 
 class BookingsPage extends StatefulWidget {
@@ -28,9 +27,11 @@ class _BookingsPageState extends State<BookingsPage>
 
   List<Widget> dates = [];
   String selectedValue = "Mark";
+  String selectedTrainerId = "mark";
   final DateFormat _dateFormat = DateFormat('HH:mm');
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late Future<List<dynamic>> _trainersFuture;
 
   DateTime currentDay = DateTime.now();
   final _currentDate = DateTime.now();
@@ -41,7 +42,6 @@ class _BookingsPageState extends State<BookingsPage>
   final List<Booking> _slotData = [];
   int currentDayPage = 365;
   PageController pageController = PageController(initialPage: 365);
-  Bookings? bookings;
   List<Booking>? _dayBookings;
 
   // Horizon ribbon scroll controller
@@ -59,6 +59,7 @@ class _BookingsPageState extends State<BookingsPage>
     );
     _animationController.forward();
     _horizonScrollController = ScrollController();
+    _trainersFuture = CloudFirestore().getAllPTs();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCurrentDate();
@@ -78,34 +79,17 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   Booking _bookingFor(DateTime timeSlot) {
-    var uuid = const Uuid();
+    final time = _dateFormat.format(timeSlot);
     return Booking(
-      id: uuid.v1(),
+      id: 'slot_${selectedTrainerId}_${currentDay.year}_'
+          '${currentDay.month}_${currentDay.day}_${time.replaceAll(':', '')}',
       bookingName: "",
       trainer: selectedValue,
+      trainerId: selectedTrainerId,
       price: 1,
       date: "${currentDay.day}/${currentDay.month}/${currentDay.year}",
-      time: _dateFormat.format(timeSlot),
+      time: time,
     );
-  }
-
-  bool _isSlotAvailable(DateTime timeSlot) {
-    List<DateTime> timesToCheck = [
-      timeSlot,
-      timeSlot.add(const Duration(minutes: 15)),
-      timeSlot.add(const Duration(minutes: 30)),
-      timeSlot.subtract(const Duration(minutes: 15)),
-      timeSlot.subtract(const Duration(minutes: 30)),
-    ];
-    return timesToCheck.every((time) => !_isAlreadyBooked(time));
-  }
-
-  bool _isAlreadyBooked(DateTime time) {
-    if (bookings == null) return false;
-    String timeString = _dateFormat.format(time);
-    List<dynamic>? bookedTimes =
-        bookings!.list[time.month.toString()]?[time.day.toString()];
-    return bookedTimes != null && bookedTimes.contains(timeString);
   }
 
   bool isCurrentDayNotWeekend() {
@@ -132,115 +116,97 @@ class _BookingsPageState extends State<BookingsPage>
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Bookings>(
-      stream: CloudFirestore().streamBookedDates(
-        FirebaseAuth.instance.currentUser!.uid,
+    return StreamBuilder<List<Booking>>(
+      stream: CloudFirestore().streamDayAvailability(
+        currentDay.month,
+        currentDay.day,
         year: currentDay.year,
       ),
-      builder: (context, bookingsSnapshot) {
-        if (bookingsSnapshot.hasData) {
-          bookings = bookingsSnapshot.data;
+      builder: (context, dayBookingsSnapshot) {
+        if (dayBookingsSnapshot.hasData) {
+          _dayBookings = dayBookingsSnapshot.data;
         }
 
-        // Secondary stream: cross-reference the bookings-list (admin's source of truth)
-        // This prevents double-bookings when the availability map is out of sync
-        return StreamBuilder<List<Booking>>(
-          stream: CloudFirestore().streamAllBookings(
-            currentDay.month,
-            currentDay.day,
-            year: currentDay.year,
+        _buildAvailableSlots();
+        _buildDateWidgets();
+
+        return SizedBox(
+          height: MediaQuery.of(context).size.height,
+          child: SafeArea(
+            child: StreamBuilder<UserModel>(
+              stream: CloudFirestore()
+                  .streamUserData(FirebaseAuth.instance.currentUser!.uid),
+              builder: (context, userSnapshot) {
+                if (!dayBookingsSnapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: bbAccent),
+                  );
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header and booking controls.
+                    _buildHeader(),
+                    const SizedBox(height: 18),
+
+                    // Nearby date strip.
+                    _buildHorizonRibbon(),
+                    const SizedBox(height: 14),
+
+                    // Available times.
+                    Expanded(
+                      child: PageView.builder(
+                        controller: pageController,
+                        onPageChanged: (index) async {
+                          HapticFeedback.lightImpact();
+                          setState(() {
+                            currentDayPage = index;
+                            currentDay = _currentDate
+                                .add(Duration(days: currentDayPage - 365));
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          final List<Widget> children = _slotData.isEmpty
+                              ? [
+                                  _buildBookingSummary(userSnapshot),
+                                  _buildEmptyState(),
+                                ]
+                              : _buildSlotList(userSnapshot);
+
+                          return Padding(
+                            padding: EdgeInsets.only(
+                                bottom:
+                                    Dimensions.height50 + Dimensions.height20),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height -
+                                  (Dimensions.height50 * 4 +
+                                      Dimensions.height10 * 8),
+                              child: SingleChildScrollView(
+                                physics: const BouncingScrollPhysics(),
+                                child: Column(children: children),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-          builder: (context, dayBookingsSnapshot) {
-            if (dayBookingsSnapshot.hasData) {
-              _dayBookings = dayBookingsSnapshot.data;
-            }
-
-            _buildAvailableSlots();
-            _buildDateWidgets();
-
-            return SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: SafeArea(
-                child: StreamBuilder<UserModel>(
-                  stream: CloudFirestore()
-                      .streamUserData(FirebaseAuth.instance.currentUser!.uid),
-                  builder: (context, userSnapshot) {
-                    if (!bookingsSnapshot.hasData &&
-                        !dayBookingsSnapshot.hasData) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: bbAccent),
-                      );
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header and booking controls.
-                        _buildHeader(),
-                        const SizedBox(height: 18),
-
-                        // Nearby date strip.
-                        _buildHorizonRibbon(),
-                        const SizedBox(height: 14),
-
-                        // Available times.
-                        Expanded(
-                          child: PageView.builder(
-                            controller: pageController,
-                            onPageChanged: (index) async {
-                              HapticFeedback.lightImpact();
-                              setState(() {
-                                currentDayPage = index;
-                                currentDay = _currentDate
-                                    .add(Duration(days: currentDayPage - 365));
-                              });
-                            },
-                            itemBuilder: (context, index) {
-                              final List<Widget> children = _slotData.isEmpty
-                                  ? [
-                                      _buildBookingSummary(userSnapshot),
-                                      _buildEmptyState(),
-                                    ]
-                                  : _buildSlotList(userSnapshot);
-
-                              return Padding(
-                                padding: EdgeInsets.only(
-                                    bottom: Dimensions.height50 +
-                                        Dimensions.height20),
-                                child: SizedBox(
-                                  height: MediaQuery.of(context).size.height -
-                                      (Dimensions.height50 * 4 +
-                                          Dimensions.height10 * 8),
-                                  child: SingleChildScrollView(
-                                    physics: const BouncingScrollPhysics(),
-                                    child: Column(children: children),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            );
-          },
         );
       },
     );
   }
 
-  /// Build the slot list, flagging every slot as unavailable (with a banner)
-  /// when the user already has a session booked on the selected day.
   List<Widget> _buildSlotList(AsyncSnapshot<UserModel> userSnapshot) {
     final Booking? existing = userSnapshot.data?.bookings
         .firstWhereOrNull((element) => element.isOnDate(currentDay));
-    final bool dayAlreadyBooked = existing != null;
 
     List<Widget> items = [_buildBookingSummary(userSnapshot)];
-    if (dayAlreadyBooked) {
+    if (existing != null) {
       items.add(_buildAlreadyBookedBanner(existing));
     }
 
@@ -252,13 +218,12 @@ class _BookingsPageState extends State<BookingsPage>
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: BookingWidget(
-              key: ValueKey('${booking.time}-$dayAlreadyBooked'),
+              key: ValueKey('${booking.trainer}-${booking.time}'),
               isBooked: false,
               trainer: selectedValue,
               isAdmin: false,
               booking: booking,
               month: currentDay.month,
-              disabledReason: dayAlreadyBooked ? "Booked today" : null,
             ),
           ),
         );
@@ -469,8 +434,8 @@ class _BookingsPageState extends State<BookingsPage>
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              "You're booked today at ${existing.time}. "
-              "Other slots are unavailable.",
+              "You already have a session today at ${existing.time}. "
+              "You can still reserve another available time.",
               style: GoogleFonts.inter(
                 fontSize: 12.5,
                 color: bbTextSecondary,
@@ -506,7 +471,8 @@ class _BookingsPageState extends State<BookingsPage>
     } else if (selectedValue == "Mandalena") {
       while (startTime.isBefore(endTime)) {
         DateTime timeSlot = startTime.add(const Duration(minutes: 15));
-        if (_shouldShowSlot(timeSlot) && _isSlotAvailable(timeSlot)) {
+        if (_shouldShowSlot(timeSlot) &&
+            !_isTimeSlotConflicting(_dateFormat.format(timeSlot))) {
           _slotData.add(_bookingFor(timeSlot));
         }
         startTime = timeSlot;
@@ -514,33 +480,29 @@ class _BookingsPageState extends State<BookingsPage>
     }
   }
 
-  /// Check if a time slot conflicts with existing bookings.
-  /// Uses DUAL-SOURCE verification:
-  ///   1. The availability map (bookings/{year}) — fast path
-  ///   2. The bookings list (bookings-list) — ground truth (same as admin)
-  /// This prevents double-bookings when the two stores are out of sync.
+  /// Checks the server-published, trainer-aware day projection. The booking
+  /// command validates the same interval again before committing.
   bool _isTimeSlotConflicting(String time) {
     final bookingMinutes = _parseTimeToMinutes(time);
 
-    // Source 1: Check the availability map
-    if (bookings != null) {
-      final dayStr = currentDay.day.toString();
-      final monthStr = currentDay.month.toString();
-      List<dynamic>? bookedTimes = bookings!.list[monthStr]?[dayStr];
-      if (bookedTimes != null) {
-        for (final existingTime in bookedTimes) {
-          final existingMinutes = _parseTimeToMinutes(existingTime as String);
-          final diff = (bookingMinutes - existingMinutes).abs();
-          if (diff < 45) return true;
-        }
-      }
-    }
-
-    // Source 2: Check the bookings list (ground truth)
+    // The public booking list is the canonical availability source. The legacy
+    // availability map is not trainer-aware and must not block another coach.
     if (_dayBookings != null) {
       for (final booking in _dayBookings!) {
+        final bookingTrainerId = booking.trainerId.isNotEmpty
+            ? booking.trainerId
+            : _normalizeTrainerId(booking.trainer);
+        if (bookingTrainerId != selectedTrainerId) continue;
         if (booking.time.isEmpty) continue;
         final existingMinutes = _parseTimeToMinutes(booking.time);
+        if (booking.isBlock && booking.endTime.isNotEmpty) {
+          final blockEnd = _parseTimeToMinutes(booking.endTime);
+          final requestedEnd = bookingMinutes + 45;
+          if (bookingMinutes < blockEnd && requestedEnd > existingMinutes) {
+            return true;
+          }
+          continue;
+        }
         final diff = (bookingMinutes - existingMinutes).abs();
         if (diff < 45) return true;
       }
@@ -552,6 +514,10 @@ class _BookingsPageState extends State<BookingsPage>
   int _parseTimeToMinutes(String time) {
     final parts = time.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+
+  String _normalizeTrainerId(String value) {
+    return value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9_-]+'), '_');
   }
 
   bool _shouldShowSlot(DateTime timeSlot) {
@@ -615,7 +581,7 @@ class _BookingsPageState extends State<BookingsPage>
           Row(
             children: [
               FutureBuilder<List<dynamic>>(
-                future: CloudFirestore().getAllPTs(),
+                future: _trainersFuture,
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return const SizedBox(
@@ -634,6 +600,7 @@ class _BookingsPageState extends State<BookingsPage>
                   if (!pts.contains("Mark")) pts.add("Mark");
 
                   return Container(
+                    constraints: const BoxConstraints(minHeight: 48),
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
@@ -664,6 +631,17 @@ class _BookingsPageState extends State<BookingsPage>
                             HapticFeedback.lightImpact();
                             setState(() {
                               selectedValue = newValue;
+                              final matches = snapshot.data!.where(
+                                (item) => item['name'].toString() == newValue,
+                              );
+                              selectedTrainerId = matches.isEmpty
+                                  ? _normalizeTrainerId(newValue)
+                                  : (matches.first['id']
+                                              ?.toString()
+                                              .isNotEmpty ==
+                                          true
+                                      ? matches.first['id'].toString()
+                                      : _normalizeTrainerId(newValue));
                             });
                           },
                           items:
@@ -688,6 +666,7 @@ class _BookingsPageState extends State<BookingsPage>
                     behavior: HitTestBehavior.opaque,
                     onTap: _showCalendarDialog,
                     child: Container(
+                      constraints: const BoxConstraints(minHeight: 48),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 11),
                       decoration: BoxDecoration(
@@ -721,6 +700,18 @@ class _BookingsPageState extends State<BookingsPage>
               ),
             ],
           ),
+          if (CloudFirestore().isEmployee() ||
+              CloudFirestore().isDeveloper()) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _showBlockManager,
+                icon: const Icon(Icons.block_rounded, size: 17),
+                label: const Text("Block or reopen times"),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -835,7 +826,13 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   bool _hasKnownBookings(DateTime date) {
-    return bookings?.list[date.month.toString()]?[date.day.toString()] != null;
+    if (!_isSameDate(date, currentDay) || _dayBookings == null) return false;
+    return _dayBookings!.any((booking) {
+      final trainerId = booking.trainerId.isNotEmpty
+          ? booking.trainerId
+          : _normalizeTrainerId(booking.trainer);
+      return trainerId == selectedTrainerId;
+    });
   }
 
   String _dateAvailabilityLabel(DateTime date) {
@@ -1187,6 +1184,115 @@ class _BookingsPageState extends State<BookingsPage>
         first.day == second.day;
   }
 
+  Future<void> _showBlockManager() async {
+    final startController = TextEditingController(text: '09:00');
+    final endController = TextEditingController(text: '09:45');
+    final reasonController = TextEditingController(text: 'Unavailable');
+    final blocks = (_dayBookings ?? []).where((booking) {
+      final trainerId = booking.trainerId.isNotEmpty
+          ? booking.trainerId
+          : _normalizeTrainerId(booking.trainer);
+      return booking.isBlock && trainerId == selectedTrainerId;
+    }).toList();
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text("Manage $selectedValue availability"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_formatFullDate(currentDay)),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: startController,
+                      decoration:
+                          const InputDecoration(labelText: 'From (HH:mm)'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: endController,
+                      decoration:
+                          const InputDecoration(labelText: 'Until (HH:mm)'),
+                    ),
+                  ),
+                ],
+              ),
+              TextField(
+                controller: reasonController,
+                decoration: const InputDecoration(labelText: 'Reason'),
+              ),
+              if (blocks.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                const Divider(),
+                ...blocks.map(
+                  (block) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text('${block.time}–${block.endTime}'),
+                    subtitle: Text(block.bookingName),
+                    trailing: IconButton(
+                      tooltip: 'Reopen this time',
+                      icon: const Icon(Icons.lock_open_rounded),
+                      onPressed: () async {
+                        try {
+                          await BookingApi().unblockTime(block.blockId);
+                          if (dialogContext.mounted) {
+                            Navigator.pop(dialogContext);
+                          }
+                        } on BookingCommandException catch (error) {
+                          if (!dialogContext.mounted) return;
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            SnackBar(content: Text(error.message)),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              try {
+                await BookingApi().blockTime(
+                  trainerId: selectedTrainerId,
+                  trainerName: selectedValue,
+                  date: currentDay,
+                  startTime: startController.text.trim(),
+                  endTime: endController.text.trim(),
+                  reason: reasonController.text.trim(),
+                );
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
+              } on BookingCommandException catch (error) {
+                if (!dialogContext.mounted) return;
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(content: Text(error.message)),
+                );
+              }
+            },
+            child: const Text('Block time'),
+          ),
+        ],
+      ),
+    );
+    startController.dispose();
+    endController.dispose();
+    reasonController.dispose();
+  }
+
   Future<void> _onDateTap(DateTime date) async {
     setState(() {
       int pageIndex = date.difference(_currentDate).inDays;
@@ -1200,13 +1306,5 @@ class _BookingsPageState extends State<BookingsPage>
     Booking? booking =
         list.firstWhereOrNull((element) => element.isOnDate(currentDay));
     return booking != null ? 0.5 : 1;
-  }
-
-  bool isAlreadyBooked(Booking booking, Map bookings) {
-    String month = booking.month.toString();
-    String day = booking.day.toString();
-    List<dynamic>? bookedTimes =
-        bookings.containsKey(month) ? bookings[month][day] : [];
-    return bookedTimes != null ? bookedTimes.contains(booking.time) : false;
   }
 }

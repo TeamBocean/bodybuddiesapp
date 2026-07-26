@@ -60,4 +60,5 @@ node_modules/
 package-lock.json
 
 # Admin scripts with sensitive operations
-scripts/
+scripts/*
+!scripts/release_to_testflight.sh

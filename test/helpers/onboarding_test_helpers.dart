@@ -14,6 +14,7 @@ Future<void> pumpOnboardingPage(
   WidgetTester tester, {
   Future<bool> Function(String name, int weight)? submitUserInfo,
   Future<void> Function(String name)? sendWelcomeEmail,
+  VoidCallback? onContinue,
 }) async {
   await tester.binding.setSurfaceSize(const Size(400, 800));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -28,6 +29,7 @@ Future<void> pumpOnboardingPage(
             initialName: '',
             submitUserInfo: submitUserInfo,
             sendWelcomeEmail: sendWelcomeEmail,
+            onContinue: onContinue,
           );
         },
       ),

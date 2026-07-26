@@ -1,11 +1,12 @@
-import 'package:bodybuddiesapp/models/bookings.dart';
 import 'package:bodybuddiesapp/models/user.dart';
-import 'package:bodybuddiesapp/services/email.dart';
 import 'package:bodybuddiesapp/utils/onboarding_user_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/booking.dart';
+import 'booking_api.dart';
+
+enum BookingResult { success, noCredits, conflict, failed }
 
 class CloudFirestore {
   final reference = FirebaseFirestore.instance;
@@ -107,15 +108,11 @@ class CloudFirestore {
       {int? year}) async {
     try {
       final bookingYear = year ?? DateTime.now().year;
-      reference
-          .collection("bookings-list")
-          .doc(bookingYear.toString())
-          .collection(month)
-          .doc(day)
-          .collection("bookings")
-          .doc(documentId)
-          .update({"name": newName});
-
+      await BookingApi().renameSession(
+        sessionId: documentId,
+        date: DateTime(bookingYear, int.parse(month), int.parse(day)),
+        newName: newName,
+      );
       return true;
     } catch (e) {
       print(e);
@@ -154,26 +151,6 @@ class CloudFirestore {
     });
   }
 
-  /// Stream booked dates for a specific year
-  Stream<Bookings> streamBookedDates(String userID, {int? year}) {
-    final bookingYear = year ?? DateTime.now().year;
-    return reference
-        .collection("bookings")
-        .doc(bookingYear.toString())
-        .snapshots()
-        .map((user) => Bookings.fromJson(user.data()));
-  }
-
-  /// Get booked dates for a specific year
-  Future<Bookings> getBookedDates(String userID, {int? year}) async {
-    final bookingYear = year ?? DateTime.now().year;
-    DocumentSnapshot snap = await reference
-        .collection("bookings")
-        .doc(bookingYear.toString())
-        .get();
-    return Bookings.fromJson(snap.data());
-  }
-
   /// Stream all bookings for a specific day, month, and year
   Stream<List<Booking>> streamAllBookings(int month, int day, {int? year}) {
     final bookingYear = year ?? DateTime.now().year;
@@ -188,211 +165,24 @@ class CloudFirestore {
             event.docs.map((e) => Booking.fromJson(e.data(), e.id)).toList());
   }
 
-  /// Create a booking
-  /// Send booking confirmation email to customer
-  /// Send booking confirmation email to Mark
-  void addUserBooking(
-      Booking booking, String userID, int month, String username) {
-    // Ensure booking has year in the date
-    final bookingWithYear = Booking(
-      id: booking.id,
-      bookingName: booking.bookingName,
-      trainer: booking.trainer,
-      price: booking.price,
-      time: booking.time,
-      date: booking.normalizedDate, // Use normalized date with year
-    );
-
-    reference.collection("users").doc(userID).update({
-      "bookings": FieldValue.arrayUnion([bookingWithYear.toJson()])
-    });
-    EmailService().sendBookingConfirmationToMark(bookingWithYear);
-    EmailService().sendBookingConfirmationToUser(bookingWithYear);
-    addBooking(bookingWithYear, month, username);
-  }
-
-  void addBooking(Booking booking, int month, String username) {
-    // Use centralized date parsing from Booking model
-    String day = booking.day.toString();
-    String monthStr = booking.month.toString();
-    String year = booking.year.toString();
-
-    reference.collection("bookings").doc(year).update({
-      "$monthStr.$day": FieldValue.arrayUnion([booking.time])
-    });
-
-    addPublicBooking(booking, booking.month, username);
-  }
-
-  void addPublicBooking(Booking booking, int month, String username) {
-    Map<String, dynamic> bookingAsMap = booking.toJson();
-    bookingAsMap['name'] = username;
-    String year = booking.year.toString();
-
-    reference
-        .collection("bookings-list")
-        .doc(year)
+  Stream<List<Booking>> streamDayAvailability(int month, int day, {int? year}) {
+    final targetYear = year ?? DateTime.now().year;
+    return reference
+        .collection('trainer-day-slots')
+        .doc(targetYear.toString())
         .collection(month.toString())
-        .doc(booking.day.toString())
-        .collection("bookings")
-        .doc(booking.id)
-        .set(bookingAsMap);
+        .doc(day.toString())
+        .collection('slots')
+        .snapshots()
+        .map((event) => event.docs
+            .map((document) => Booking.fromJson(document.data(), document.id))
+            .toList());
   }
 
-  /// Remove a user's booking and handle credit refund
-  /// FIXED: Credits are only refunded if cancelled MORE than 24 hours before the session
-  void removeUserBooking(Booking booking, String userID) {
-    EmailService().sendBookingCancellationToMark(Booking(
-        id: booking.id,
-        bookingName: booking.bookingName,
-        price: booking.price,
-        time: booking.time,
-        date: booking.date));
-
-    reference.collection("users").doc(userID).update({
-      "bookings": FieldValue.arrayRemove([booking.toJson()])
-    });
-
-    removeBooking(booking);
-
-    // FIXED: Only refund if >24 hours BEFORE the booking time
-    // Previous bug: Used .abs() which meant past bookings always got refunds
-    final hoursUntilBooking =
-        booking.getDateTime().difference(DateTime.now()).inHours;
-    if (hoursUntilBooking > 24) {
-      incrementCredit(1, userID);
-    }
-  }
-
-  /// DEPRECATED: Use booking.getDateTime() instead
-  DateTime getBookingDateTime(String date, String time) {
-    List<String> timeAsList = time.split(":");
-    List<String> dateAsList = date.split("/");
-    return DateTime(
-        dateAsList.length == 3 ? int.parse(dateAsList[2]) : DateTime.now().year,
-        int.parse(dateAsList[1]),
-        int.parse(dateAsList[0]),
-        int.parse(timeAsList[0]),
-        int.parse(timeAsList[1]));
-  }
-
-  /// Remove a booking from the shared collections
-  /// FIXED: Uses the booking's actual year, not DateTime.now().year
-  void removeBooking(Booking booking) {
-    // Use centralized date parsing from Booking model
-    String day = booking.day.toString();
-    String month = booking.month.toString();
-    String year = booking.year.toString();
-
-    // Remove from availability tracking
-    reference.collection("bookings").doc(year).update({
-      "$month.$day": FieldValue.arrayRemove([booking.time])
-    });
-
-    // Remove from public bookings list
-    reference
-        .collection("bookings-list")
-        .doc(year)
-        .collection(month)
-        .doc(day)
-        .collection("bookings")
-        .doc(booking.id)
-        .delete();
-  }
-
-  /// Add credits to a user's account
-  /// Returns true if credits were added successfully
-  Future<bool> addCredits(int credits, String userID, String creditType) async {
-    try {
-      // Use set with merge to create doc if it doesn't exist (safety net)
-      await reference.collection("users").doc(userID).set({
-        "credits": FieldValue.increment(credits),
-        "active": true,
-        "credit_type": creditType
-      }, SetOptions(merge: true));
-      print('Credits added successfully: $credits credits to user $userID');
-      return true;
-    } catch (e) {
-      print('Error adding credits: $e');
-      return false;
-    }
-  }
-
-  /// Increase user credits (for refunds)
-  void incrementCredit(int credits, String userID) {
-    reference.collection("users").doc(userID).update(
-        {"credits": FieldValue.increment(credits)}).whenComplete(() async {
-      UserModel userModel =
-          await getUserData(FirebaseAuth.instance.currentUser!.uid);
-      if (userModel.credits == 0) {
-        toggleSubscriptionIsActive(false);
-      }
-    });
-  }
-
-  /// Decrease user credits (for bookings)
-  void decreaseCredits(int credits, String userID) {
-    reference.collection("users").doc(userID).update(
-        {"credits": FieldValue.increment(-credits)}).whenComplete(() async {
-      UserModel userModel =
-          await getUserData(FirebaseAuth.instance.currentUser!.uid);
-      if (userModel.credits == 0) {
-        toggleSubscriptionIsActive(false);
-      }
-    });
-  }
-
-  /// Atomically decrease credits using a transaction to prevent race conditions
-  /// Returns true if credits were successfully deducted, false otherwise
-  Future<bool> decreaseCreditsAtomic(int credits, String userID) async {
-    try {
-      return await reference.runTransaction<bool>((transaction) async {
-        DocumentReference userRef = reference.collection("users").doc(userID);
-        DocumentSnapshot userDoc = await transaction.get(userRef);
-
-        if (!userDoc.exists) {
-          return false;
-        }
-
-        int currentCredits =
-            (userDoc.data() as Map<String, dynamic>)['credits'] ?? 0;
-
-        if (currentCredits < credits) {
-          return false; // Not enough credits
-        }
-
-        transaction.update(userRef, {
-          "credits": FieldValue.increment(-credits),
-        });
-
-        return true;
-      });
-    } catch (e) {
-      print('Transaction failed: $e');
-      return false;
-    }
-  }
-
-  void toggleSubscriptionIsActive(bool value) {
-    reference
-        .collection("users")
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .update({"active": value, "credit_type": ""});
-  }
-
-  /// Add a subscription record to user's history
-  void addUserSubscription(
-      String userID, int credits, String subscription, double price) {
-    reference.collection("users").doc(userID).set({
-      "subscriptions": FieldValue.arrayUnion([
-        {
-          "date": DateTime.now(),
-          "credits": credits,
-          "type": subscription,
-          "price": price
-        }
-      ])
-    }, SetOptions(merge: true));
+  /// Cancels through the authoritative booking command. The server owns lock
+  /// release, projections, refund policy, and idempotency.
+  Future<void> removeUserBooking(Booking booking, String userID) async {
+    await BookingApi().cancelSession(booking: booking, userId: userID);
   }
 
   Future<List<dynamic>> getAllPTs() async {
@@ -401,159 +191,26 @@ class CloudFirestore {
     return snapshot.docs.map((pt) => pt.data()).toList();
   }
 
-  /// Atomically check and reserve a slot to prevent double-booking.
-  /// Returns true if booking was created, false if slot already taken.
-  Future<bool> bookSlotAtomic({
+  /// Reserves a trainer-specific 45-minute session and consumes one credit in
+  /// the same transaction.
+  Future<BookingResult> bookSlotAtomic({
     required Booking booking,
     required String userID,
     required int month,
     required String username,
+    required String userEmail,
   }) async {
     try {
-      return await reference.runTransaction<bool>((transaction) async {
-        // Reference to the availability document for this year
-        final year = booking.year.toString();
-        final monthStr = booking.month.toString();
-        final dayStr = booking.day.toString();
-
-        final availabilityRef = reference.collection("bookings").doc(year);
-        final availabilityDoc = await transaction.get(availabilityRef);
-        final userRef = reference.collection("users").doc(userID);
-        final userDoc = await transaction.get(userRef);
-
-        if (availabilityDoc.exists) {
-          // Check if slot is already booked
-          final data = availabilityDoc.data() as Map<String, dynamic>;
-          final dayData = _bookedTimesFor(data, monthStr, dayStr);
-
-          if (dayData != null) {
-            // Check for conflicts (45-minute sessions block multiple slots)
-            final bookingMinutes = _parseTimeToMinutes(booking.time);
-            for (final existingTime in dayData) {
-              final existingMinutes =
-                  _parseTimeToMinutes(existingTime as String);
-              final diff = (bookingMinutes - existingMinutes).abs();
-              // Sessions are 45 minutes, slots are 15 minutes apart
-              if (diff < 45) {
-                return false; // Slot conflict
-              }
-            }
-          }
-        }
-
-        // Reserve the slot in the canonical dotted key shape used by both apps.
-        transaction.set(
-          availabilityRef,
-          {
-            "$monthStr.$dayStr": FieldValue.arrayUnion([booking.time])
-          },
-          SetOptions(merge: true),
-        );
-
-        // Create the booking in bookings-list
-        final publicBookingRef = reference
-            .collection("bookings-list")
-            .doc(year)
-            .collection(monthStr)
-            .doc(dayStr)
-            .collection("bookings")
-            .doc(booking.id);
-
-        Map<String, dynamic> bookingData = booking.toJson();
-        bookingData['name'] = username;
-        transaction.set(publicBookingRef, bookingData);
-
-        // Add to user's bookings
-        final currentStamps = _readInt(userDoc.data()?['reward_stamps']);
-        final nextStamps = currentStamps + 1;
-        final completedRewardCard = nextStamps >= 12;
-
-        transaction.update(userRef, {
-          "bookings": FieldValue.arrayUnion([booking.toJson()]),
-          "reward_stamps": completedRewardCard ? 0 : nextStamps,
-          if (completedRewardCard) "credits": FieldValue.increment(1),
-        });
-
-        return true;
-      });
-    } catch (e) {
-      print('Booking transaction failed: $e');
-      return false;
-    }
-  }
-
-  /// Parse time string (HH:mm) to minutes since midnight
-  int _parseTimeToMinutes(String time) {
-    final parts = time.split(':');
-    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
-  }
-
-  List<dynamic>? _bookedTimesFor(
-      Map<String, dynamic> data, String month, String day) {
-    final dottedTimes = data["$month.$day"];
-    if (dottedTimes is List) {
-      return dottedTimes;
-    }
-
-    final monthData = data[month];
-    if (monthData is Map) {
-      final nestedTimes = monthData[day];
-      if (nestedTimes is List) {
-        return nestedTimes;
+      await BookingApi().createSession(booking: booking, userId: userID);
+      return BookingResult.success;
+    } on BookingCommandException catch (error) {
+      if (error.code == 'no_credits') return BookingResult.noCredits;
+      if (error.code == 'conflict' ||
+          error.code == 'outside_schedule' ||
+          error.code == 'past_session') {
+        return BookingResult.conflict;
       }
-    }
-
-    return null;
-  }
-
-  int _readInt(dynamic value) {
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    if (value is String) return int.tryParse(value.trim()) ?? 0;
-    return 0;
-  }
-
-  /// Self-healing: sync the availability map with the bookings list.
-  /// Reads all bookings from bookings-list for a given day and ensures
-  /// the bookings/{year} availability map contains all booked times.
-  /// This fixes data inconsistencies that can cause double-bookings.
-  Future<void> syncAvailabilityMap({
-    required int year,
-    required int month,
-    required int day,
-  }) async {
-    try {
-      // Read all bookings from bookings-list (ground truth)
-      final querySnapshot = await reference
-          .collection("bookings-list")
-          .doc(year.toString())
-          .collection(month.toString())
-          .doc(day.toString())
-          .collection("bookings")
-          .get();
-
-      if (querySnapshot.docs.isEmpty) return;
-
-      // Extract all booked times
-      final List<String> bookedTimes = querySnapshot.docs
-          .map((doc) => doc.data()['time'] as String?)
-          .where((time) => time != null && time.isNotEmpty)
-          .cast<String>()
-          .toList();
-
-      if (bookedTimes.isEmpty) return;
-
-      // Ensure the availability map includes all these times
-      final availabilityRef =
-          reference.collection("bookings").doc(year.toString());
-      await availabilityRef.set(
-        {"$month.$day": FieldValue.arrayUnion(bookedTimes)},
-        SetOptions(merge: true),
-      );
-
-      print('✅ [syncAvailabilityMap] Synced $month/$day/$year: $bookedTimes');
-    } catch (e) {
-      print('⚠️ [syncAvailabilityMap] Error syncing $month/$day/$year: $e');
+      return BookingResult.failed;
     }
   }
 

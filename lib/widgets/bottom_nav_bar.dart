@@ -71,55 +71,60 @@ class _BottomNavBarState extends State<BottomNavBar> {
   Widget _buildNavItem(int index) {
     final bool isActive = widget.currentIndex == index;
 
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTabTapped(index);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isActive ? _activeIcons[index] : _icons[index],
-                key: ValueKey<bool>(isActive),
-                color: isActive ? bbAccent : bbTextMuted,
-                size: 20,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              _labels[index],
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                color: isActive ? bbAccent : bbTextMuted,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                letterSpacing: 0,
-              ),
-            ),
-            const SizedBox(height: 4),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: isActive ? 1 : 0,
-              child: Container(
-                width: 18,
-                height: 2,
-                decoration: BoxDecoration(
-                  color: bbAccent,
-                  borderRadius: BorderRadius.circular(10),
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: _labels[index],
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTabTapped(index);
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  isActive ? _activeIcons[index] : _icons[index],
+                  key: ValueKey<bool>(isActive),
+                  color: isActive ? bbAccent : bbTextMuted,
+                  size: 20,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 5),
+              Text(
+                _labels[index],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: isActive ? bbAccent : bbTextMuted,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 4),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: isActive ? 1 : 0,
+                child: Container(
+                  width: 18,
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: bbAccent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

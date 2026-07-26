@@ -7,10 +7,6 @@ import 'colors.dart';
 class AppTheme {
   static ThemeData get darkTheme => _buildFigmaTheme();
 
-  // The current Figma system is dark-only, so light mode intentionally resolves
-  // to the same token set until a light companion system exists in Figma.
-  static ThemeData get lightTheme => _buildFigmaTheme();
-
   static ThemeData _buildFigmaTheme() {
     const colorScheme = ColorScheme.dark(
       primary: bbAccent,

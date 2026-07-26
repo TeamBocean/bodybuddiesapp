@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Service for migrating booking data to include year in dates.
-/// 
+///
 /// The legacy booking format stored dates as "DD/MM" without the year.
 /// This migration adds the year to all bookings, defaulting to 2025 for
 /// bookings created before 2026.
 class BookingMigrationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   /// Migration result tracking
   int _bookingsUpdated = 0;
   int _bookingsAlreadyMigrated = 0;
@@ -21,7 +21,16 @@ class BookingMigrationService {
 
   /// Run the actual migration
   Future<MigrationResult> migrate() async {
-    return _runMigration(dryRun: false);
+    return MigrationResult(
+      success: false,
+      bookingsUpdated: 0,
+      bookingsAlreadyMigrated: 0,
+      usersProcessed: 0,
+      errors: const [
+        'Client-side migration is disabled. Run the Admin SDK backfill.',
+      ],
+      dryRun: false,
+    );
   }
 
   Future<MigrationResult> _runMigration({required bool dryRun}) async {
@@ -33,7 +42,7 @@ class BookingMigrationService {
     try {
       // Get all users
       final usersSnapshot = await _firestore.collection('users').get();
-      
+
       for (final userDoc in usersSnapshot.docs) {
         try {
           await _migrateUserBookings(userDoc, dryRun: dryRun);
@@ -64,7 +73,8 @@ class BookingMigrationService {
     }
   }
 
-  Future<void> _migrateUserBookings(DocumentSnapshot userDoc, {required bool dryRun}) async {
+  Future<void> _migrateUserBookings(DocumentSnapshot userDoc,
+      {required bool dryRun}) async {
     final data = userDoc.data() as Map<String, dynamic>?;
     if (data == null) return;
 
@@ -81,7 +91,7 @@ class BookingMigrationService {
       if (date.isEmpty) continue;
 
       final parts = date.split('/');
-      
+
       if (parts.length == 2) {
         // Legacy format without year - add year
         // Determine the appropriate year based on the booking date
@@ -93,7 +103,7 @@ class BookingMigrationService {
         // Already has year
         _bookingsAlreadyMigrated++;
       }
-      
+
       updatedBookings.add(bookingMap);
     }
 
@@ -104,33 +114,8 @@ class BookingMigrationService {
     }
   }
 
-  /// Infer the year for a legacy booking date.
-  /// 
-  /// Logic:
-  /// - If we're in January 2026 and the booking is for month 12, it's likely 2025
-  /// - Otherwise, use 2025 as default for legacy bookings
-  int _inferYear(List<String> dateParts) {
-    final now = DateTime.now();
-    final bookingMonth = int.parse(dateParts[1]);
-    
-    // If current year is 2026+ and booking month is later in the year than now,
-    // and we're early in the year, it might be from last year
-    if (now.year >= 2026) {
-      // Most legacy bookings should be from 2025
-      // But if we're in early 2026 and see a booking for Dec, it's 2025
-      if (now.month <= 3 && bookingMonth >= 10) {
-        return 2025;
-      }
-      // If the booking month is far in the past compared to now, it's likely 2025
-      if (bookingMonth < now.month - 6) {
-        return 2025;
-      }
-      // Default to 2025 for safety - legacy bookings were before 2026
-      return 2025;
-    }
-    
-    return now.year;
-  }
+  /// Legacy yearless records came from the 2025 dataset.
+  int _inferYear(List<String> _) => 2025;
 }
 
 /// Result of a migration operation
