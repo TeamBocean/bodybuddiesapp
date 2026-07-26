@@ -100,7 +100,8 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
         run: |
-          ipa_path="$(find ../build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit)"
+          ipa_path="$(find "$GITHUB_WORKSPACE/build/ios/ipa" \
+            -maxdepth 1 -name '*.ipa' -print -quit)"
           test -n "$ipa_path"
           fastlane ios upload_ipa ipa_path:"$ipa_path"
 
