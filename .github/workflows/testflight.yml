@@ -1,0 +1,89 @@
+name: TestFlight internal build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-upload:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Require the App Store upload toolchain
+        run: |
+          xcode_major="$(xcodebuild -version | awk 'NR == 1 { split($2, value, "."); print value[1] }')"
+          if (( xcode_major < 26 )); then
+            echo "Xcode 26 or newer is required; runner has $(xcodebuild -version | head -1)." >&2
+            exit 1
+          fi
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'
+          cache: true
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install release dependencies
+        run: |
+          gem install fastlane --version 2.237.0 --no-document
+          flutter pub get
+          cd ios
+          pod install
+
+      - name: Install the existing distribution certificate and profile
+        working-directory: ios
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.IOS_DIST_SIGNING_KEY_PASSWORD }}
+          SIGNING_KEY_FILE_PATH: ${{ github.workspace }}/signing-cert.p12
+          CERTIFICATE_BASE64: ${{ secrets.IOS_DIST_SIGNING_KEY }}
+        run: |
+          printf '%s' "$CERTIFICATE_BASE64" | base64 --decode > "$SIGNING_KEY_FILE_PATH"
+          fastlane ios prepare_ci_signing
+
+      - name: Build signed sandbox IPA
+        env:
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          STRIPE_TEST_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+          PAYMENT_INTENT_ENDPOINT: ${{ secrets.PAYMENT_INTENT_ENDPOINT }}
+          PAYMENT_INTENT_TEST_ENDPOINT: ${{ secrets.PAYMENT_INTENT_TEST_ENDPOINT }}
+        run: |
+          flutter build ipa --release \
+            --dart-define=PAYMENT_MODE=test \
+            --dart-define=STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" \
+            --dart-define=STRIPE_TEST_PUBLISHABLE_KEY="$STRIPE_TEST_PUBLISHABLE_KEY" \
+            --dart-define=PAYMENT_INTENT_ENDPOINT="$PAYMENT_INTENT_ENDPOINT" \
+            --dart-define=PAYMENT_INTENT_TEST_ENDPOINT="$PAYMENT_INTENT_TEST_ENDPOINT"
+
+      - name: Upload to TestFlight
+        working-directory: ios
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        run: |
+          ipa_path="$(find ../build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit)"
+          test -n "$ipa_path"
+          fastlane ios upload_ipa ipa_path:"$ipa_path"
+
+      - name: Retain IPA for diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bodybuddies-ios-${{ github.run_number }}
+          path: build/ios/ipa/*.ipa
+          if-no-files-found: ignore
+          retention-days: 7
