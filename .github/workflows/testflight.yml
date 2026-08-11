@@ -1,4 +1,4 @@
-name: TestFlight internal build
+name: App Store candidate build
 
 on:
   workflow_dispatch:
@@ -76,7 +76,7 @@ jobs:
           cd ios
           pod install
 
-      - name: Build signed sandbox IPA
+      - name: Build signed App Store candidate IPA
         env:
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
           STRIPE_TEST_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
@@ -85,7 +85,7 @@ jobs:
         run: |
           flutter build ipa --release \
             --export-options-plist=ios/ExportOptions.plist \
-            --dart-define=PAYMENT_MODE=test \
+            --dart-define=PAYMENT_MODE=auto \
             --dart-define=STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" \
             --dart-define=STRIPE_TEST_PUBLISHABLE_KEY="$STRIPE_TEST_PUBLISHABLE_KEY" \
             --dart-define=PAYMENT_INTENT_ENDPOINT="$PAYMENT_INTENT_ENDPOINT" \

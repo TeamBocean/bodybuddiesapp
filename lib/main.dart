@@ -78,6 +78,12 @@ void _validateReleasePaymentConfiguration() {
       endpoint.contains('10.0.2.2');
   final usesStripeTestMode = PaymentRuntimeConfig.usesStripeTestMode;
 
+  if (!PaymentRuntimeConfig.isTestFlightDistribution && usesStripeTestMode) {
+    throw Exception(
+      'App Store distributions cannot use Stripe test mode.',
+    );
+  }
+
   if (pointsAtLocalhost || usesFirestoreEmulator) {
     throw Exception(
       'Release payment configuration is not production-safe. '
@@ -94,6 +100,14 @@ void _validateReleasePaymentConfiguration() {
   if (!usesStripeTestMode && !publishableKey.startsWith('pk_live_')) {
     throw Exception(
       'Live payment configuration must use a Stripe live publishable key.',
+    );
+  }
+
+  if (!PaymentRuntimeConfig.isTestFlightDistribution &&
+      (endpoint.toLowerCase().contains('sandbox') ||
+          endpoint.toLowerCase().contains('test'))) {
+    throw Exception(
+      'App Store distributions cannot use a sandbox payment endpoint.',
     );
   }
 

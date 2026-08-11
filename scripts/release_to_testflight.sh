@@ -27,8 +27,11 @@ Options:
 
 Environment:
   RELEASE_ENV_FILE      Public runtime config file (default: .env)
-  PAYMENT_MODE          live or test/sandbox (default: test)
+  PAYMENT_MODE          auto, live, or test/sandbox (default: auto)
   TESTFLIGHT_IPA_PATH   Existing IPA path
+
+Auto mode uses Stripe test payments under TestFlight and live payments when
+the identical reviewed binary is installed from the App Store.
 
 Only public client configuration is read from RELEASE_ENV_FILE. Email and
 service-account credentials are never passed to the Flutter build.
@@ -108,11 +111,11 @@ fi
 
 if [[ "$SKIP_BUILD" == 0 ]]; then
   command -v flutter >/dev/null 2>&1 || die "Flutter was not found on PATH."
-  PAYMENT_MODE_VALUE="${PAYMENT_MODE:-test}"
+  PAYMENT_MODE_VALUE="${PAYMENT_MODE:-auto}"
   PAYMENT_MODE_NORMALIZED="$(printf '%s' "$PAYMENT_MODE_VALUE" | tr '[:upper:]' '[:lower:]')"
   case "$PAYMENT_MODE_NORMALIZED" in
-    live|test|sandbox) ;;
-    *) die "PAYMENT_MODE must be live, test, or sandbox." ;;
+    auto|live|test|sandbox) ;;
+    *) die "PAYMENT_MODE must be auto, live, test, or sandbox." ;;
   esac
 
   STRIPE_PUBLISHABLE_KEY_VALUE="$(public_config_value STRIPE_PUBLISHABLE_KEY)"
@@ -121,7 +124,16 @@ if [[ "$SKIP_BUILD" == 0 ]]; then
   PAYMENT_INTENT_TEST_ENDPOINT_VALUE="$(public_config_value PAYMENT_INTENT_TEST_ENDPOINT)"
   BOOKING_COMMAND_ENDPOINT_VALUE="$(public_config_value BOOKING_COMMAND_ENDPOINT)"
 
-  if [[ "$PAYMENT_MODE_NORMALIZED" == live ]]; then
+  if [[ "$PAYMENT_MODE_NORMALIZED" == auto ]]; then
+    [[ "$STRIPE_PUBLISHABLE_KEY_VALUE" == pk_live_* ]] ||
+      die "Auto builds require STRIPE_PUBLISHABLE_KEY beginning with pk_live_."
+    [[ "$STRIPE_TEST_PUBLISHABLE_KEY_VALUE" == pk_test_* ]] ||
+      die "Auto builds require STRIPE_TEST_PUBLISHABLE_KEY beginning with pk_test_."
+    [[ -n "$PAYMENT_INTENT_ENDPOINT_VALUE" ]] ||
+      die "Auto builds require PAYMENT_INTENT_ENDPOINT."
+    [[ -n "$PAYMENT_INTENT_TEST_ENDPOINT_VALUE" ]] ||
+      die "Auto builds require PAYMENT_INTENT_TEST_ENDPOINT."
+  elif [[ "$PAYMENT_MODE_NORMALIZED" == live ]]; then
     [[ "$STRIPE_PUBLISHABLE_KEY_VALUE" == pk_live_* ]] ||
       die "Live builds require STRIPE_PUBLISHABLE_KEY beginning with pk_live_."
     [[ -n "$PAYMENT_INTENT_ENDPOINT_VALUE" ]] ||
@@ -167,7 +179,7 @@ if [[ "$SKIP_BUILD" == 0 ]]; then
     )
     IPA_PATH="$APP_DIR/build/ios/iphoneos/Runner.app"
   else
-    log "Building signed TestFlight IPA..."
+    log "Building signed App Store candidate IPA..."
     (
       cd "$APP_DIR"
       flutter build ipa --release "${DART_DEFINE_ARGS[@]}"
