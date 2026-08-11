@@ -93,6 +93,22 @@ jobs:
           ipa_path="$(find build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit)"
           test -n "$ipa_path"
 
+      - name: Verify candidate version metadata
+        run: |
+          ipa_path="$(find build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit)"
+          info_path="$(unzip -Z1 "$ipa_path" | awk '/^Payload\/[^/]+\.app\/Info.plist$/ { print; exit }')"
+          test -n "$info_path"
+          unzip -p "$ipa_path" "$info_path" > "$RUNNER_TEMP/bodybuddies-info.plist"
+
+          expected_version="$(sed -n 's/^version: \([^+]*\)+.*/\1/p' pubspec.yaml)"
+          expected_build="$(sed -n 's/^version: [^+]*+\(.*\)/\1/p' pubspec.yaml)"
+          actual_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$RUNNER_TEMP/bodybuddies-info.plist")"
+          actual_build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$RUNNER_TEMP/bodybuddies-info.plist")"
+
+          test "$actual_version" = "$expected_version"
+          test "$actual_build" = "$expected_build"
+          echo "Verified candidate version $actual_version ($actual_build)."
+
       - name: Upload to TestFlight
         working-directory: ios
         env:
