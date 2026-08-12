@@ -96,7 +96,7 @@ jobs:
       - name: Verify candidate version metadata
         run: |
           ipa_path="$(find build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit)"
-          info_path="$(unzip -Z1 "$ipa_path" | awk '/^Payload\/[^/]+\.app\/Info.plist$/ { print; exit }')"
+          info_path="$(unzip -Z1 "$ipa_path" | awk '$0 ~ "^Payload/[^/]+[.]app/Info[.]plist$" { print; exit }')"
           test -n "$info_path"
           unzip -p "$ipa_path" "$info_path" > "$RUNNER_TEMP/bodybuddies-info.plist"
 
@@ -105,8 +105,10 @@ jobs:
           actual_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$RUNNER_TEMP/bodybuddies-info.plist")"
           actual_build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$RUNNER_TEMP/bodybuddies-info.plist")"
 
-          test "$actual_version" = "$expected_version"
-          test "$actual_build" = "$expected_build"
+          if [[ "$actual_version" != "$expected_version" || "$actual_build" != "$expected_build" ]]; then
+            echo "::error::Candidate metadata is $actual_version ($actual_build), expected $expected_version ($expected_build)."
+            exit 1
+          fi
           echo "Verified candidate version $actual_version ($actual_build)."
 
       - name: Upload to TestFlight
